@@ -1,0 +1,242 @@
+/*
+  Localizable.strings
+  Locadora
+
+  Portuguese (Brazil) localization
+*/
+
+// App
+"app_name" = "Locadora";
+"app_version" = "Versao 1.0.0";
+"app_description" = "Controle de Locacoes";
+
+// Navigation
+"nav_locacoes" = "Locacoes";
+"nav_entregas" = "Entregas";
+"nav_receber" = "Receber";
+"nav_menu" = "Menu";
+"nav_locar" = "Locar";
+
+// Menu Screen
+"menu_title" = "Menu";
+"menu_subtitle" = "Configuracoes e cadastros";
+"menu_clientes" = "Clientes";
+"menu_clientes_subtitle" = "Gerenciar clientes";
+"menu_equipamentos" = "Equipamentos";
+"menu_equipamentos_subtitle" = "Gerenciar equipamentos";
+
+// Locacoes Screen
+"locacoes_title" = "Locacoes";
+"locacoes_tab_ativos" = "Ativos";
+"locacoes_tab_finalizados" = "Finalizados";
+"locacoes_ativa_singular" = "locacao ativa";
+"locacoes_ativa_plural" = "locacoes ativas";
+"locacoes_finalizada_singular" = "locacao finalizada";
+"locacoes_finalizada_plural" = "locacoes finalizadas";
+"locacoes_empty_ativas_title" = "Nenhuma locacao ativa";
+"locacoes_empty_ativas_subtitle" = "Clique no botao Locar para criar sua primeira locacao";
+"locacoes_empty_finalizadas_title" = "Nenhuma locacao finalizada";
+"locacoes_empty_finalizadas_subtitle" = "As locacoes concluidas aparecerao aqui";
+
+// Nova Locacao Screen
+"nova_locacao_title" = "Nova Locacao";
+"nova_locacao_cliente" = "Cliente";
+"nova_locacao_selecionar_cliente" = "Selecionar cliente";
+"nova_locacao_equipamento" = "Equipamento";
+"nova_locacao_selecionar_equipamento" = "Selecionar equipamento";
+"nova_locacao_valor" = "Valor da Locacao";
+"nova_locacao_valor_placeholder" = "R$ 0,00";
+"nova_locacao_data_inicio" = "Data Inicio";
+"nova_locacao_data_fim" = "Data Fim Prevista";
+"nova_locacao_selecionar_data" = "Selecionar data";
+"nova_locacao_status_entrega" = "Status de Entrega";
+"nova_locacao_data_entrega" = "Data de Entrega Prevista";
+"nova_locacao_emitir_nota" = "Emitir Nota Fiscal";
+"nova_locacao_emitir_nota_subtitle" = "Cliente sera notificado sobre a NF";
+"nova_locacao_criar" = "Criar Locacao";
+"nova_locacao_nenhum_cliente" = "Nenhum cliente cadastrado";
+"nova_locacao_nenhum_equipamento" = "Nenhum equipamento disponivel";
+"nova_locacao_equipamentos_alugados" = "Todos estao alugados ou nenhum foi cadastrado";
+
+// Status Entrega
+"status_entrega_nao_agendada" = "Nao Agendada";
+"status_entrega_agendada" = "Agendada";
+"status_entrega_entregue" = "Entregue";
+
+// Status Pagamento
+"status_pagamento_pendente" = "Pendente";
+"status_pagamento_pago" = "Pago";
+
+// Status Coleta
+"status_coleta_nao_coletado" = "Nao Coletado";
+"status_coleta_coletado" = "Coletado";
+
+// Status Prazo
+"status_prazo_normal" = "Normal";
+"status_prazo_proximo" = "Prox. Vencimento";
+"status_prazo_vencido" = "Vencido";
+
+// Status Locacao
+"status_locacao_ativa" = "Ativa";
+"status_locacao_finalizada" = "Finalizada";
+"status_locacao_vencida" = "Vencida";
+"status_locacao_proximo_vencimento" = "Proximo do Vencimento";
+
+// Detalhes Locacao Screen
+"detalhes_title" = "Detalhes da Locacao";
+"detalhes_voltar" = "Voltar";
+"detalhes_status" = "Status da Locacao";
+"detalhes_cliente" = "Cliente";
+"detalhes_equipamento" = "Equipamento";
+"detalhes_info_locacao" = "Informacoes da Locacao";
+"detalhes_valor" = "Valor";
+"detalhes_data_inicio" = "Data Inicio";
+"detalhes_data_fim" = "Data Fim Prevista";
+"detalhes_renovacoes" = "Renovacoes";
+"detalhes_pagamento" = "Pagamento";
+"detalhes_entrega" = "Entrega";
+"detalhes_coleta" = "Coleta";
+"detalhes_nota_fiscal" = "Nota Fiscal";
+"detalhes_marcar_pago" = "Marcar como Pago";
+"detalhes_marcar_entregue" = "Marcar como Entregue";
+"detalhes_marcar_coletado" = "Marcar como Coletado";
+"detalhes_marcar_nota_emitida" = "Marcar como Emitida";
+"detalhes_renovar" = "Renovar Locacao";
+"detalhes_nota_emitida" = "Emitida";
+
+// Renovar Dialog
+"renovar_title" = "Renovar Locacao";
+"renovar_nova_data" = "Nova Data de Fim";
+"renovar_manter_valor" = "Manter valor atual";
+"renovar_novo_valor" = "Novo Valor";
+
+// Entregas Screen
+"entregas_title" = "Entregas";
+"entregas_pendente_singular" = "entrega pendente";
+"entregas_pendente_plural" = "entregas pendentes";
+"entregas_empty_title" = "Nenhuma entrega pendente";
+"entregas_empty_subtitle" = "Locacoes com entrega agendada ou pendente aparecerao aqui";
+"entregas_confirmar" = "Confirmar Entrega";
+"entregas_vencimento" = "Vencimento";
+
+// Recebimentos Screen
+"recebimentos_title" = "Recebimentos";
+"recebimentos_pendente_singular" = "pagamento pendente";
+"recebimentos_pendente_plural" = "pagamentos pendentes";
+"recebimentos_total" = "Total a receber";
+"recebimentos_empty_title" = "Nenhum recebimento pendente";
+"recebimentos_empty_subtitle" = "Locacoes com equipamentos coletados e pagamento pendente aparecerao aqui";
+"recebimentos_confirmar" = "Confirmar Recebimento";
+"recebimentos_valor" = "Valor a receber";
+"recebimentos_periodo" = "Periodo";
+"recebimentos_status" = "Status";
+
+// Clientes Screen
+"clientes_title" = "Clientes";
+"clientes_novo" = "Novo";
+"clientes_buscar" = "Buscar cliente...";
+"clientes_empty_title" = "Nenhum cliente cadastrado";
+"clientes_empty_subtitle" = "Cadastre um novo cliente para comecar";
+"clientes_empty_search_title" = "Nenhum cliente encontrado";
+"clientes_empty_search_subtitle" = "Tente buscar por outro termo";
+"clientes_cadastrar" = "Cadastrar Cliente";
+"clientes_editar" = "Editar";
+"clientes_excluir" = "Excluir";
+
+// Cliente Form
+"cliente_form_novo" = "Novo Cliente";
+"cliente_form_editar" = "Editar Cliente";
+"cliente_form_nome" = "Nome / Razao Social *";
+"cliente_form_nome_placeholder" = "Nome completo ou razao social";
+"cliente_form_cpf_cnpj" = "CPF / CNPJ";
+"cliente_form_cpf_cnpj_placeholder" = "000.000.000-00";
+"cliente_form_telefone" = "Telefone / WhatsApp *";
+"cliente_form_telefone_placeholder" = "(00) 00000-0000";
+"cliente_form_email" = "E-mail";
+"cliente_form_email_placeholder" = "email@exemplo.com";
+"cliente_form_endereco" = "Endereco";
+"cliente_form_endereco_placeholder" = "Endereco completo";
+"cliente_form_nota_fiscal" = "Precisa de Nota Fiscal por padrao";
+"cliente_form_cadastrar" = "Cadastrar";
+"cliente_form_atualizar" = "Atualizar";
+
+// Equipamentos Screen
+"equipamentos_title" = "Equipamentos";
+"equipamentos_novo" = "Novo";
+"equipamentos_buscar" = "Buscar equipamento...";
+"equipamentos_empty_title" = "Nenhum equipamento cadastrado";
+"equipamentos_empty_subtitle" = "Cadastre um novo equipamento para comecar";
+"equipamentos_empty_search_title" = "Nenhum equipamento encontrado";
+"equipamentos_empty_search_subtitle" = "Tente buscar por outro termo";
+"equipamentos_cadastrar" = "Cadastrar Equipamento";
+"equipamentos_editar" = "Editar";
+"equipamentos_excluir" = "Excluir";
+"equipamentos_alugado" = "Alugado";
+"equipamentos_disponivel" = "Disponivel";
+"equipamentos_preco_locacao" = "Preco locacao";
+"equipamentos_valor_compra" = "Valor de compra";
+
+// Equipamento Form
+"equipamento_form_novo" = "Novo Equipamento";
+"equipamento_form_editar" = "Editar Equipamento";
+"equipamento_form_nome" = "Nome do Equipamento *";
+"equipamento_form_nome_placeholder" = "Ex: Betoneira 400L";
+"equipamento_form_categoria" = "Categoria *";
+"equipamento_form_categoria_placeholder" = "Ex: Betoneira, Martelete, Escora";
+"equipamento_form_identificacao" = "Identificacao / Patrimonio";
+"equipamento_form_identificacao_placeholder" = "Ex: #001, PAT-123";
+"equipamento_form_preco" = "Preco Padrao de Locacao *";
+"equipamento_form_preco_placeholder" = "0.00";
+"equipamento_form_valor_compra" = "Valor de Compra";
+"equipamento_form_valor_compra_placeholder" = "0.00";
+"equipamento_form_observacoes" = "Observacoes";
+"equipamento_form_observacoes_placeholder" = "Informacoes adicionais sobre o equipamento";
+"equipamento_form_cadastrar" = "Cadastrar";
+"equipamento_form_atualizar" = "Atualizar";
+
+// Common
+"common_voltar" = "Voltar";
+"common_fechar" = "Fechar";
+"common_cancelar" = "Cancelar";
+"common_confirmar" = "Confirmar";
+"common_salvar" = "Salvar";
+"common_editar" = "Editar";
+"common_excluir" = "Excluir";
+"common_erro" = "Erro";
+"common_sucesso" = "Sucesso";
+"common_carregando" = "Carregando...";
+"common_cliente_nao_encontrado" = "Cliente nao encontrado";
+"common_equipamento_nao_encontrado" = "Equipamento nao encontrado";
+"common_erro_desconhecido" = "Erro desconhecido";
+
+// Validation Messages
+"validation_selecione_cliente" = "Selecione um cliente";
+"validation_selecione_equipamento" = "Selecione um equipamento";
+"validation_informe_data_fim" = "Informe a data de fim prevista";
+"validation_informe_valor" = "Informe um valor valido";
+"validation_informe_data_entrega" = "Informe a data de entrega prevista";
+
+// Success Messages
+"success_locacao_criada" = "Locacao criada com sucesso!";
+"success_locacao_renovada" = "Locacao renovada com sucesso!";
+"success_pagamento_marcado" = "Pagamento marcado como pago!";
+"success_entrega_marcada" = "Equipamento marcado como entregue!";
+"success_coleta_marcada" = "Equipamento marcado como coletado!";
+"success_nota_emitida" = "Nota fiscal marcada como emitida!";
+"success_cliente_salvo" = "Cliente salvo com sucesso!";
+"success_cliente_excluido" = "Cliente excluido com sucesso!";
+"success_equipamento_salvo" = "Equipamento salvo com sucesso!";
+"success_equipamento_excluido" = "Equipamento excluido com sucesso!";
+
+// Error Messages
+"error_locacao_nao_encontrada" = "Locacao nao encontrada";
+"error_criar_locacao" = "Erro ao criar locacao";
+"error_renovar_locacao" = "Erro ao renovar locacao";
+"error_marcar_pagamento" = "Erro ao marcar pagamento";
+"error_marcar_entrega" = "Erro ao marcar entrega";
+"error_marcar_coleta" = "Erro ao marcar coleta";
+"error_marcar_nota" = "Erro ao marcar nota";
+"error_salvar_cliente" = "Erro ao salvar cliente";
+"error_excluir_cliente" = "Erro ao excluir cliente";
+"error_salvar_equipamento" = "Erro ao salvar equipamento";
+"error_excluir_equipamento" = "Erro ao excluir equipamento";

@@ -1,0 +1,243 @@
+<resources>
+    <string name="app_name">Locadora</string>
+    <string name="app_version">Versao 1.0.0</string>
+    <string name="app_description">Controle de Locacoes</string>
+
+    <!-- Navigation -->
+    <string name="nav_locacoes">Locacoes</string>
+    <string name="nav_entregas">Entregas</string>
+    <string name="nav_receber">Receber</string>
+    <string name="nav_menu">Menu</string>
+    <string name="nav_locar">Locar</string>
+
+    <!-- Menu Screen -->
+    <string name="menu_title">Menu</string>
+    <string name="menu_subtitle">Configuracoes e cadastros</string>
+    <string name="menu_clientes">Clientes</string>
+    <string name="menu_clientes_subtitle">Gerenciar clientes</string>
+    <string name="menu_equipamentos">Equipamentos</string>
+    <string name="menu_equipamentos_subtitle">Gerenciar equipamentos</string>
+
+    <!-- Locacoes Screen -->
+    <string name="locacoes_title">Locacoes</string>
+    <string name="locacoes_tab_ativos">Ativos</string>
+    <string name="locacoes_tab_finalizados">Finalizados</string>
+    <string name="locacoes_ativa_singular">locacao ativa</string>
+    <string name="locacoes_ativa_plural">locacoes ativas</string>
+    <string name="locacoes_finalizada_singular">locacao finalizada</string>
+    <string name="locacoes_finalizada_plural">locacoes finalizadas</string>
+    <string name="locacoes_empty_ativas_title">Nenhuma locacao ativa</string>
+    <string name="locacoes_empty_ativas_subtitle">Clique no botao Locar para criar sua primeira locacao</string>
+    <string name="locacoes_empty_finalizadas_title">Nenhuma locacao finalizada</string>
+    <string name="locacoes_empty_finalizadas_subtitle">As locacoes concluidas aparecerao aqui</string>
+
+    <!-- Nova Locacao Screen -->
+    <string name="nova_locacao_title">Nova Locacao</string>
+    <string name="nova_locacao_cliente">Cliente</string>
+    <string name="nova_locacao_selecionar_cliente">Selecionar cliente</string>
+    <string name="nova_locacao_equipamento">Equipamento</string>
+    <string name="nova_locacao_selecionar_equipamento">Selecionar equipamento</string>
+    <string name="nova_locacao_valor">Valor da Locacao</string>
+    <string name="nova_locacao_valor_placeholder">R$ 0,00</string>
+    <string name="nova_locacao_data_inicio">Data Inicio</string>
+    <string name="nova_locacao_data_fim">Data Fim Prevista</string>
+    <string name="nova_locacao_selecionar_data">Selecionar data</string>
+    <string name="nova_locacao_status_entrega">Status de Entrega</string>
+    <string name="nova_locacao_data_entrega">Data de Entrega Prevista</string>
+    <string name="nova_locacao_emitir_nota">Emitir Nota Fiscal</string>
+    <string name="nova_locacao_emitir_nota_subtitle">Cliente sera notificado sobre a NF</string>
+    <string name="nova_locacao_criar">Criar Locacao</string>
+    <string name="nova_locacao_nenhum_cliente">Nenhum cliente cadastrado</string>
+    <string name="nova_locacao_nenhum_equipamento">Nenhum equipamento disponivel</string>
+    <string name="nova_locacao_equipamentos_alugados">Todos estao alugados ou nenhum foi cadastrado</string>
+
+    <!-- Status Entrega -->
+    <string name="status_entrega_nao_agendada">Nao Agendada</string>
+    <string name="status_entrega_agendada">Agendada</string>
+    <string name="status_entrega_entregue">Entregue</string>
+
+    <!-- Status Pagamento -->
+    <string name="status_pagamento_pendente">Pendente</string>
+    <string name="status_pagamento_pago">Pago</string>
+
+    <!-- Status Coleta -->
+    <string name="status_coleta_nao_coletado">Nao Coletado</string>
+    <string name="status_coleta_coletado">Coletado</string>
+
+    <!-- Status Prazo -->
+    <string name="status_prazo_normal">Normal</string>
+    <string name="status_prazo_proximo">Prox. Vencimento</string>
+    <string name="status_prazo_vencido">Vencido</string>
+
+    <!-- Status Locacao -->
+    <string name="status_locacao_ativa">Ativa</string>
+    <string name="status_locacao_finalizada">Finalizada</string>
+    <string name="status_locacao_vencida">Vencida</string>
+    <string name="status_locacao_proximo_vencimento">Proximo do Vencimento</string>
+
+    <!-- Detalhes Locacao Screen -->
+    <string name="detalhes_title">Detalhes da Locacao</string>
+    <string name="detalhes_voltar">Voltar</string>
+    <string name="detalhes_status">Status da Locacao</string>
+    <string name="detalhes_cliente">Cliente</string>
+    <string name="detalhes_equipamento">Equipamento</string>
+    <string name="detalhes_info_locacao">Informacoes da Locacao</string>
+    <string name="detalhes_valor">Valor</string>
+    <string name="detalhes_data_inicio">Data Inicio</string>
+    <string name="detalhes_data_fim">Data Fim Prevista</string>
+    <string name="detalhes_renovacoes">Renovacoes</string>
+    <string name="detalhes_pagamento">Pagamento</string>
+    <string name="detalhes_entrega">Entrega</string>
+    <string name="detalhes_coleta">Coleta</string>
+    <string name="detalhes_nota_fiscal">Nota Fiscal</string>
+    <string name="detalhes_marcar_pago">Marcar como Pago</string>
+    <string name="detalhes_marcar_entregue">Marcar como Entregue</string>
+    <string name="detalhes_marcar_coletado">Marcar como Coletado</string>
+    <string name="detalhes_marcar_nota_emitida">Marcar como Emitida</string>
+    <string name="detalhes_renovar">Renovar Locacao</string>
+    <string name="detalhes_nota_emitida">Emitida</string>
+    <string name="detalhes_id">ID: %1$s</string>
+    <string name="detalhes_prevista">Prevista: %1$s</string>
+
+    <!-- Renovar Dialog -->
+    <string name="renovar_title">Renovar Locacao</string>
+    <string name="renovar_nova_data">Nova Data de Fim</string>
+    <string name="renovar_manter_valor">Manter valor atual</string>
+    <string name="renovar_novo_valor">Novo Valor</string>
+    <string name="renovar_confirmar">Confirmar</string>
+    <string name="renovar_cancelar">Cancelar</string>
+
+    <!-- Entregas Screen -->
+    <string name="entregas_title">Entregas</string>
+    <string name="entregas_pendente_singular">entrega pendente</string>
+    <string name="entregas_pendente_plural">entregas pendentes</string>
+    <string name="entregas_empty_title">Nenhuma entrega pendente</string>
+    <string name="entregas_empty_subtitle">Locacoes com entrega agendada ou pendente aparecerao aqui</string>
+    <string name="entregas_confirmar">Confirmar Entrega</string>
+    <string name="entregas_vencimento">Vencimento</string>
+    <string name="entregas_data_prevista">Data prevista: %1$s</string>
+
+    <!-- Recebimentos Screen -->
+    <string name="recebimentos_title">Recebimentos</string>
+    <string name="recebimentos_pendente_singular">pagamento pendente</string>
+    <string name="recebimentos_pendente_plural">pagamentos pendentes</string>
+    <string name="recebimentos_total">Total a receber</string>
+    <string name="recebimentos_empty_title">Nenhum recebimento pendente</string>
+    <string name="recebimentos_empty_subtitle">Locacoes com equipamentos coletados e pagamento pendente aparecerao aqui</string>
+    <string name="recebimentos_confirmar">Confirmar Recebimento</string>
+    <string name="recebimentos_valor">Valor a receber</string>
+    <string name="recebimentos_periodo">Periodo</string>
+    <string name="recebimentos_status">Status</string>
+
+    <!-- Clientes Screen -->
+    <string name="clientes_title">Clientes</string>
+    <string name="clientes_cadastrados">%1$d clientes cadastrados</string>
+    <string name="clientes_novo">Novo</string>
+    <string name="clientes_buscar">Buscar cliente...</string>
+    <string name="clientes_empty_title">Nenhum cliente cadastrado</string>
+    <string name="clientes_empty_subtitle">Cadastre um novo cliente para comecar</string>
+    <string name="clientes_empty_search_title">Nenhum cliente encontrado</string>
+    <string name="clientes_empty_search_subtitle">Tente buscar por outro termo</string>
+    <string name="clientes_cadastrar">Cadastrar Cliente</string>
+    <string name="clientes_editar">Editar</string>
+    <string name="clientes_excluir">Excluir</string>
+
+    <!-- Cliente Form -->
+    <string name="cliente_form_novo">Novo Cliente</string>
+    <string name="cliente_form_editar">Editar Cliente</string>
+    <string name="cliente_form_nome">Nome / Razao Social *</string>
+    <string name="cliente_form_nome_placeholder">Nome completo ou razao social</string>
+    <string name="cliente_form_cpf_cnpj">CPF / CNPJ</string>
+    <string name="cliente_form_cpf_cnpj_placeholder">000.000.000-00</string>
+    <string name="cliente_form_telefone">Telefone / WhatsApp *</string>
+    <string name="cliente_form_telefone_placeholder">(00) 00000-0000</string>
+    <string name="cliente_form_email">E-mail</string>
+    <string name="cliente_form_email_placeholder">email@exemplo.com</string>
+    <string name="cliente_form_endereco">Endereco</string>
+    <string name="cliente_form_endereco_placeholder">Endereco completo</string>
+    <string name="cliente_form_nota_fiscal">Precisa de Nota Fiscal por padrao</string>
+    <string name="cliente_form_cadastrar">Cadastrar</string>
+    <string name="cliente_form_atualizar">Atualizar</string>
+
+    <!-- Equipamentos Screen -->
+    <string name="equipamentos_title">Equipamentos</string>
+    <string name="equipamentos_cadastrados">%1$d equipamentos cadastrados</string>
+    <string name="equipamentos_novo">Novo</string>
+    <string name="equipamentos_buscar">Buscar equipamento...</string>
+    <string name="equipamentos_empty_title">Nenhum equipamento cadastrado</string>
+    <string name="equipamentos_empty_subtitle">Cadastre um novo equipamento para comecar</string>
+    <string name="equipamentos_empty_search_title">Nenhum equipamento encontrado</string>
+    <string name="equipamentos_empty_search_subtitle">Tente buscar por outro termo</string>
+    <string name="equipamentos_cadastrar">Cadastrar Equipamento</string>
+    <string name="equipamentos_editar">Editar</string>
+    <string name="equipamentos_excluir">Excluir</string>
+    <string name="equipamentos_alugado">Alugado</string>
+    <string name="equipamentos_disponivel">Disponivel</string>
+    <string name="equipamentos_preco_locacao">Preco locacao</string>
+    <string name="equipamentos_valor_compra">Valor de compra</string>
+
+    <!-- Equipamento Form -->
+    <string name="equipamento_form_novo">Novo Equipamento</string>
+    <string name="equipamento_form_editar">Editar Equipamento</string>
+    <string name="equipamento_form_nome">Nome do Equipamento *</string>
+    <string name="equipamento_form_nome_placeholder">Ex: Betoneira 400L</string>
+    <string name="equipamento_form_categoria">Categoria *</string>
+    <string name="equipamento_form_categoria_placeholder">Ex: Betoneira, Martelete, Escora</string>
+    <string name="equipamento_form_identificacao">Identificacao / Patrimonio</string>
+    <string name="equipamento_form_identificacao_placeholder">Ex: #001, PAT-123</string>
+    <string name="equipamento_form_preco">Preco Padrao de Locacao *</string>
+    <string name="equipamento_form_preco_placeholder">0.00</string>
+    <string name="equipamento_form_valor_compra">Valor de Compra</string>
+    <string name="equipamento_form_valor_compra_placeholder">0.00</string>
+    <string name="equipamento_form_observacoes">Observacoes</string>
+    <string name="equipamento_form_observacoes_placeholder">Informacoes adicionais sobre o equipamento</string>
+    <string name="equipamento_form_cadastrar">Cadastrar</string>
+    <string name="equipamento_form_atualizar">Atualizar</string>
+
+    <!-- Common -->
+    <string name="common_voltar">Voltar</string>
+    <string name="common_fechar">Fechar</string>
+    <string name="common_cancelar">Cancelar</string>
+    <string name="common_confirmar">Confirmar</string>
+    <string name="common_salvar">Salvar</string>
+    <string name="common_editar">Editar</string>
+    <string name="common_excluir">Excluir</string>
+    <string name="common_erro">Erro</string>
+    <string name="common_sucesso">Sucesso</string>
+    <string name="common_carregando">Carregando...</string>
+    <string name="common_cliente_nao_encontrado">Cliente nao encontrado</string>
+    <string name="common_equipamento_nao_encontrado">Equipamento nao encontrado</string>
+    <string name="common_erro_desconhecido">Erro desconhecido</string>
+
+    <!-- Validation Messages -->
+    <string name="validation_selecione_cliente">Selecione um cliente</string>
+    <string name="validation_selecione_equipamento">Selecione um equipamento</string>
+    <string name="validation_informe_data_fim">Informe a data de fim prevista</string>
+    <string name="validation_informe_valor">Informe um valor valido</string>
+    <string name="validation_informe_data_entrega">Informe a data de entrega prevista</string>
+
+    <!-- Success Messages -->
+    <string name="success_locacao_criada">Locacao criada com sucesso!</string>
+    <string name="success_locacao_renovada">Locacao renovada com sucesso!</string>
+    <string name="success_pagamento_marcado">Pagamento marcado como pago!</string>
+    <string name="success_entrega_marcada">Equipamento marcado como entregue!</string>
+    <string name="success_coleta_marcada">Equipamento marcado como coletado!</string>
+    <string name="success_nota_emitida">Nota fiscal marcada como emitida!</string>
+    <string name="success_cliente_salvo">Cliente salvo com sucesso!</string>
+    <string name="success_cliente_excluido">Cliente excluido com sucesso!</string>
+    <string name="success_equipamento_salvo">Equipamento salvo com sucesso!</string>
+    <string name="success_equipamento_excluido">Equipamento excluido com sucesso!</string>
+
+    <!-- Error Messages -->
+    <string name="error_locacao_nao_encontrada">Locacao nao encontrada</string>
+    <string name="error_criar_locacao">Erro ao criar locacao</string>
+    <string name="error_renovar_locacao">Erro ao renovar locacao</string>
+    <string name="error_marcar_pagamento">Erro ao marcar pagamento</string>
+    <string name="error_marcar_entrega">Erro ao marcar entrega</string>
+    <string name="error_marcar_coleta">Erro ao marcar coleta</string>
+    <string name="error_marcar_nota">Erro ao marcar nota</string>
+    <string name="error_salvar_cliente">Erro ao salvar cliente</string>
+    <string name="error_excluir_cliente">Erro ao excluir cliente</string>
+    <string name="error_salvar_equipamento">Erro ao salvar equipamento</string>
+    <string name="error_excluir_equipamento">Erro ao excluir equipamento</string>
+</resources>
