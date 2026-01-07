@@ -82,7 +82,7 @@ fun RecebimentosScreen(
                 )
                 if (state.recebimentosPendentes.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    Divider(color = Color.White.copy(alpha = 0.3f))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = Strings.RECEBIMENTOS_TOTAL,

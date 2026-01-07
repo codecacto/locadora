@@ -13,7 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.datetime.*
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class EntregasViewModel(
     private val locacaoRepository: LocacaoRepository,
@@ -58,7 +62,7 @@ class EntregasViewModel(
                         it.statusEntrega != StatusEntrega.ENTREGUE
                     }
 
-                    val hoje = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                    val hoje: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
                     locacoesPendentes.map { locacao ->
                         val dataEntrega = locacao.dataEntregaPrevista?.let {

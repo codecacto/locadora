@@ -1,9 +1,11 @@
 package br.com.codecacto.locadora.core.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -216,31 +218,29 @@ private fun BottomNavItemView(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    NavigationBarItem(
-        selected = isSelected,
-        onClick = onClick,
-        icon = {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = item.label,
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        label = {
-            Text(
-                text = item.label,
-                fontSize = 10.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-            )
-        },
-        colors = NavigationBarItemDefaults.colors(
-            selectedIconColor = AppColors.Violet600,
-            selectedTextColor = AppColors.Violet600,
-            unselectedIconColor = AppColors.Slate500,
-            unselectedTextColor = AppColors.Slate500,
-            indicatorColor = Color.Transparent
+    val color = if (isSelected) AppColors.Violet600 else AppColors.Slate500
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = item.icon,
+            contentDescription = item.label,
+            modifier = Modifier.size(24.dp),
+            tint = color
         )
-    )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = item.label,
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = color
+        )
+    }
 }
 
 @Composable
@@ -307,7 +307,7 @@ private fun MenuScreen(
             )
 
             MenuItemCard(
-                icon = Icons.Default.ExitToApp,
+                icon = Icons.AutoMirrored.Filled.ExitToApp,
                 title = Strings.MENU_SAIR,
                 subtitle = Strings.MENU_SAIR_SUBTITLE,
                 backgroundColor = AppColors.RedLight,

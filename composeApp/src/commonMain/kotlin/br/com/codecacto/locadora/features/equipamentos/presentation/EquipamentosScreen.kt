@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -72,7 +73,7 @@ fun EquipamentosScreen(
                 ) {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = Strings.COMMON_VOLTAR,
                             tint = Color.White
                         )
@@ -290,7 +291,7 @@ private fun EquipamentoCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(color = AppColors.Slate200)
+            HorizontalDivider(color = AppColors.Slate200)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
