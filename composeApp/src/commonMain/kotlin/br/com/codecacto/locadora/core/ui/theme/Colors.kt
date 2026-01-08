@@ -33,6 +33,7 @@ object AppColors {
     val Rose100 = Color(0xFFFFE4E6)
 
     // Orange (Entregas)
+    val Orange600 = Color(0xFFEA580C)
     val Orange500 = Color(0xFFF97316)
     val Orange400 = Color(0xFFFB923C)
     val Orange100 = Color(0xFFFFEDD5)

@@ -41,7 +41,8 @@ class EquipamentosViewModel(
                     identificacao = "",
                     precoPadraoLocacao = "",
                     valorCompra = "",
-                    observacoes = ""
+                    observacoes = "",
+                    isSaving = false
                 )
             }
             is EquipamentosContract.Action.HideForm -> {
@@ -59,7 +60,8 @@ class EquipamentosViewModel(
                     identificacao = action.equipamento.identificacao ?: "",
                     precoPadraoLocacao = precoInCents,
                     valorCompra = valorCompraInCents,
-                    observacoes = action.equipamento.observacoes ?: ""
+                    observacoes = action.equipamento.observacoes ?: "",
+                    isSaving = false
                 )
             }
             is EquipamentosContract.Action.DeleteEquipamento -> deleteEquipamento(action.equipamento)

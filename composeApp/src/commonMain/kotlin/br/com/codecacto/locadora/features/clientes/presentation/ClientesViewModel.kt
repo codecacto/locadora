@@ -44,7 +44,8 @@ class ClientesViewModel(
                     precisaNotaFiscalPadrao = false,
                     emailError = null,
                     cpfCnpjError = null,
-                    telefoneError = null
+                    telefoneError = null,
+                    isSaving = false
                 )
             }
             is ClientesContract.Action.HideForm -> {
@@ -65,7 +66,8 @@ class ClientesViewModel(
                     precisaNotaFiscalPadrao = action.cliente.precisaNotaFiscalPadrao,
                     emailError = null,
                     cpfCnpjError = null,
-                    telefoneError = null
+                    telefoneError = null,
+                    isSaving = false
                 )
             }
             is ClientesContract.Action.DeleteCliente -> deleteCliente(action.cliente)

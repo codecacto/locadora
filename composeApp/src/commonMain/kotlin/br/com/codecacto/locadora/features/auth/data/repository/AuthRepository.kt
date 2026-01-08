@@ -179,21 +179,63 @@ class AuthRepositoryImpl(
     private fun mapFirebaseException(e: Exception): Exception {
         val message = e.message?.lowercase() ?: ""
         return when {
+            // Credenciais inválidas
             message.contains("invalid-credential") ||
             message.contains("wrong-password") ||
-            message.contains("user-not-found") -> Exception("Email ou senha incorretos")
+            message.contains("invalid_login_credentials") ||
+            message.contains("invalid-login-credentials") ||
+            message.contains("user-not-found") ||
+            message.contains("invalid password") ||
+            message.contains("password is invalid") ||
+            message.contains("no user record") ->
+                Exception("Email ou senha incorretos")
 
-            message.contains("email-already-in-use") -> Exception("Este email ja esta cadastrado")
+            // Email já cadastrado
+            message.contains("email-already-in-use") ||
+            message.contains("email already in use") ->
+                Exception("Este email ja esta cadastrado")
 
-            message.contains("weak-password") -> Exception("A senha deve ter pelo menos 6 caracteres")
+            // Senha fraca
+            message.contains("weak-password") ||
+            message.contains("weak password") ||
+            message.contains("password should be") ->
+                Exception("A senha deve ter pelo menos 6 caracteres")
 
-            message.contains("invalid-email") -> Exception("Email invalido")
+            // Email inválido
+            message.contains("invalid-email") ||
+            message.contains("invalid email") ||
+            message.contains("badly formatted") ->
+                Exception("Email invalido")
 
-            message.contains("too-many-requests") -> Exception("Muitas tentativas. Tente novamente mais tarde")
+            // Muitas tentativas
+            message.contains("too-many-requests") ||
+            message.contains("too many requests") ||
+            message.contains("blocked") ->
+                Exception("Muitas tentativas. Aguarde alguns minutos e tente novamente")
 
-            message.contains("network") -> Exception("Erro de conexao. Verifique sua internet")
+            // Erro de rede
+            message.contains("network") ||
+            message.contains("internet") ||
+            message.contains("connection") ||
+            message.contains("timeout") ->
+                Exception("Erro de conexao. Verifique sua internet")
 
-            else -> Exception(e.message ?: "Erro desconhecido")
+            // Usuário desabilitado
+            message.contains("user-disabled") ||
+            message.contains("user disabled") ->
+                Exception("Esta conta foi desativada")
+
+            // Conta não encontrada
+            message.contains("account-exists") ->
+                Exception("Ja existe uma conta com este email")
+
+            // Reautenticação necessária
+            message.contains("requires-recent-login") ||
+            message.contains("recent login") ->
+                Exception("Por seguranca, faca login novamente para continuar")
+
+            // Erro genérico - retorna mensagem amigável
+            else -> Exception("Ocorreu um erro. Tente novamente")
         }
     }
 }

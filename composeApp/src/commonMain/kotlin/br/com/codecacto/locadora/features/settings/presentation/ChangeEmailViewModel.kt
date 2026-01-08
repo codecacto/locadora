@@ -90,11 +90,12 @@ class ChangeEmailViewModel(
                     emitEffect(ChangeEmailContract.Effect.NavigateBack)
                 }
                 .onFailure { exception ->
+                    val errorMessage = exception.message ?: "Erro ao alterar email"
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        passwordError = "Senha incorreta"
+                        passwordError = errorMessage
                     )
-                    emitEffect(ChangeEmailContract.Effect.ShowError(exception.message ?: "Erro ao alterar email"))
+                    emitEffect(ChangeEmailContract.Effect.ShowError(errorMessage))
                 }
         }
     }

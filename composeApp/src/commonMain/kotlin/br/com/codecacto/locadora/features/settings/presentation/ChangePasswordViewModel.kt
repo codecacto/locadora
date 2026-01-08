@@ -106,11 +106,12 @@ class ChangePasswordViewModel(
                     emitEffect(ChangePasswordContract.Effect.NavigateBack)
                 }
                 .onFailure { exception ->
+                    val errorMessage = exception.message ?: "Erro ao alterar senha"
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        currentPasswordError = "Senha atual incorreta"
+                        currentPasswordError = errorMessage
                     )
-                    emitEffect(ChangePasswordContract.Effect.ShowError(exception.message ?: "Erro ao alterar senha"))
+                    emitEffect(ChangePasswordContract.Effect.ShowError(errorMessage))
                 }
         }
     }
