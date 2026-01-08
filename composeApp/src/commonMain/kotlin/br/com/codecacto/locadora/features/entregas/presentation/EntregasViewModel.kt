@@ -39,7 +39,15 @@ class EntregasViewModel(
             is EntregasContract.Action.SelectLocacao -> {
                 emitEffect(EntregasContract.Effect.NavigateToDetalhes(action.locacao.id))
             }
-            is EntregasContract.Action.Refresh -> loadEntregas()
+            is EntregasContract.Action.Refresh -> refreshEntregas()
+        }
+    }
+
+    private fun refreshEntregas() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isRefreshing = true)
+            kotlinx.coroutines.delay(500)
+            _state.value = _state.value.copy(isRefreshing = false)
         }
     }
 

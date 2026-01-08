@@ -5,6 +5,7 @@ import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.StatusLocacao
+import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,14 +48,17 @@ class EquipamentosViewModel(
                 _state.value = _state.value.copy(showForm = false, editingEquipamento = null)
             }
             is EquipamentosContract.Action.EditEquipamento -> {
+                // Convert prices to cents format for masked input
+                val precoInCents = (action.equipamento.precoPadraoLocacao * 100).toLong().toString()
+                val valorCompraInCents = action.equipamento.valorCompra?.let { (it * 100).toLong().toString() } ?: ""
                 _state.value = _state.value.copy(
                     showForm = true,
                     editingEquipamento = action.equipamento,
                     nome = action.equipamento.nome,
                     categoria = action.equipamento.categoria,
                     identificacao = action.equipamento.identificacao ?: "",
-                    precoPadraoLocacao = action.equipamento.precoPadraoLocacao.toString(),
-                    valorCompra = action.equipamento.valorCompra?.toString() ?: "",
+                    precoPadraoLocacao = precoInCents,
+                    valorCompra = valorCompraInCents,
                     observacoes = action.equipamento.observacoes ?: ""
                 )
             }
@@ -78,7 +82,7 @@ class EquipamentosViewModel(
                 _state.value = _state.value.copy(observacoes = action.value)
             }
             is EquipamentosContract.Action.SaveEquipamento -> saveEquipamento()
-            is EquipamentosContract.Action.Refresh -> loadEquipamentos()
+            is EquipamentosContract.Action.Refresh -> refreshEquipamentos()
             is EquipamentosContract.Action.ClearForm -> {
                 _state.value = _state.value.copy(
                     editingEquipamento = null,
@@ -130,6 +134,14 @@ class EquipamentosViewModel(
         }
     }
 
+    private fun refreshEquipamentos() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isRefreshing = true)
+            kotlinx.coroutines.delay(500)
+            _state.value = _state.value.copy(isRefreshing = false)
+        }
+    }
+
     private fun saveEquipamento() {
         val currentState = _state.value
 
@@ -143,11 +155,15 @@ class EquipamentosViewModel(
             return
         }
 
-        val precoPadraoLocacao = currentState.precoPadraoLocacao.toDoubleOrNull()
-        if (precoPadraoLocacao == null || precoPadraoLocacao <= 0) {
+        val precoPadraoLocacao = currentState.precoPadraoLocacao.currencyToDouble()
+        if (precoPadraoLocacao <= 0) {
             emitEffect(EquipamentosContract.Effect.ShowError("Preço de locação inválido"))
             return
         }
+
+        val valorCompra = if (currentState.valorCompra.isNotBlank()) {
+            currentState.valorCompra.currencyToDouble().takeIf { it > 0 }
+        } else null
 
         viewModelScope.launch {
             try {
@@ -159,7 +175,7 @@ class EquipamentosViewModel(
                     categoria = currentState.categoria,
                     identificacao = currentState.identificacao.ifBlank { null },
                     precoPadraoLocacao = precoPadraoLocacao,
-                    valorCompra = currentState.valorCompra.toDoubleOrNull(),
+                    valorCompra = valorCompra,
                     observacoes = currentState.observacoes.ifBlank { null }
                 )
 

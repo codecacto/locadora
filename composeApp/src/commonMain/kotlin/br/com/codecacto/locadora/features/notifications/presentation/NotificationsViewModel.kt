@@ -47,6 +47,15 @@ class NotificationsViewModel(
             is NotificationsContract.Action.OnExcluir -> excluirNotificacao(action.id)
             is NotificationsContract.Action.OnMarcarTodasComoLidas -> marcarTodasComoLidas()
             is NotificationsContract.Action.OnLimparLidas -> limparLidas()
+            is NotificationsContract.Action.Refresh -> refreshNotificacoes()
+        }
+    }
+
+    private fun refreshNotificacoes() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isRefreshing = true)
+            kotlinx.coroutines.delay(500)
+            _state.value = _state.value.copy(isRefreshing = false)
         }
     }
 

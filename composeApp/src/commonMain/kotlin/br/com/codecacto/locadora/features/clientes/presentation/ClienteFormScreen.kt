@@ -21,6 +21,13 @@ import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import br.com.codecacto.locadora.core.ui.util.TipoPessoa
+import br.com.codecacto.locadora.core.ui.util.PhoneVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.CpfVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.CnpjVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.filterPhoneInput
+import br.com.codecacto.locadora.core.ui.util.filterCpfInput
+import br.com.codecacto.locadora.core.ui.util.filterCnpjInput
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,12 +135,64 @@ fun ClienteFormScreen(
                     singleLine = true
                 )
 
+                // Tipo de Pessoa Selector
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TipoPessoa.entries.forEach { tipo ->
+                        FilterChip(
+                            selected = state.tipoPessoa == tipo,
+                            onClick = {
+                                viewModel.dispatch(ClientesContract.Action.SetTipoPessoa(tipo))
+                            },
+                            label = {
+                                Text(
+                                    text = tipo.label,
+                                    fontSize = 13.sp
+                                )
+                            },
+                            leadingIcon = if (state.tipoPessoa == tipo) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AppColors.Blue100,
+                                selectedLabelColor = AppColors.Blue600,
+                                selectedLeadingIconColor = AppColors.Blue600
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
                 // CPF/CNPJ
                 OutlinedTextField(
                     value = state.cpfCnpj,
-                    onValueChange = { viewModel.dispatch(ClientesContract.Action.SetCpfCnpj(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_CPF_CNPJ) },
-                    placeholder = { Text(Strings.CLIENTE_FORM_CPF_CNPJ_PLACEHOLDER) },
+                    onValueChange = { newValue ->
+                        val filtered = if (state.tipoPessoa == TipoPessoa.FISICA) {
+                            filterCpfInput(newValue)
+                        } else {
+                            filterCnpjInput(newValue)
+                        }
+                        viewModel.dispatch(ClientesContract.Action.SetCpfCnpj(filtered))
+                    },
+                    label = {
+                        Text(if (state.tipoPessoa == TipoPessoa.FISICA) "CPF" else "CNPJ")
+                    },
+                    placeholder = {
+                        Text(
+                            if (state.tipoPessoa == TipoPessoa.FISICA)
+                                "000.000.000-00"
+                            else
+                                "00.000.000/0000-00"
+                        )
+                    },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Badge,
@@ -141,15 +200,31 @@ fun ClienteFormScreen(
                             tint = AppColors.Slate500
                         )
                     },
+                    visualTransformation = if (state.tipoPessoa == TipoPessoa.FISICA) {
+                        CpfVisualTransformation()
+                    } else {
+                        CnpjVisualTransformation()
+                    },
+                    isError = state.cpfCnpjError != null,
+                    supportingText = state.cpfCnpjError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = if (state.tipoPessoa == TipoPessoa.FISICA)
+                            KeyboardType.Number
+                        else
+                            KeyboardType.Text
+                    ),
                     singleLine = true
                 )
 
                 // Telefone/WhatsApp
                 OutlinedTextField(
                     value = state.telefoneWhatsapp,
-                    onValueChange = { viewModel.dispatch(ClientesContract.Action.SetTelefoneWhatsapp(it)) },
+                    onValueChange = { newValue ->
+                        val filtered = filterPhoneInput(newValue)
+                        viewModel.dispatch(ClientesContract.Action.SetTelefoneWhatsapp(filtered))
+                    },
                     label = { Text(Strings.CLIENTE_FORM_TELEFONE) },
                     placeholder = { Text(Strings.CLIENTE_FORM_TELEFONE_PLACEHOLDER) },
                     leadingIcon = {
@@ -159,6 +234,9 @@ fun ClienteFormScreen(
                             tint = AppColors.Slate500
                         )
                     },
+                    visualTransformation = PhoneVisualTransformation(),
+                    isError = state.telefoneError != null,
+                    supportingText = state.telefoneError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -178,6 +256,8 @@ fun ClienteFormScreen(
                             tint = AppColors.Slate500
                         )
                     },
+                    isError = state.emailError != null,
+                    supportingText = state.emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),

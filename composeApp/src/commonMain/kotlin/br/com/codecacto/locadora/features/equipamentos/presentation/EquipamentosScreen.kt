@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,34 +136,40 @@ fun EquipamentosScreen(
         )
 
         // Content
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Violet600)
-            }
-        } else {
-            if (state.filteredEquipamentos.isEmpty()) {
-                EmptyEquipamentosState(
-                    hasSearch = state.searchQuery.isNotBlank(),
-                    onAddEquipamento = { onNavigateToForm(null) }
-                )
-            } else {
-                LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { viewModel.dispatch(EquipamentosContract.Action.Refresh) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(state.filteredEquipamentos) { equipamentoComStatus ->
-                        EquipamentoCard(
-                            equipamentoComStatus = equipamentoComStatus,
-                            onEdit = { onNavigateToForm(equipamentoComStatus.equipamento.id) },
-                            onDelete = { viewModel.dispatch(EquipamentosContract.Action.DeleteEquipamento(equipamentoComStatus.equipamento)) }
-                        )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                    CircularProgressIndicator(color = AppColors.Violet600)
+                }
+            } else {
+                if (state.filteredEquipamentos.isEmpty()) {
+                    EmptyEquipamentosState(
+                        hasSearch = state.searchQuery.isNotBlank(),
+                        onAddEquipamento = { onNavigateToForm(null) }
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.filteredEquipamentos) { equipamentoComStatus ->
+                            EquipamentoCard(
+                                equipamentoComStatus = equipamentoComStatus,
+                                onEdit = { onNavigateToForm(equipamentoComStatus.equipamento.id) },
+                                onDelete = { viewModel.dispatch(EquipamentosContract.Action.DeleteEquipamento(equipamentoComStatus.equipamento)) }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }

@@ -5,9 +5,11 @@ import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.model.StatusPagamento
 import br.com.codecacto.locadora.core.model.StatusColeta
 import br.com.codecacto.locadora.core.model.StatusEntrega
+import br.com.codecacto.locadora.features.auth.data.repository.AuthRepository
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.Direction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 interface LocacaoRepository {
@@ -27,13 +29,17 @@ interface LocacaoRepository {
 }
 
 class LocacaoRepositoryImpl(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val authRepository: AuthRepository
 ) : LocacaoRepository {
 
     private val collection = firestore.collection(Locacao.COLLECTION_NAME)
 
     override fun getLocacoes(): Flow<List<Locacao>> {
+        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+
         return collection
+            .where { "userId" equalTo userId }
             .orderBy("criadoEm", Direction.DESCENDING)
             .snapshots
             .map { snapshot ->
@@ -44,7 +50,10 @@ class LocacaoRepositoryImpl(
     }
 
     override fun getLocacoesAtivas(): Flow<List<Locacao>> {
+        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+
         return collection
+            .where { "userId" equalTo userId }
             .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
             .orderBy("dataFimPrevista", Direction.ASCENDING)
             .snapshots
@@ -56,7 +65,10 @@ class LocacaoRepositoryImpl(
     }
 
     override fun getLocacoesFinalizadas(): Flow<List<Locacao>> {
+        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+
         return collection
+            .where { "userId" equalTo userId }
             .where { "statusLocacao" equalTo StatusLocacao.FINALIZADA.name }
             .orderBy("criadoEm", Direction.DESCENDING)
             .snapshots
@@ -68,19 +80,19 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun getLocacaoById(id: String): Locacao? {
-        return try {
-            val doc = collection.document(id).get()
-            if (doc.exists) {
-                doc.data<Locacao>().copy(id = doc.id)
-            } else null
-        } catch (e: Exception) {
-            null
-        }
+        val doc = collection.document(id).get()
+        return if (doc.exists) {
+            doc.data<Locacao>().copy(id = doc.id)
+        } else null
     }
 
     override suspend fun addLocacao(locacao: Locacao): String {
+        val userId = authRepository.currentUser?.id
+            ?: throw Exception("Usuario nao autenticado")
+
         val now = System.currentTimeMillis()
         val docRef = collection.add(locacao.copy(
+            userId = userId,
             statusLocacao = StatusLocacao.ATIVA,
             qtdRenovacoes = 0,
             criadoEm = now,
@@ -176,7 +188,10 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun isEquipamentoAlugado(equipamentoId: String): Boolean {
+        val userId = authRepository.currentUser?.id ?: return false
+
         val snapshot = collection
+            .where { "userId" equalTo userId }
             .where { "equipamentoId" equalTo equipamentoId }
             .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
             .get()

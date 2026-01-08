@@ -40,7 +40,7 @@ class LocacoesViewModel(
                 emitEffect(LocacoesContract.Effect.NavigateToDetalhes(action.locacao.id))
             }
             is LocacoesContract.Action.Refresh -> {
-                loadLocacoes()
+                refreshLocacoes()
             }
         }
     }
@@ -49,39 +49,7 @@ class LocacoesViewModel(
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(isLoading = true)
-
-                combine(
-                    locacaoRepository.getLocacoes(),
-                    clienteRepository.getClientes(),
-                    equipamentoRepository.getEquipamentos()
-                ) { locacoes, clientes, equipamentos ->
-                    val clientesMap = clientes.associateBy { it.id }
-                    val equipamentosMap = equipamentos.associateBy { it.id }
-
-                    locacoes.map { locacao ->
-                        LocacaoComDetalhes(
-                            locacao = locacao,
-                            cliente = clientesMap[locacao.clienteId],
-                            equipamento = equipamentosMap[locacao.equipamentoId],
-                            statusPrazo = calcularStatusPrazo(locacao)
-                        )
-                    }
-                }.collect { locacoesComDetalhes ->
-                    val ativas = locacoesComDetalhes
-                        .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.ATIVA }
-                        .sortedBy { it.locacao.dataFimPrevista }
-
-                    val finalizadas = locacoesComDetalhes
-                        .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.FINALIZADA }
-                        .sortedByDescending { it.locacao.criadoEm }
-
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        locacoesAtivas = ativas,
-                        locacoesFinalizadas = finalizadas,
-                        error = null
-                    )
-                }
+                collectLocacoes()
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -89,6 +57,55 @@ class LocacoesViewModel(
                 )
                 handleError(e)
             }
+        }
+    }
+
+    private fun refreshLocacoes() {
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(isRefreshing = true)
+                // Small delay to show refresh indicator
+                kotlinx.coroutines.delay(500)
+                _state.value = _state.value.copy(isRefreshing = false)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(isRefreshing = false)
+                handleError(e)
+            }
+        }
+    }
+
+    private suspend fun collectLocacoes() {
+        combine(
+            locacaoRepository.getLocacoes(),
+            clienteRepository.getClientes(),
+            equipamentoRepository.getEquipamentos()
+        ) { locacoes, clientes, equipamentos ->
+            val clientesMap = clientes.associateBy { it.id }
+            val equipamentosMap = equipamentos.associateBy { it.id }
+
+            locacoes.map { locacao ->
+                LocacaoComDetalhes(
+                    locacao = locacao,
+                    cliente = clientesMap[locacao.clienteId],
+                    equipamento = equipamentosMap[locacao.equipamentoId],
+                    statusPrazo = calcularStatusPrazo(locacao)
+                )
+            }
+        }.collect { locacoesComDetalhes ->
+            val ativas = locacoesComDetalhes
+                .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.ATIVA }
+                .sortedBy { it.locacao.dataFimPrevista }
+
+            val finalizadas = locacoesComDetalhes
+                .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.FINALIZADA }
+                .sortedByDescending { it.locacao.criadoEm }
+
+            _state.value = _state.value.copy(
+                isLoading = false,
+                locacoesAtivas = ativas,
+                locacoesFinalizadas = finalizadas,
+                error = null
+            )
         }
     }
 

@@ -20,7 +20,15 @@
       "Bash(java:*)",
       "Bash(\"$JAVA_HOME/bin/java\" -version)",
       "WebSearch",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(.gradlew composeApp:compileKotlinAndroid)",
+      "Bash(.gradlew.bat composeApp:compileKotlinAndroid)",
+      "Bash(./gradlew.bat composeApp:compileKotlinAndroid)",
+      "Bash(./gradlew.bat composeApp:compileDebugKotlinAndroid)",
+      "Bash(while read f)",
+      "Bash(do [ ! -f \"$f\" ])",
+      "Bash(echo:*)",
+      "Bash(done)"
     ]
   }
 }

@@ -11,6 +11,7 @@ import br.com.codecacto.locadora.core.model.StatusPrazo
 object DetalhesLocacaoContract {
     data class State(
         val isLoading: Boolean = true,
+        val isGeneratingReceipt: Boolean = false,
         val locacao: Locacao? = null,
         val cliente: Cliente? = null,
         val equipamento: Equipamento? = null,
@@ -28,11 +29,13 @@ object DetalhesLocacaoContract {
         data object HideRenovarDialog : Action()
         data class Renovar(val novaDataFim: Long, val novoValor: Double?) : Action()
         data object Refresh : Action()
+        data object GerarRecibo : Action()
     }
 
     sealed interface Effect : UiEffect {
         data class ShowSuccess(val message: String) : Effect
         data class ShowError(val message: String) : Effect
         data object NavigateBack : Effect
+        data class CompartilharRecibo(val filePath: String) : Effect
     }
 }

@@ -11,6 +11,8 @@ import br.com.codecacto.locadora.features.settings.presentation.SettingsViewMode
 import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordViewModel
 import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailViewModel
 import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileViewModel
+import br.com.codecacto.locadora.features.settings.presentation.DadosEmpresaViewModel
+import br.com.codecacto.locadora.features.settings.presentation.DataPrivacyViewModel
 import br.com.codecacto.locadora.features.feedback.presentation.FeedbackViewModel
 import br.com.codecacto.locadora.features.notifications.presentation.NotificationsViewModel
 import org.koin.core.module.dsl.viewModel
@@ -19,7 +21,7 @@ import org.koin.dsl.module
 val locacoesModule = module {
     viewModel { LocacoesViewModel(get(), get(), get(), get()) }
     viewModel { NovaLocacaoViewModel(get(), get(), get(), get()) }
-    viewModel { params -> DetalhesLocacaoViewModel(params.get(), get(), get(), get(), get()) }
+    viewModel { params -> DetalhesLocacaoViewModel(params.get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val entregasModule = module {
@@ -43,6 +45,8 @@ val settingsModule = module {
     viewModel { ChangePasswordViewModel(get(), get()) }
     viewModel { ChangeEmailViewModel(get(), get()) }
     viewModel { ChangeProfileViewModel(get(), get()) }
+    viewModel { DadosEmpresaViewModel(get(), get()) }
+    viewModel { DataPrivacyViewModel(get(), get()) }
 }
 
 val feedbackModule = module {

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocacoesScreen(
     onNavigateToDetalhes: (String) -> Unit,
@@ -64,7 +66,7 @@ fun LocacoesScreen(
             .background(AppColors.Slate50)
     ) {
         // Header
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
@@ -127,47 +129,53 @@ fun LocacoesScreen(
         }
 
         // Content
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Violet600)
-            }
-        } else {
-            val locacoes = if (state.tabSelecionada == 0) {
-                state.locacoesAtivas
-            } else {
-                state.locacoesFinalizadas
-            }
-
-            if (locacoes.isEmpty()) {
-                EmptyState(
-                    title = if (state.tabSelecionada == 0) Strings.LOCACOES_EMPTY_ATIVAS_TITLE else Strings.LOCACOES_EMPTY_FINALIZADAS_TITLE,
-                    subtitle = if (state.tabSelecionada == 0) {
-                        Strings.LOCACOES_EMPTY_ATIVAS_SUBTITLE
-                    } else {
-                        Strings.LOCACOES_EMPTY_FINALIZADAS_SUBTITLE
-                    }
-                )
-            } else {
-                LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { viewModel.dispatch(LocacoesContract.Action.Refresh) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(locacoes) { locacaoComDetalhes ->
-                        LocacaoCard(
-                            locacaoComDetalhes = locacaoComDetalhes,
-                            onClick = {
-                                viewModel.dispatch(
-                                    LocacoesContract.Action.SelectLocacao(locacaoComDetalhes.locacao)
-                                )
-                            }
-                        )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                    CircularProgressIndicator(color = AppColors.Violet600)
+                }
+            } else {
+                val locacoes = if (state.tabSelecionada == 0) {
+                    state.locacoesAtivas
+                } else {
+                    state.locacoesFinalizadas
+                }
+
+                if (locacoes.isEmpty()) {
+                    EmptyState(
+                        title = if (state.tabSelecionada == 0) Strings.LOCACOES_EMPTY_ATIVAS_TITLE else Strings.LOCACOES_EMPTY_FINALIZADAS_TITLE,
+                        subtitle = if (state.tabSelecionada == 0) {
+                            Strings.LOCACOES_EMPTY_ATIVAS_SUBTITLE
+                        } else {
+                            Strings.LOCACOES_EMPTY_FINALIZADAS_SUBTITLE
+                        }
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(locacoes) { locacaoComDetalhes ->
+                            LocacaoCard(
+                                locacaoComDetalhes = locacaoComDetalhes,
+                                onClick = {
+                                    viewModel.dispatch(
+                                        LocacoesContract.Action.SelectLocacao(locacaoComDetalhes.locacao)
+                                    )
+                                }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }

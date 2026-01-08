@@ -9,6 +9,7 @@ object NotificationsContract {
     data class State(
         val notificacoes: List<Notificacao> = emptyList(),
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val unreadCount: Int = 0
     ) : UiState
 
@@ -24,5 +25,6 @@ object NotificationsContract {
         data class OnExcluir(val id: String) : Action()
         data object OnMarcarTodasComoLidas : Action()
         data object OnLimparLidas : Action()
+        data object Refresh : Action()
     }
 }

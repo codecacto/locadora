@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -71,19 +72,19 @@ fun ChangePasswordScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = Strings.COMMON_VOLTAR,
                             tint = Color.White
                         )
                     }
                     Column {
                         Text(
-                            text = "Alterar Senha",
+                            text = Strings.CHANGE_PASSWORD_TITLE,
                             color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Atualize sua senha de acesso",
+                            text = Strings.CHANGE_PASSWORD_SUBTITLE,
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
@@ -103,8 +104,8 @@ fun ChangePasswordScreen(
                 OutlinedTextField(
                     value = state.currentPassword,
                     onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetCurrentPassword(it)) },
-                    label = { Text("Senha Atual") },
-                    placeholder = { Text("Digite sua senha atual") },
+                    label = { Text(Strings.CHANGE_PASSWORD_SENHA_ATUAL) },
+                    placeholder = { Text(Strings.CHANGE_PASSWORD_SENHA_ATUAL_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -118,7 +119,7 @@ fun ChangePasswordScreen(
                         ) {
                             Icon(
                                 imageVector = if (state.showCurrentPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (state.showCurrentPassword) "Ocultar senha" else "Mostrar senha",
+                                contentDescription = if (state.showCurrentPassword) Strings.LOGIN_ESCONDER_SENHA else Strings.LOGIN_MOSTRAR_SENHA,
                                 tint = AppColors.Slate500
                             )
                         }
@@ -140,8 +141,8 @@ fun ChangePasswordScreen(
                 OutlinedTextField(
                     value = state.newPassword,
                     onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetNewPassword(it)) },
-                    label = { Text("Nova Senha") },
-                    placeholder = { Text("Digite a nova senha") },
+                    label = { Text(Strings.CHANGE_PASSWORD_NOVA_SENHA) },
+                    placeholder = { Text(Strings.CHANGE_PASSWORD_NOVA_SENHA_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -155,7 +156,7 @@ fun ChangePasswordScreen(
                         ) {
                             Icon(
                                 imageVector = if (state.showNewPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (state.showNewPassword) "Ocultar senha" else "Mostrar senha",
+                                contentDescription = if (state.showNewPassword) Strings.LOGIN_ESCONDER_SENHA else Strings.LOGIN_MOSTRAR_SENHA,
                                 tint = AppColors.Slate500
                             )
                         }
@@ -177,8 +178,8 @@ fun ChangePasswordScreen(
                 OutlinedTextField(
                     value = state.confirmPassword,
                     onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetConfirmPassword(it)) },
-                    label = { Text("Confirmar Nova Senha") },
-                    placeholder = { Text("Confirme a nova senha") },
+                    label = { Text(Strings.CHANGE_PASSWORD_CONFIRMAR_SENHA) },
+                    placeholder = { Text(Strings.CHANGE_PASSWORD_CONFIRMAR_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -192,7 +193,7 @@ fun ChangePasswordScreen(
                         ) {
                             Icon(
                                 imageVector = if (state.showConfirmPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (state.showConfirmPassword) "Ocultar senha" else "Mostrar senha",
+                                contentDescription = if (state.showConfirmPassword) Strings.LOGIN_ESCONDER_SENHA else Strings.LOGIN_MOSTRAR_SENHA,
                                 tint = AppColors.Slate500
                             )
                         }
@@ -233,7 +234,7 @@ fun ChangePasswordScreen(
                         )
                     } else {
                         Text(
-                            text = "Alterar Senha",
+                            text = Strings.CHANGE_PASSWORD_BOTAO,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -249,7 +250,7 @@ fun ChangePasswordScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Cancelar",
+                        text = Strings.COMMON_CANCELAR,
                         fontSize = 16.sp
                     )
                 }

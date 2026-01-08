@@ -14,4 +14,4 @@ fun appModules(): List<Module> = listOf(
     settingsModule,
     feedbackModule,
     notificationsModule
-)
+) + platformModules()

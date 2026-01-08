@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -72,19 +73,19 @@ fun ChangeEmailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = Strings.COMMON_VOLTAR,
                             tint = Color.White
                         )
                     }
                     Column {
                         Text(
-                            text = "Alterar Email",
+                            text = Strings.CHANGE_EMAIL_TITLE,
                             color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Atualize seu email de acesso",
+                            text = Strings.CHANGE_EMAIL_SUBTITLE,
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
@@ -104,7 +105,7 @@ fun ChangeEmailScreen(
                 OutlinedTextField(
                     value = state.currentEmail,
                     onValueChange = { },
-                    label = { Text("Email Atual") },
+                    label = { Text(Strings.CHANGE_EMAIL_ATUAL) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
@@ -123,8 +124,8 @@ fun ChangeEmailScreen(
                 OutlinedTextField(
                     value = state.newEmail,
                     onValueChange = { viewModel.dispatch(ChangeEmailContract.Action.SetNewEmail(it)) },
-                    label = { Text("Novo Email") },
-                    placeholder = { Text("Digite o novo email") },
+                    label = { Text(Strings.CHANGE_EMAIL_NOVO) },
+                    placeholder = { Text(Strings.CHANGE_EMAIL_NOVO_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
@@ -148,8 +149,8 @@ fun ChangeEmailScreen(
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = { viewModel.dispatch(ChangeEmailContract.Action.SetPassword(it)) },
-                    label = { Text("Senha para Confirmar") },
-                    placeholder = { Text("Digite sua senha") },
+                    label = { Text(Strings.CHANGE_EMAIL_SENHA_CONFIRMAR) },
+                    placeholder = { Text(Strings.CHANGE_EMAIL_SENHA_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -163,7 +164,7 @@ fun ChangeEmailScreen(
                         ) {
                             Icon(
                                 imageVector = if (state.showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (state.showPassword) "Ocultar senha" else "Mostrar senha",
+                                contentDescription = if (state.showPassword) Strings.LOGIN_ESCONDER_SENHA else Strings.LOGIN_MOSTRAR_SENHA,
                                 tint = AppColors.Slate500
                             )
                         }
@@ -203,7 +204,7 @@ fun ChangeEmailScreen(
                         )
                     } else {
                         Text(
-                            text = "Alterar Email",
+                            text = Strings.CHANGE_EMAIL_BOTAO,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -219,7 +220,7 @@ fun ChangeEmailScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Cancelar",
+                        text = Strings.COMMON_CANCELAR,
                         fontSize = 16.sp
                     )
                 }

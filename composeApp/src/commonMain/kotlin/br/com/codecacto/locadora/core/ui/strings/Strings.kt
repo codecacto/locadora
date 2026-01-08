@@ -2,7 +2,7 @@ package br.com.codecacto.locadora.core.ui.strings
 
 object Strings {
     // App
-    const val APP_NAME = "Locadora"
+    const val APP_NAME = "Locação de Equipamentos"
     const val APP_VERSION = "Versão 1.0.0"
     const val APP_DESCRIPTION = "Controle de Locações"
 
@@ -28,6 +28,8 @@ object Strings {
     const val MENU_DADOS_PRIVACIDADE_SUBTITLE = "Termos, politica e conta"
     const val MENU_PERFIL = "Meu Perfil"
     const val MENU_PERFIL_SUBTITLE = "Alterar nome"
+    const val MENU_DADOS_EMPRESA = "Dados da Empresa"
+    const val MENU_DADOS_EMPRESA_SUBTITLE = "Informacoes para recibos"
 
     // Profile Screen
     const val PROFILE_TITLE = "Meu Perfil"
@@ -40,6 +42,23 @@ object Strings {
     const val PROFILE_ERRO_NOME_VAZIO = "Digite seu nome"
     const val PROFILE_ERRO_NOME_CURTO = "Nome muito curto"
     const val PROFILE_ERRO_NOME_IGUAL = "O nome deve ser diferente do atual"
+
+    // Dados Empresa Screen
+    const val DADOS_EMPRESA_TITLE = "Dados da Empresa"
+    const val DADOS_EMPRESA_SUBTITLE = "Informacoes para os recibos"
+    const val DADOS_EMPRESA_NOME = "Nome da Empresa"
+    const val DADOS_EMPRESA_NOME_PLACEHOLDER = "Ex: Locadora ABC"
+    const val DADOS_EMPRESA_CNPJ = "CNPJ"
+    const val DADOS_EMPRESA_CNPJ_PLACEHOLDER = "00.000.000/0000-00"
+    const val DADOS_EMPRESA_TELEFONE = "Telefone"
+    const val DADOS_EMPRESA_TELEFONE_PLACEHOLDER = "(00) 00000-0000"
+    const val DADOS_EMPRESA_EMAIL = "E-mail"
+    const val DADOS_EMPRESA_EMAIL_PLACEHOLDER = "contato@empresa.com"
+    const val DADOS_EMPRESA_ENDERECO = "Endereco"
+    const val DADOS_EMPRESA_ENDERECO_PLACEHOLDER = "Rua, numero, bairro, cidade"
+    const val DADOS_EMPRESA_SALVAR = "Salvar Dados"
+    const val DADOS_EMPRESA_SUCESSO = "Dados salvos com sucesso!"
+    const val DADOS_EMPRESA_ERRO = "Erro ao salvar dados"
 
     // Feedback Screen
     const val MENU_FEEDBACK = "Deixe seu Feedback"
@@ -91,6 +110,27 @@ object Strings {
     const val DATA_PRIVACY_DIGITE_SENHA = "Digite sua senha"
     const val DATA_PRIVACY_EXCLUINDO = "Excluindo conta..."
     const val DATA_PRIVACY_ERRO_EXCLUIR = "Erro ao excluir conta"
+
+    // Change Password Screen
+    const val CHANGE_PASSWORD_TITLE = "Alterar Senha"
+    const val CHANGE_PASSWORD_SUBTITLE = "Atualize sua senha de acesso"
+    const val CHANGE_PASSWORD_SENHA_ATUAL = "Senha Atual"
+    const val CHANGE_PASSWORD_SENHA_ATUAL_PLACEHOLDER = "Digite sua senha atual"
+    const val CHANGE_PASSWORD_NOVA_SENHA = "Nova Senha"
+    const val CHANGE_PASSWORD_NOVA_SENHA_PLACEHOLDER = "Digite a nova senha"
+    const val CHANGE_PASSWORD_CONFIRMAR_SENHA = "Confirmar Nova Senha"
+    const val CHANGE_PASSWORD_CONFIRMAR_PLACEHOLDER = "Confirme a nova senha"
+    const val CHANGE_PASSWORD_BOTAO = "Alterar Senha"
+
+    // Change Email Screen
+    const val CHANGE_EMAIL_TITLE = "Alterar Email"
+    const val CHANGE_EMAIL_SUBTITLE = "Atualize seu email de acesso"
+    const val CHANGE_EMAIL_ATUAL = "Email Atual"
+    const val CHANGE_EMAIL_NOVO = "Novo Email"
+    const val CHANGE_EMAIL_NOVO_PLACEHOLDER = "Digite o novo email"
+    const val CHANGE_EMAIL_SENHA_CONFIRMAR = "Senha para Confirmar"
+    const val CHANGE_EMAIL_SENHA_PLACEHOLDER = "Digite sua senha"
+    const val CHANGE_EMAIL_BOTAO = "Alterar Email"
 
     // Auth - Login Screen
     const val LOGIN_TITLE = "Entrar"
@@ -208,6 +248,7 @@ object Strings {
     const val DETALHES_MARCAR_NOTA_EMITIDA = "Marcar como Emitida"
     const val DETALHES_RENOVAR = "Renovar Locação"
     const val DETALHES_NOTA_EMITIDA = "Emitida"
+    const val DETALHES_GERAR_RECIBO = "Gerar Recibo"
 
     // Renovar Dialog
     const val RENOVAR_TITLE = "Renovar Locação"

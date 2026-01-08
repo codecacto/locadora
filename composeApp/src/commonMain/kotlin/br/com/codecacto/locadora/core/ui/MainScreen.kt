@@ -45,6 +45,7 @@ import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordSc
 import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailScreen
 import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileScreen
 import br.com.codecacto.locadora.features.settings.presentation.DataPrivacyScreen
+import br.com.codecacto.locadora.features.settings.presentation.DadosEmpresaScreen
 import br.com.codecacto.locadora.features.feedback.presentation.FeedbackScreen
 import br.com.codecacto.locadora.features.notifications.presentation.NotificationsScreen
 import br.com.codecacto.locadora.core.ui.components.NotificationBadge
@@ -87,13 +88,17 @@ fun MainScreen(
         BottomNavItem.Menu
     )
 
+    // Hide bottom bar on certain routes
+    val hideBottomBar = currentDestination?.route in listOf("notifications", "detalhes_locacao/{locacaoId}")
+
     Scaffold(
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White.copy(alpha = 0.95f))
-            ) {
+            if (!hideBottomBar) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White.copy(alpha = 0.95f))
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -170,6 +175,7 @@ fun MainScreen(
                         )
                     }
                 }
+                }
             }
         }
     ) { paddingValues ->
@@ -183,7 +189,7 @@ fun MainScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
                     },
-                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
                 )
             }
@@ -192,7 +198,7 @@ fun MainScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
                     },
-                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
                 )
             }
@@ -201,7 +207,7 @@ fun MainScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
                     },
-                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
                 )
             }
@@ -212,6 +218,11 @@ fun MainScreen(
                 val locacaoId = backStackEntry.arguments?.getString("locacaoId") ?: return@composable
                 DetalhesLocacaoScreen(
                     locacaoId = locacaoId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("notifications") {
+                NotificationsScreen(
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -266,7 +277,7 @@ fun MainScreen(
                     "feedback" -> FeedbackScreen(
                         onBack = { currentMenuScreen = null }
                     )
-                    "notifications" -> NotificationsScreen(
+                    "dados_empresa" -> DadosEmpresaScreen(
                         onBack = { currentMenuScreen = null }
                     )
                     else -> MenuScreen(
@@ -276,7 +287,8 @@ fun MainScreen(
                         onNavigateToProfile = { currentMenuScreen = "profile" },
                         onNavigateToFeedback = { currentMenuScreen = "feedback" },
                         onNavigateToDataPrivacy = { currentMenuScreen = "data_privacy" },
-                        onNavigateToNotifications = { currentMenuScreen = "notifications" },
+                        onNavigateToDadosEmpresa = { currentMenuScreen = "dados_empresa" },
+                        onNavigateToNotifications = { navController.navigate("notifications") },
                         unreadNotifications = unreadNotifications,
                         onLogout = onLogout
                     )
@@ -333,6 +345,7 @@ private fun MenuScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToFeedback: () -> Unit,
     onNavigateToDataPrivacy: () -> Unit,
+    onNavigateToDadosEmpresa: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     unreadNotifications: Int,
     onLogout: () -> Unit
@@ -401,6 +414,14 @@ private fun MenuScreen(
                 backgroundColor = AppColors.Violet100,
                 iconColor = AppColors.Violet600,
                 onClick = onNavigateToEquipamentos
+            )
+            MenuItemCard(
+                icon = Icons.Default.Business,
+                title = Strings.MENU_DADOS_EMPRESA,
+                subtitle = Strings.MENU_DADOS_EMPRESA_SUBTITLE,
+                backgroundColor = AppColors.Emerald100,
+                iconColor = AppColors.Emerald600,
+                onClick = onNavigateToDadosEmpresa
             )
             MenuItemCard(
                 icon = Icons.Default.Settings,

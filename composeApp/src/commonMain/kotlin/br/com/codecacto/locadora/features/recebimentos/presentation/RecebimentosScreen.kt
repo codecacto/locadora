@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -115,31 +116,37 @@ fun RecebimentosScreen(
         }
 
         // Content
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Emerald600)
-            }
-        } else {
-            if (state.recebimentosPendentes.isEmpty()) {
-                EmptyRecebimentosState()
-            } else {
-                LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { viewModel.dispatch(RecebimentosContract.Action.Refresh) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(state.recebimentosPendentes) { recebimento ->
-                        RecebimentoCard(
-                            recebimento = recebimento,
-                            onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) },
-                            onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.locacao.id)) }
-                        )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                    CircularProgressIndicator(color = AppColors.Emerald600)
+                }
+            } else {
+                if (state.recebimentosPendentes.isEmpty()) {
+                    EmptyRecebimentosState()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.recebimentosPendentes) { recebimento ->
+                            RecebimentoCard(
+                                recebimento = recebimento,
+                                onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) },
+                                onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.locacao.id)) }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }

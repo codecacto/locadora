@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,22 +101,27 @@ fun EntregasScreen(
         }
 
         // Content
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Orange500)
-            }
-        } else {
-            val isEmpty = state.entregasAtrasadas.isEmpty() &&
-                    state.entregasHoje.isEmpty() &&
-                    state.entregasAgendadas.isEmpty()
-
-            if (isEmpty) {
-                EmptyEntregasState()
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { viewModel.dispatch(EntregasContract.Action.Refresh) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = AppColors.Orange500)
+                }
             } else {
-                LazyColumn(
+                val isEmpty = state.entregasAtrasadas.isEmpty() &&
+                        state.entregasHoje.isEmpty() &&
+                        state.entregasAgendadas.isEmpty()
+
+                if (isEmpty) {
+                    EmptyEntregasState()
+                } else {
+                    LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -183,6 +189,7 @@ fun EntregasScreen(
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
+                }
                 }
             }
         }

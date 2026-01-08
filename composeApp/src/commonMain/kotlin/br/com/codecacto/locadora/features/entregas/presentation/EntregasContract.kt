@@ -18,6 +18,7 @@ data class EntregaComDetalhes(
 object EntregasContract {
     data class State(
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val entregasAtrasadas: List<EntregaComDetalhes> = emptyList(),
         val entregasHoje: List<EntregaComDetalhes> = emptyList(),
         val entregasAgendadas: List<EntregaComDetalhes> = emptyList(),

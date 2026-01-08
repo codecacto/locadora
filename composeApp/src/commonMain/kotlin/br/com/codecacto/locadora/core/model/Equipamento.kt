@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Equipamento(
     val id: String = "",
+    val userId: String = "",
     val nome: String = "",
     val categoria: String = "",
     val identificacao: String? = null,

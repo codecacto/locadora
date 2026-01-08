@@ -4,10 +4,12 @@ import br.com.codecacto.locadora.core.base.UiAction
 import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.Cliente
+import br.com.codecacto.locadora.core.ui.util.TipoPessoa
 
 object ClientesContract {
     data class State(
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val isSaving: Boolean = false,
         val clientes: List<Cliente> = emptyList(),
         val searchQuery: String = "",
@@ -15,11 +17,16 @@ object ClientesContract {
         val editingCliente: Cliente? = null,
         // Form fields
         val nomeRazao: String = "",
+        val tipoPessoa: TipoPessoa = TipoPessoa.FISICA,
         val cpfCnpj: String = "",
         val telefoneWhatsapp: String = "",
         val email: String = "",
         val endereco: String = "",
         val precisaNotaFiscalPadrao: Boolean = false,
+        // Validation errors
+        val emailError: String? = null,
+        val cpfCnpjError: String? = null,
+        val telefoneError: String? = null,
         val error: String? = null
     ) : UiState {
         val filteredClientes: List<Cliente>
@@ -41,6 +48,7 @@ object ClientesContract {
         data class EditCliente(val cliente: Cliente) : Action()
         data class DeleteCliente(val cliente: Cliente) : Action()
         data class SetNomeRazao(val value: String) : Action()
+        data class SetTipoPessoa(val value: TipoPessoa) : Action()
         data class SetCpfCnpj(val value: String) : Action()
         data class SetTelefoneWhatsapp(val value: String) : Action()
         data class SetEmail(val value: String) : Action()

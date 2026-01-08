@@ -23,22 +23,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
-import br.com.codecacto.locadora.features.auth.data.repository.AuthRepository
 import br.com.codecacto.locadora.openUrl
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun DataPrivacyScreen(
     onBack: () -> Unit,
     onAccountDeleted: () -> Unit,
-    authRepository: AuthRepository = koinInject()
+    viewModel: DataPrivacyViewModel = koinViewModel()
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
-    var isDeleting by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is DataPrivacyContract.Effect.NavigateBack -> onBack()
+                is DataPrivacyContract.Effect.AccountDeleted -> onAccountDeleted()
+                is DataPrivacyContract.Effect.OpenUrl -> openUrl(effect.url)
+                is DataPrivacyContract.Effect.ShowError -> { /* Handled by dialog */ }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -109,9 +114,7 @@ fun DataPrivacyScreen(
                         subtitle = Strings.DATA_PRIVACY_TERMOS_USO_SUBTITLE,
                         iconBackgroundColor = AppColors.Blue100,
                         iconColor = AppColors.Blue600,
-                        onClick = {
-                            openUrl("https://www.google.com")
-                        }
+                        onClick = { viewModel.dispatch(DataPrivacyContract.Action.OpenTermsOfUse) }
                     )
 
                     HorizontalDivider(
@@ -125,9 +128,7 @@ fun DataPrivacyScreen(
                         subtitle = Strings.DATA_PRIVACY_POLITICA_SUBTITLE,
                         iconBackgroundColor = AppColors.Violet100,
                         iconColor = AppColors.Violet600,
-                        onClick = {
-                            openUrl("https://www.google.com")
-                        }
+                        onClick = { viewModel.dispatch(DataPrivacyContract.Action.OpenPrivacyPolicy) }
                     )
                 }
             }
@@ -155,20 +156,18 @@ fun DataPrivacyScreen(
                     subtitle = Strings.DATA_PRIVACY_EXCLUIR_CONTA_SUBTITLE,
                     iconBackgroundColor = AppColors.RedLight,
                     iconColor = AppColors.Red,
-                    onClick = { showDeleteDialog = true }
+                    onClick = { viewModel.dispatch(DataPrivacyContract.Action.ShowDeleteDialog) }
                 )
             }
         }
     }
 
     // Delete Account Dialog
-    if (showDeleteDialog) {
+    if (state.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = {
-                if (!isDeleting) {
-                    showDeleteDialog = false
-                    password = ""
-                    errorMessage = null
+                if (!state.isDeleting) {
+                    viewModel.dispatch(DataPrivacyContract.Action.HideDeleteDialog)
                 }
             },
             title = {
@@ -188,29 +187,26 @@ fun DataPrivacyScreen(
                     )
 
                     OutlinedTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            errorMessage = null
-                        },
+                        value = state.password,
+                        onValueChange = { viewModel.dispatch(DataPrivacyContract.Action.SetPassword(it)) },
                         label = { Text(Strings.LOGIN_SENHA_LABEL) },
                         placeholder = { Text(Strings.DATA_PRIVACY_DIGITE_SENHA) },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
-                        enabled = !isDeleting,
-                        isError = errorMessage != null,
+                        enabled = !state.isDeleting,
+                        isError = state.errorMessage != null,
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    if (errorMessage != null) {
+                    if (state.errorMessage != null) {
                         Text(
-                            text = errorMessage!!,
+                            text = state.errorMessage!!,
                             color = AppColors.Red,
                             fontSize = 12.sp
                         )
                     }
 
-                    if (isDeleting) {
+                    if (state.isDeleting) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -231,26 +227,8 @@ fun DataPrivacyScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        if (password.isNotEmpty()) {
-                            isDeleting = true
-                            errorMessage = null
-                            scope.launch {
-                                authRepository.deleteAccount(password)
-                                    .onSuccess {
-                                        showDeleteDialog = false
-                                        onAccountDeleted()
-                                    }
-                                    .onFailure { error ->
-                                        isDeleting = false
-                                        errorMessage = error.message ?: Strings.DATA_PRIVACY_ERRO_EXCLUIR
-                                    }
-                            }
-                        } else {
-                            errorMessage = Strings.DATA_PRIVACY_DIGITE_SENHA
-                        }
-                    },
-                    enabled = !isDeleting && password.isNotEmpty(),
+                    onClick = { viewModel.dispatch(DataPrivacyContract.Action.ConfirmDeleteAccount) },
+                    enabled = !state.isDeleting && state.password.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(containerColor = AppColors.Red)
                 ) {
                     Text(Strings.DATA_PRIVACY_EXCLUIR_CONTA)
@@ -258,12 +236,8 @@ fun DataPrivacyScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        password = ""
-                        errorMessage = null
-                    },
-                    enabled = !isDeleting
+                    onClick = { viewModel.dispatch(DataPrivacyContract.Action.HideDeleteDialog) },
+                    enabled = !state.isDeleting
                 ) {
                     Text(Strings.COMMON_CANCELAR)
                 }

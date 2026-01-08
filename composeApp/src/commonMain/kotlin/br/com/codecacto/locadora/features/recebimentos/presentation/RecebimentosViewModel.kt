@@ -35,7 +35,15 @@ class RecebimentosViewModel(
             is RecebimentosContract.Action.SelectLocacao -> {
                 emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.locacao.id))
             }
-            is RecebimentosContract.Action.Refresh -> loadRecebimentos()
+            is RecebimentosContract.Action.Refresh -> refreshRecebimentos()
+        }
+    }
+
+    private fun refreshRecebimentos() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isRefreshing = true)
+            kotlinx.coroutines.delay(500)
+            _state.value = _state.value.copy(isRefreshing = false)
         }
     }
 

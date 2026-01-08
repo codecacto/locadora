@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
     onBack: () -> Unit,
@@ -139,71 +141,77 @@ fun NotificationsScreen(
             }
 
             // Content
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppColors.Blue600)
-                }
-            } else if (state.notificacoes.isEmpty()) {
-                // Empty State
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+            PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = { viewModel.dispatch(NotificationsContract.Action.Refresh) },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(AppColors.Slate100),
-                            contentAlignment = Alignment.Center
+                        CircularProgressIndicator(color = AppColors.Blue600)
+                    }
+                } else if (state.notificacoes.isEmpty()) {
+                    // Empty State
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.NotificationsOff,
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp),
-                                tint = AppColors.Slate400
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Slate100),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NotificationsOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = AppColors.Slate400
+                                )
+                            }
+                            Text(
+                                text = Strings.NOTIFICATIONS_EMPTY_TITLE,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = AppColors.Slate700
+                            )
+                            Text(
+                                text = Strings.NOTIFICATIONS_EMPTY_SUBTITLE,
+                                fontSize = 14.sp,
+                                color = AppColors.Slate500
                             )
                         }
-                        Text(
-                            text = Strings.NOTIFICATIONS_EMPTY_TITLE,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.Slate700
-                        )
-                        Text(
-                            text = Strings.NOTIFICATIONS_EMPTY_SUBTITLE,
-                            fontSize = 14.sp,
-                            color = AppColors.Slate500
-                        )
                     }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(
-                        items = state.notificacoes,
-                        key = { it.id }
-                    ) { notificacao ->
-                        NotificacaoItem(
-                            notificacao = notificacao,
-                            onClick = {
-                                viewModel.dispatch(NotificationsContract.Action.OnNotificacaoClick(notificacao))
-                            },
-                            onDelete = {
-                                viewModel.dispatch(NotificationsContract.Action.OnExcluir(notificacao.id))
-                            }
-                        )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            items = state.notificacoes,
+                            key = { it.id }
+                        ) { notificacao ->
+                            NotificacaoItem(
+                                notificacao = notificacao,
+                                onClick = {
+                                    viewModel.dispatch(NotificationsContract.Action.OnNotificacaoClick(notificacao))
+                                },
+                                onDelete = {
+                                    viewModel.dispatch(NotificationsContract.Action.OnExcluir(notificacao.id))
+                                }
+                            )
+                        }
                     }
                 }
             }

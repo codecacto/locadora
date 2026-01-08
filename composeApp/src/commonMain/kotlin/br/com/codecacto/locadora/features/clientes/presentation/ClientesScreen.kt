@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -136,34 +137,40 @@ fun ClientesScreen(
         )
 
         // Content
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = AppColors.Blue600)
-            }
-        } else {
-            if (state.filteredClientes.isEmpty()) {
-                EmptyClientesState(
-                    hasSearch = state.searchQuery.isNotBlank(),
-                    onAddCliente = { onNavigateToForm(null) }
-                )
-            } else {
-                LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { viewModel.dispatch(ClientesContract.Action.Refresh) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.isLoading) {
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(state.filteredClientes) { cliente ->
-                        ClienteCard(
-                            cliente = cliente,
-                            onEdit = { onNavigateToForm(cliente.id) },
-                            onDelete = { viewModel.dispatch(ClientesContract.Action.DeleteCliente(cliente)) }
-                        )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                    CircularProgressIndicator(color = AppColors.Blue600)
+                }
+            } else {
+                if (state.filteredClientes.isEmpty()) {
+                    EmptyClientesState(
+                        hasSearch = state.searchQuery.isNotBlank(),
+                        onAddCliente = { onNavigateToForm(null) }
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.filteredClientes) { cliente ->
+                            ClienteCard(
+                                cliente = cliente,
+                                onEdit = { onNavigateToForm(cliente.id) },
+                                onDelete = { viewModel.dispatch(ClientesContract.Action.DeleteCliente(cliente)) }
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }

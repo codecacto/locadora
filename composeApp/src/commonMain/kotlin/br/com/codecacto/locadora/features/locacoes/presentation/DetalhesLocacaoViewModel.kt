@@ -3,15 +3,20 @@ package br.com.codecacto.locadora.features.locacoes.presentation
 import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
+import br.com.codecacto.locadora.core.model.DadosEmpresa
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.model.StatusPrazo
+import br.com.codecacto.locadora.core.pdf.ReceiptData
+import br.com.codecacto.locadora.core.pdf.ReceiptPdfGenerator
 import br.com.codecacto.locadora.data.repository.ClienteRepository
+import br.com.codecacto.locadora.data.repository.DadosEmpresaRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DetalhesLocacaoViewModel(
@@ -19,6 +24,8 @@ class DetalhesLocacaoViewModel(
     private val locacaoRepository: LocacaoRepository,
     private val clienteRepository: ClienteRepository,
     private val equipamentoRepository: EquipamentoRepository,
+    private val dadosEmpresaRepository: DadosEmpresaRepository,
+    private val receiptPdfGenerator: ReceiptPdfGenerator,
     errorHandler: ErrorHandler
 ) : BaseViewModel<DetalhesLocacaoContract.State, DetalhesLocacaoContract.Effect, DetalhesLocacaoContract.Action>(errorHandler) {
 
@@ -45,6 +52,7 @@ class DetalhesLocacaoViewModel(
                 renovarLocacao(action.novaDataFim, action.novoValor)
             }
             is DetalhesLocacaoContract.Action.Refresh -> loadLocacao()
+            is DetalhesLocacaoContract.Action.GerarRecibo -> gerarRecibo()
         }
     }
 
@@ -161,6 +169,43 @@ class DetalhesLocacaoViewModel(
             diffDays < 0 -> StatusPrazo.VENCIDO
             diffDays <= Locacao.DIAS_ALERTA_VENCIMENTO -> StatusPrazo.PROXIMO_VENCIMENTO
             else -> StatusPrazo.NORMAL
+        }
+    }
+
+    private fun gerarRecibo() {
+        val currentState = _state.value
+        val locacao = currentState.locacao
+        val cliente = currentState.cliente
+        val equipamento = currentState.equipamento
+
+        if (locacao == null || cliente == null || equipamento == null) {
+            emitEffect(DetalhesLocacaoContract.Effect.ShowError("Dados incompletos para gerar recibo"))
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(isGeneratingReceipt = true)
+
+                val dadosEmpresa = dadosEmpresaRepository.getDadosEmpresa().first()
+
+                val receiptData = ReceiptData(
+                    locacao = locacao,
+                    cliente = cliente,
+                    equipamento = equipamento,
+                    dadosEmpresa = dadosEmpresa
+                )
+
+                val filePath = receiptPdfGenerator.generateReceipt(receiptData)
+
+                _state.value = _state.value.copy(isGeneratingReceipt = false)
+
+                emitEffect(DetalhesLocacaoContract.Effect.CompartilharRecibo(filePath))
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(isGeneratingReceipt = false)
+                handleError(e)
+                emitEffect(DetalhesLocacaoContract.Effect.ShowError(e.message ?: "Erro ao gerar recibo"))
+            }
         }
     }
 }

@@ -23,8 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.model.*
 import br.com.codecacto.locadora.core.ui.strings.Strings
+import br.com.codecacto.locadora.core.pdf.ReceiptPdfGenerator
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import kotlinx.datetime.Instant
+import org.koin.compose.koinInject
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
@@ -39,6 +41,7 @@ fun DetalhesLocacaoScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val receiptPdfGenerator: ReceiptPdfGenerator = koinInject()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -51,6 +54,9 @@ fun DetalhesLocacaoScreen(
                 }
                 is DetalhesLocacaoContract.Effect.NavigateBack -> {
                     onBack()
+                }
+                is DetalhesLocacaoContract.Effect.CompartilharRecibo -> {
+                    receiptPdfGenerator.shareReceipt(effect.filePath)
                 }
             }
         }
@@ -292,6 +298,44 @@ fun DetalhesLocacaoScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
+                    }
+
+                    // Gerar Recibo Button
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.dispatch(DetalhesLocacaoContract.Action.GerarRecibo)
+                        },
+                        enabled = !state.isGeneratingReceipt,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = AppColors.Emerald600
+                        )
+                    ) {
+                        if (state.isGeneratingReceipt) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = AppColors.Emerald600,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = Strings.DETALHES_GERAR_RECIBO,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))

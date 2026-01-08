@@ -26,6 +26,8 @@ import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -115,17 +117,20 @@ fun NovaLocacaoScreen(
             SectionTitle(Strings.NOVA_LOCACAO_VALOR)
             OutlinedTextField(
                 value = state.valorLocacao,
-                onValueChange = {
-                    viewModel.dispatch(NovaLocacaoContract.Action.SetValorLocacao(it))
+                onValueChange = { newValue ->
+                    val filtered = filterCurrencyInput(newValue)
+                    viewModel.dispatch(NovaLocacaoContract.Action.SetValorLocacao(filtered))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(Strings.NOVA_LOCACAO_VALOR_PLACEHOLDER) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyVisualTransformation(),
                 leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.AttachMoney,
-                        contentDescription = null,
-                        tint = AppColors.Slate500
+                    Text(
+                        text = "R$",
+                        fontWeight = FontWeight.Medium,
+                        color = AppColors.Slate500,
+                        modifier = Modifier.padding(start = 12.dp)
                     )
                 },
                 shape = RoundedCornerShape(12.dp),

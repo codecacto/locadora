@@ -16,6 +16,7 @@ data class RecebimentoComDetalhes(
 object RecebimentosContract {
     data class State(
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val recebimentosPendentes: List<RecebimentoComDetalhes> = emptyList(),
         val totalPendente: Double = 0.0,
         val error: String? = null

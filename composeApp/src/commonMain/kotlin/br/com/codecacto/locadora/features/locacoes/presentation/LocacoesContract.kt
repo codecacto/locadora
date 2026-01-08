@@ -18,6 +18,7 @@ data class LocacaoComDetalhes(
 object LocacoesContract {
     data class State(
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val locacoesAtivas: List<LocacaoComDetalhes> = emptyList(),
         val locacoesFinalizadas: List<LocacaoComDetalhes> = emptyList(),
         val tabSelecionada: Int = 0, // 0 = Ativos, 1 = Finalizados

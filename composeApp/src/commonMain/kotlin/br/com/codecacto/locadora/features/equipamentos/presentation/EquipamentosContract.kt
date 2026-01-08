@@ -13,6 +13,7 @@ data class EquipamentoComStatus(
 object EquipamentosContract {
     data class State(
         val isLoading: Boolean = true,
+        val isRefreshing: Boolean = false,
         val isSaving: Boolean = false,
         val equipamentos: List<EquipamentoComStatus> = emptyList(),
         val searchQuery: String = "",

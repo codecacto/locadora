@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import br.com.codecacto.locadora.core.ui.util.CategoriaEquipamento
+import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,23 +130,49 @@ fun EquipamentoFormScreen(
                     singleLine = true
                 )
 
-                // Categoria
-                OutlinedTextField(
-                    value = state.categoria,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetCategoria(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA_PLACEHOLDER) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Category,
-                            contentDescription = null,
-                            tint = AppColors.Slate500
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                // Categoria Dropdown
+                var categoriaExpanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = categoriaExpanded,
+                    onExpandedChange = { categoriaExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = state.categoria,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA) },
+                        placeholder = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA_PLACEHOLDER) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Category,
+                                contentDescription = null,
+                                tint = AppColors.Slate500
+                            )
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoriaExpanded)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoriaExpanded,
+                        onDismissRequest = { categoriaExpanded = false }
+                    ) {
+                        CategoriaEquipamento.entries.forEach { categoria ->
+                            DropdownMenuItem(
+                                text = { Text(categoria.label) },
+                                onClick = {
+                                    viewModel.dispatch(EquipamentosContract.Action.SetCategoria(categoria.label))
+                                    categoriaExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 // Identificação
                 OutlinedTextField(
@@ -166,38 +195,48 @@ fun EquipamentoFormScreen(
                 // Preço Padrão Locação
                 OutlinedTextField(
                     value = state.precoPadraoLocacao,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetPrecoPadraoLocacao(it)) },
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoPadraoLocacao(filtered))
+                    },
                     label = { Text(Strings.EQUIPAMENTO_FORM_PRECO) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_PRECO_PLACEHOLDER) },
+                    placeholder = { Text("0,00") },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.AttachMoney,
-                            contentDescription = null,
-                            tint = AppColors.Slate500
+                        Text(
+                            text = "R$",
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.Slate500,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
                     },
+                    visualTransformation = CurrencyVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
 
                 // Valor de Compra
                 OutlinedTextField(
                     value = state.valorCompra,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetValorCompra(it)) },
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetValorCompra(filtered))
+                    },
                     label = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA_PLACEHOLDER) },
+                    placeholder = { Text("0,00") },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = null,
-                            tint = AppColors.Slate500
+                        Text(
+                            text = "R$",
+                            fontWeight = FontWeight.Medium,
+                            color = AppColors.Slate500,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
                     },
+                    visualTransformation = CurrencyVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
 

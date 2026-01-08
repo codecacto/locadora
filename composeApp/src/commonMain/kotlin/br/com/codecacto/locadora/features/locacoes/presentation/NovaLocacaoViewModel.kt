@@ -7,6 +7,7 @@ import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
+import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
@@ -39,9 +40,11 @@ class NovaLocacaoViewModel(
                 )
             }
             is NovaLocacaoContract.Action.SelectEquipamento -> {
+                // Convert the price to cents (digits only) for the masked input
+                val priceInCents = (action.equipamento.precoPadraoLocacao * 100).toLong().toString()
                 _state.value = _state.value.copy(
                     equipamentoSelecionado = action.equipamento,
-                    valorLocacao = action.equipamento.precoPadraoLocacao.toString()
+                    valorLocacao = priceInCents
                 )
             }
             is NovaLocacaoContract.Action.SetValorLocacao -> {
@@ -113,8 +116,8 @@ class NovaLocacaoViewModel(
             return
         }
 
-        val valorLocacao = currentState.valorLocacao.toDoubleOrNull()
-        if (valorLocacao == null || valorLocacao <= 0) {
+        val valorLocacao = currentState.valorLocacao.currencyToDouble()
+        if (valorLocacao <= 0) {
             emitEffect(NovaLocacaoContract.Effect.ShowError("Informe um valor válido"))
             return
         }

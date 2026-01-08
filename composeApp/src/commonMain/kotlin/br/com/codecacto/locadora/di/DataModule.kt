@@ -19,9 +19,9 @@ val dataModule = module {
     single { Firebase.firestore }
 
     // Repositories
-    single<ClienteRepository> { ClienteRepositoryImpl(get()) }
-    single<EquipamentoRepository> { EquipamentoRepositoryImpl(get()) }
-    single<LocacaoRepository> { LocacaoRepositoryImpl(get()) }
+    single<ClienteRepository> { ClienteRepositoryImpl(get(), get()) }
+    single<EquipamentoRepository> { EquipamentoRepositoryImpl(get(), get()) }
+    single<LocacaoRepository> { LocacaoRepositoryImpl(get(), get()) }
     single<FeedbackRepository> { FeedbackRepositoryImpl(get(), get()) }
     single<NotificacaoRepository> { NotificacaoRepositoryImpl(get(), get()) }
 }

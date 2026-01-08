@@ -36,6 +36,7 @@ enum class StatusPrazo {
 @Serializable
 data class Locacao(
     val id: String = "",
+    val userId: String = "",
     val clienteId: String = "",
     val equipamentoId: String = "",
     val valorLocacao: Double = 0.0,
