@@ -43,7 +43,14 @@ import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentoF
 import br.com.codecacto.locadora.features.settings.presentation.SettingsScreen
 import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordScreen
 import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailScreen
+import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileScreen
+import br.com.codecacto.locadora.features.settings.presentation.DataPrivacyScreen
+import br.com.codecacto.locadora.features.feedback.presentation.FeedbackScreen
+import br.com.codecacto.locadora.features.notifications.presentation.NotificationsScreen
+import br.com.codecacto.locadora.core.ui.components.NotificationBadge
+import br.com.codecacto.locadora.data.repository.NotificacaoRepository
 import br.com.codecacto.locadora.getAppVersion
+import org.koin.compose.koinInject
 
 sealed class BottomNavItem(
     val route: String,
@@ -68,6 +75,10 @@ fun MainScreen(
     var currentMenuScreen by remember { mutableStateOf<String?>(null) }
     var editingClienteId by remember { mutableStateOf<String?>(null) }
     var editingEquipamentoId by remember { mutableStateOf<String?>(null) }
+
+    // Notification state
+    val notificacaoRepository: NotificacaoRepository = koinInject()
+    val unreadNotifications by notificacaoRepository.getUnreadCount().collectAsState(initial = 0)
 
     val bottomNavItems = listOf(
         BottomNavItem.Locacoes,
@@ -171,21 +182,27 @@ fun MainScreen(
                 LocacoesScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
-                    }
+                    },
+                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    unreadNotifications = unreadNotifications
                 )
             }
             composable(BottomNavItem.Entregas.route) {
                 EntregasScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
-                    }
+                    },
+                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    unreadNotifications = unreadNotifications
                 )
             }
             composable(BottomNavItem.Recebimentos.route) {
                 RecebimentosScreen(
                     onNavigateToDetalhes = { locacaoId ->
                         navController.navigate("detalhes_locacao/$locacaoId")
-                    }
+                    },
+                    onNavigateToNotifications = { currentMenuScreen = "notifications"; navController.navigate(BottomNavItem.Menu.route) },
+                    unreadNotifications = unreadNotifications
                 )
             }
             composable(
@@ -239,10 +256,28 @@ fun MainScreen(
                     "change_email" -> ChangeEmailScreen(
                         onBack = { currentMenuScreen = "settings" }
                     )
+                    "profile" -> ChangeProfileScreen(
+                        onBack = { currentMenuScreen = null }
+                    )
+                    "data_privacy" -> DataPrivacyScreen(
+                        onBack = { currentMenuScreen = null },
+                        onAccountDeleted = onLogout
+                    )
+                    "feedback" -> FeedbackScreen(
+                        onBack = { currentMenuScreen = null }
+                    )
+                    "notifications" -> NotificationsScreen(
+                        onBack = { currentMenuScreen = null }
+                    )
                     else -> MenuScreen(
                         onNavigateToClientes = { currentMenuScreen = "clientes" },
                         onNavigateToEquipamentos = { currentMenuScreen = "equipamentos" },
                         onNavigateToSettings = { currentMenuScreen = "settings" },
+                        onNavigateToProfile = { currentMenuScreen = "profile" },
+                        onNavigateToFeedback = { currentMenuScreen = "feedback" },
+                        onNavigateToDataPrivacy = { currentMenuScreen = "data_privacy" },
+                        onNavigateToNotifications = { currentMenuScreen = "notifications" },
+                        unreadNotifications = unreadNotifications,
                         onLogout = onLogout
                     )
                 }
@@ -295,6 +330,11 @@ private fun MenuScreen(
     onNavigateToClientes: () -> Unit,
     onNavigateToEquipamentos: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToFeedback: () -> Unit,
+    onNavigateToDataPrivacy: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
+    unreadNotifications: Int,
     onLogout: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -313,17 +353,28 @@ private fun MenuScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 24.dp)
         ) {
-            Column {
-                Text(
-                    text = Strings.MENU_TITLE,
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = Strings.MENU_SUBTITLE,
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = Strings.MENU_TITLE,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = Strings.MENU_SUBTITLE,
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
+                }
+
+                NotificationBadge(
+                    count = unreadNotifications,
+                    onClick = onNavigateToNotifications
                 )
             }
         }
@@ -358,6 +409,30 @@ private fun MenuScreen(
                 backgroundColor = AppColors.Slate100,
                 iconColor = AppColors.Slate600,
                 onClick = onNavigateToSettings
+            )
+            MenuItemCard(
+                icon = Icons.Default.Person,
+                title = Strings.MENU_PERFIL,
+                subtitle = Strings.MENU_PERFIL_SUBTITLE,
+                backgroundColor = AppColors.Orange100,
+                iconColor = AppColors.Orange500,
+                onClick = onNavigateToProfile
+            )
+            MenuItemCard(
+                icon = Icons.Default.Feedback,
+                title = Strings.MENU_FEEDBACK,
+                subtitle = Strings.MENU_FEEDBACK_SUBTITLE,
+                backgroundColor = AppColors.Violet100,
+                iconColor = AppColors.Violet600,
+                onClick = onNavigateToFeedback
+            )
+            MenuItemCard(
+                icon = Icons.Default.Security,
+                title = Strings.MENU_DADOS_PRIVACIDADE,
+                subtitle = Strings.MENU_DADOS_PRIVACIDADE_SUBTITLE,
+                backgroundColor = AppColors.Green100,
+                iconColor = AppColors.Green600,
+                onClick = onNavigateToDataPrivacy
             )
 
             HorizontalDivider(

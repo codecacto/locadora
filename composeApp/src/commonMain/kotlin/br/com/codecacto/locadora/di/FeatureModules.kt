@@ -10,6 +10,9 @@ import br.com.codecacto.locadora.features.equipamentos.presentation.Equipamentos
 import br.com.codecacto.locadora.features.settings.presentation.SettingsViewModel
 import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordViewModel
 import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailViewModel
+import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileViewModel
+import br.com.codecacto.locadora.features.feedback.presentation.FeedbackViewModel
+import br.com.codecacto.locadora.features.notifications.presentation.NotificationsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -39,4 +42,13 @@ val settingsModule = module {
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { ChangePasswordViewModel(get(), get()) }
     viewModel { ChangeEmailViewModel(get(), get()) }
+    viewModel { ChangeProfileViewModel(get(), get()) }
+}
+
+val feedbackModule = module {
+    viewModel { FeedbackViewModel(get(), get()) }
+}
+
+val notificationsModule = module {
+    viewModel { NotificationsViewModel(get(), get()) }
 }

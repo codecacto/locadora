@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.components.NotificationBadge
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import kotlinx.datetime.Instant
@@ -30,6 +31,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun EntregasScreen(
     onNavigateToDetalhes: (String) -> Unit,
+    onNavigateToNotifications: () -> Unit = {},
+    unreadNotifications: Int = 0,
     viewModel: EntregasViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -69,18 +72,29 @@ fun EntregasScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 24.dp)
         ) {
-            Column {
-                Text(
-                    text = Strings.ENTREGAS_TITLE,
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                val totalEntregas = state.entregasAtrasadas.size + state.entregasHoje.size + state.entregasAgendadas.size
-                Text(
-                    text = Strings.entregasPendentes(totalEntregas),
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = Strings.ENTREGAS_TITLE,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    val totalEntregas = state.entregasAtrasadas.size + state.entregasHoje.size + state.entregasAgendadas.size
+                    Text(
+                        text = Strings.entregasPendentes(totalEntregas),
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
+                }
+
+                NotificationBadge(
+                    count = unreadNotifications,
+                    onClick = onNavigateToNotifications
                 )
             }
         }

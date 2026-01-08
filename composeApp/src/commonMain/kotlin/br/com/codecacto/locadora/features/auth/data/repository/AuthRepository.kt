@@ -17,6 +17,8 @@ interface AuthRepository {
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
     suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit>
     suspend fun changeEmail(newEmail: String, password: String): Result<Unit>
+    suspend fun updateProfile(displayName: String): Result<Unit>
+    suspend fun deleteAccount(password: String): Result<Unit>
     suspend fun logout()
 }
 
@@ -136,6 +138,33 @@ class AuthRepositoryImpl(
 
             // Alterar email
             user.updateEmail(newEmail)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(mapFirebaseException(e))
+        }
+    }
+
+    override suspend fun updateProfile(displayName: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("Usuario nao autenticado")
+            user.updateProfile(displayName = displayName)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(mapFirebaseException(e))
+        }
+    }
+
+    override suspend fun deleteAccount(password: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("Usuario nao autenticado")
+            val email = user.email ?: throw Exception("Email nao encontrado")
+
+            // Reautenticar usuario antes de deletar
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+
+            // Deletar conta
+            user.delete()
 
             Result.success(Unit)
         } catch (e: Exception) {

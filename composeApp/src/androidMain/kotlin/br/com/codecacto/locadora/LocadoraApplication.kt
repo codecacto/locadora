@@ -8,8 +8,14 @@ import org.koin.core.context.startKoin
 
 class LocadoraApplication : Application() {
 
+    companion object {
+        lateinit var instance: LocadoraApplication
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
         // Initialize Koin
         startKoin {

@@ -14,6 +14,8 @@ object AppColors {
     val Green = Color(0xFF10B981)
     val GreenLight = Color(0xFFD1FAE5)
     val GreenDark = Color(0xFF059669)
+    val Green600 = Color(0xFF16A34A)
+    val Green100 = Color(0xFFDCFCE7)
     val Emerald600 = Color(0xFF059669)
     val Emerald100 = Color(0xFFD1FAE5)
 

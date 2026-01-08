@@ -11,5 +11,7 @@ fun appModules(): List<Module> = listOf(
     recebimentosModule,
     clientesModule,
     equipamentosModule,
-    settingsModule
+    settingsModule,
+    feedbackModule,
+    notificationsModule
 )

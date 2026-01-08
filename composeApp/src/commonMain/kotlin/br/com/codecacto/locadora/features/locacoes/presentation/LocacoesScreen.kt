@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.model.StatusPagamento
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.model.StatusPrazo
+import br.com.codecacto.locadora.core.ui.components.NotificationBadge
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import kotlinx.datetime.Instant
@@ -38,6 +39,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun LocacoesScreen(
     onNavigateToDetalhes: (String) -> Unit,
+    onNavigateToNotifications: () -> Unit = {},
+    unreadNotifications: Int = 0,
     viewModel: LocacoesViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -72,43 +75,54 @@ fun LocacoesScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 16.dp)
         ) {
-            Column {
-                Text(
-                    text = Strings.LOCACOES_TITLE,
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = if (state.tabSelecionada == 0) {
-                        Strings.locacoesAtivas(state.locacoesAtivas.size)
-                    } else {
-                        Strings.locacoesFinalizadas(state.locacoesFinalizadas.size)
-                    },
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Tabs
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TabButton(
-                        text = Strings.LOCACOES_TAB_ATIVOS,
-                        isSelected = state.tabSelecionada == 0,
-                        onClick = { viewModel.dispatch(LocacoesContract.Action.SelectTab(0)) },
-                        modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = Strings.LOCACOES_TITLE,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    TabButton(
-                        text = Strings.LOCACOES_TAB_FINALIZADOS,
-                        isSelected = state.tabSelecionada == 1,
-                        onClick = { viewModel.dispatch(LocacoesContract.Action.SelectTab(1)) },
-                        modifier = Modifier.weight(1f)
+                    Text(
+                        text = if (state.tabSelecionada == 0) {
+                            Strings.locacoesAtivas(state.locacoesAtivas.size)
+                        } else {
+                            Strings.locacoesFinalizadas(state.locacoesFinalizadas.size)
+                        },
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
                     )
                 }
+
+                NotificationBadge(
+                    count = unreadNotifications,
+                    onClick = onNavigateToNotifications
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Tabs
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TabButton(
+                    text = Strings.LOCACOES_TAB_ATIVOS,
+                    isSelected = state.tabSelecionada == 0,
+                    onClick = { viewModel.dispatch(LocacoesContract.Action.SelectTab(0)) },
+                    modifier = Modifier.weight(1f)
+                )
+                TabButton(
+                    text = Strings.LOCACOES_TAB_FINALIZADOS,
+                    isSelected = state.tabSelecionada == 1,
+                    onClick = { viewModel.dispatch(LocacoesContract.Action.SelectTab(1)) },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
 

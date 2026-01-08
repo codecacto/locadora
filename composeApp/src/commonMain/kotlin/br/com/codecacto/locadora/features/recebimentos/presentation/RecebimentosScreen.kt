@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.components.NotificationBadge
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import kotlinx.datetime.Instant
@@ -30,6 +31,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun RecebimentosScreen(
     onNavigateToDetalhes: (String) -> Unit,
+    onNavigateToNotifications: () -> Unit = {},
+    unreadNotifications: Int = 0,
     viewModel: RecebimentosViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -69,34 +72,45 @@ fun RecebimentosScreen(
                 .padding(horizontal = 16.dp)
                 .padding(top = 48.dp, bottom = 24.dp)
         ) {
-            Column {
-                Text(
-                    text = Strings.RECEBIMENTOS_TITLE,
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = Strings.recebimentosPendentes(state.recebimentosPendentes.size),
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp
-                )
-                if (state.recebimentosPendentes.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
-                    Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = Strings.RECEBIMENTOS_TOTAL,
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = formatCurrency(state.totalPendente),
+                        text = Strings.RECEBIMENTOS_TITLE,
                         color = Color.White,
-                        fontSize = 28.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    Text(
+                        text = Strings.recebimentosPendentes(state.recebimentosPendentes.size),
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
+                    if (state.recebimentosPendentes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = Strings.RECEBIMENTOS_TOTAL,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = formatCurrency(state.totalPendente),
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
+
+                NotificationBadge(
+                    count = unreadNotifications,
+                    onClick = onNavigateToNotifications
+                )
             }
         }
 
