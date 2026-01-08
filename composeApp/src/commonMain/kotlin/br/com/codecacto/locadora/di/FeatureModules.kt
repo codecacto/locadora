@@ -7,6 +7,9 @@ import br.com.codecacto.locadora.features.entregas.presentation.EntregasViewMode
 import br.com.codecacto.locadora.features.recebimentos.presentation.RecebimentosViewModel
 import br.com.codecacto.locadora.features.clientes.presentation.ClientesViewModel
 import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentosViewModel
+import br.com.codecacto.locadora.features.settings.presentation.SettingsViewModel
+import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordViewModel
+import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -30,4 +33,10 @@ val clientesModule = module {
 
 val equipamentosModule = module {
     viewModel { EquipamentosViewModel(get(), get(), get()) }
+}
+
+val settingsModule = module {
+    viewModel { SettingsViewModel(get(), get()) }
+    viewModel { ChangePasswordViewModel(get(), get()) }
+    viewModel { ChangeEmailViewModel(get(), get()) }
 }

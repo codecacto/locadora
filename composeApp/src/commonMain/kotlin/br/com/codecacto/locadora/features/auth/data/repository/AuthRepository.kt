@@ -15,6 +15,8 @@ interface AuthRepository {
     suspend fun loginWithEmail(email: String, password: String): Result<User>
     suspend fun registerWithEmail(email: String, password: String, displayName: String): Result<User>
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit>
+    suspend fun changeEmail(newEmail: String, password: String): Result<Unit>
     suspend fun logout()
 }
 
@@ -101,6 +103,40 @@ class AuthRepositoryImpl(
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return try {
             firebaseAuth.sendPasswordResetEmail(email)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(mapFirebaseException(e))
+        }
+    }
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("Usuario nao autenticado")
+            val email = user.email ?: throw Exception("Email nao encontrado")
+
+            // Reautenticar usuario
+            firebaseAuth.signInWithEmailAndPassword(email, currentPassword)
+
+            // Alterar senha
+            user.updatePassword(newPassword)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(mapFirebaseException(e))
+        }
+    }
+
+    override suspend fun changeEmail(newEmail: String, password: String): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("Usuario nao autenticado")
+            val currentEmail = user.email ?: throw Exception("Email nao encontrado")
+
+            // Reautenticar usuario
+            firebaseAuth.signInWithEmailAndPassword(currentEmail, password)
+
+            // Alterar email
+            user.updateEmail(newEmail)
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(mapFirebaseException(e))

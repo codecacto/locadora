@@ -53,6 +53,7 @@ object EquipamentosContract {
         data class SetObservacoes(val value: String) : Action()
         data object SaveEquipamento : Action()
         data object Refresh : Action()
+        data object ClearForm : Action()
     }
 
     sealed interface Effect : UiEffect {

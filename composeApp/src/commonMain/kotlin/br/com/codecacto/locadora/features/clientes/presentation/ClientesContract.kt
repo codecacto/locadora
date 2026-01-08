@@ -48,6 +48,7 @@ object ClientesContract {
         data class SetPrecisaNotaFiscal(val value: Boolean) : Action()
         data object SaveCliente : Action()
         data object Refresh : Action()
+        data object ClearForm : Action()
     }
 
     sealed interface Effect : UiEffect {

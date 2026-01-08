@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.ui.strings.Strings
@@ -333,13 +334,15 @@ private fun EmptyRecebimentosState() {
                 text = Strings.RECEBIMENTOS_EMPTY_TITLE,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.Slate800
+                color = AppColors.Slate800,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = Strings.RECEBIMENTOS_EMPTY_SUBTITLE,
                 fontSize = 14.sp,
                 color = AppColors.Slate500,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }

@@ -1,0 +1,259 @@
+package br.com.codecacto.locadora.features.settings.presentation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.theme.AppColors
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun ChangePasswordScreen(
+    onBack: () -> Unit,
+    viewModel: ChangePasswordViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is ChangePasswordContract.Effect.NavigateBack -> onBack()
+                is ChangePasswordContract.Effect.ShowSuccess -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is ChangePasswordContract.Effect.ShowError -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColors.Slate50)
+        ) {
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppColors.Blue600)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 48.dp, bottom = 24.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Alterar Senha",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Atualize sua senha de acesso",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            // Form
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Current Password
+                OutlinedTextField(
+                    value = state.currentPassword,
+                    onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetCurrentPassword(it)) },
+                    label = { Text("Senha Atual") },
+                    placeholder = { Text("Digite sua senha atual") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = AppColors.Slate500
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { viewModel.dispatch(ChangePasswordContract.Action.ToggleCurrentPasswordVisibility) }
+                        ) {
+                            Icon(
+                                imageVector = if (state.showCurrentPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (state.showCurrentPassword) "Ocultar senha" else "Mostrar senha",
+                                tint = AppColors.Slate500
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    visualTransformation = if (state.showCurrentPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next
+                    ),
+                    isError = state.currentPasswordError != null,
+                    supportingText = state.currentPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    singleLine = true,
+                    enabled = !state.isLoading
+                )
+
+                // New Password
+                OutlinedTextField(
+                    value = state.newPassword,
+                    onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetNewPassword(it)) },
+                    label = { Text("Nova Senha") },
+                    placeholder = { Text("Digite a nova senha") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = AppColors.Slate500
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { viewModel.dispatch(ChangePasswordContract.Action.ToggleNewPasswordVisibility) }
+                        ) {
+                            Icon(
+                                imageVector = if (state.showNewPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (state.showNewPassword) "Ocultar senha" else "Mostrar senha",
+                                tint = AppColors.Slate500
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    visualTransformation = if (state.showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next
+                    ),
+                    isError = state.newPasswordError != null,
+                    supportingText = state.newPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    singleLine = true,
+                    enabled = !state.isLoading
+                )
+
+                // Confirm Password
+                OutlinedTextField(
+                    value = state.confirmPassword,
+                    onValueChange = { viewModel.dispatch(ChangePasswordContract.Action.SetConfirmPassword(it)) },
+                    label = { Text("Confirmar Nova Senha") },
+                    placeholder = { Text("Confirme a nova senha") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = AppColors.Slate500
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { viewModel.dispatch(ChangePasswordContract.Action.ToggleConfirmPasswordVisibility) }
+                        ) {
+                            Icon(
+                                imageVector = if (state.showConfirmPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (state.showConfirmPassword) "Ocultar senha" else "Mostrar senha",
+                                tint = AppColors.Slate500
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    visualTransformation = if (state.showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    isError = state.confirmPasswordError != null,
+                    supportingText = state.confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    singleLine = true,
+                    enabled = !state.isLoading
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Submit Button
+                Button(
+                    onClick = { viewModel.dispatch(ChangePasswordContract.Action.Submit) },
+                    enabled = !state.isLoading &&
+                            state.currentPassword.isNotEmpty() &&
+                            state.newPassword.isNotEmpty() &&
+                            state.confirmPassword.isNotEmpty(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Blue600)
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Alterar Senha",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // Cancel Button
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Cancelar",
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}

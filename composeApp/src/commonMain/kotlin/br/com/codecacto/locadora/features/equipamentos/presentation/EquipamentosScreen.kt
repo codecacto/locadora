@@ -28,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun EquipamentosScreen(
     onBack: () -> Unit,
+    onNavigateToForm: (String?) -> Unit,
     viewModel: EquipamentosViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -93,7 +94,7 @@ fun EquipamentosScreen(
                     }
                 }
                 FilledTonalButton(
-                    onClick = { viewModel.dispatch(EquipamentosContract.Action.ShowForm) },
+                    onClick = { onNavigateToForm(null) },
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = Color.White,
                         contentColor = AppColors.Violet600
@@ -145,7 +146,7 @@ fun EquipamentosScreen(
             if (state.filteredEquipamentos.isEmpty()) {
                 EmptyEquipamentosState(
                     hasSearch = state.searchQuery.isNotBlank(),
-                    onAddEquipamento = { viewModel.dispatch(EquipamentosContract.Action.ShowForm) }
+                    onAddEquipamento = { onNavigateToForm(null) }
                 )
             } else {
                 LazyColumn(
@@ -156,7 +157,7 @@ fun EquipamentosScreen(
                     items(state.filteredEquipamentos) { equipamentoComStatus ->
                         EquipamentoCard(
                             equipamentoComStatus = equipamentoComStatus,
-                            onEdit = { viewModel.dispatch(EquipamentosContract.Action.EditEquipamento(equipamentoComStatus.equipamento)) },
+                            onEdit = { onNavigateToForm(equipamentoComStatus.equipamento.id) },
                             onDelete = { viewModel.dispatch(EquipamentosContract.Action.DeleteEquipamento(equipamentoComStatus.equipamento)) }
                         )
                     }
@@ -167,15 +168,6 @@ fun EquipamentosScreen(
             }
         }
     }
-    }
-
-    // Form Dialog
-    if (state.showForm) {
-        EquipamentoFormDialog(
-            state = state,
-            onDismiss = { viewModel.dispatch(EquipamentosContract.Action.HideForm) },
-            onAction = { viewModel.dispatch(it) }
-        )
     }
 }
 
@@ -384,101 +376,6 @@ private fun EmptyEquipamentosState(
             }
         }
     }
-}
-
-@Composable
-private fun EquipamentoFormDialog(
-    state: EquipamentosContract.State,
-    onDismiss: () -> Unit,
-    onAction: (EquipamentosContract.Action) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (state.editingEquipamento != null) Strings.EQUIPAMENTO_FORM_EDITAR else Strings.EQUIPAMENTO_FORM_NOVO,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = state.nome,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetNome(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_NOME) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_NOME_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.categoria,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetCategoria(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.identificacao,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetIdentificacao(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.precoPadraoLocacao,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetPrecoPadraoLocacao(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_PRECO_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.valorCompra,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetValorCompra(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.observacoes,
-                    onValueChange = { onAction(EquipamentosContract.Action.SetObservacoes(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES_PLACEHOLDER) },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 3
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onAction(EquipamentosContract.Action.SaveEquipamento) },
-                enabled = !state.isSaving
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = Color.White
-                    )
-                } else {
-                    Text(if (state.editingEquipamento != null) Strings.EQUIPAMENTO_FORM_ATUALIZAR else Strings.EQUIPAMENTO_FORM_CADASTRAR)
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(Strings.COMMON_CANCELAR)
-            }
-        }
-    )
 }
 
 private fun formatCurrency(value: Double): String {

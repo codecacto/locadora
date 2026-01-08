@@ -10,7 +10,17 @@
       "Bash(del \"E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\iosMain\\\\kotlin\\\\br\\\\com\\\\codecacto\\\\locadora\\\\features\\\\auth\\\\domain\\\\model\\\\GoogleAuthProvider.ios.kt\")",
       "Bash(del \"E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\kotlin\\\\br\\\\com\\\\codecacto\\\\locadora\\\\features\\\\auth\\\\domain\\\\model\\\\GoogleSignInResult.kt\")",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Locadora - Equipment Rental KMP App\n\nFeatures:\n- Kotlin Multiplatform \\(Android + iOS\\)\n- Firebase Auth with email/password login\n- Firestore database integration\n- Firebase Crashlytics\n- MVVM architecture with Contract pattern\n- Koin for dependency injection\n- Compose Multiplatform UI\n\nModules:\n- Auth \\(Login, Register\\)\n- Locacoes \\(Rentals management\\)\n- Entregas \\(Deliveries\\)\n- Recebimentos \\(Payments\\)\n- Clientes \\(Customers\\)\n- Equipamentos \\(Equipment\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(./gradlew:*)",
+      "Bash(where:*)",
+      "Bash(java:*)",
+      "Bash(\"$JAVA_HOME/bin/java\" -version)",
+      "WebSearch",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -29,6 +29,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ClientesScreen(
     onBack: () -> Unit,
+    onNavigateToForm: (String?) -> Unit,
     viewModel: ClientesViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -94,7 +95,7 @@ fun ClientesScreen(
                     }
                 }
                 FilledTonalButton(
-                    onClick = { viewModel.dispatch(ClientesContract.Action.ShowForm) },
+                    onClick = { onNavigateToForm(null) },
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = Color.White,
                         contentColor = AppColors.Blue600
@@ -146,7 +147,7 @@ fun ClientesScreen(
             if (state.filteredClientes.isEmpty()) {
                 EmptyClientesState(
                     hasSearch = state.searchQuery.isNotBlank(),
-                    onAddCliente = { viewModel.dispatch(ClientesContract.Action.ShowForm) }
+                    onAddCliente = { onNavigateToForm(null) }
                 )
             } else {
                 LazyColumn(
@@ -157,7 +158,7 @@ fun ClientesScreen(
                     items(state.filteredClientes) { cliente ->
                         ClienteCard(
                             cliente = cliente,
-                            onEdit = { viewModel.dispatch(ClientesContract.Action.EditCliente(cliente)) },
+                            onEdit = { onNavigateToForm(cliente.id) },
                             onDelete = { viewModel.dispatch(ClientesContract.Action.DeleteCliente(cliente)) }
                         )
                     }
@@ -168,15 +169,6 @@ fun ClientesScreen(
             }
         }
     }
-    }
-
-    // Form Dialog
-    if (state.showForm) {
-        ClienteFormDialog(
-            state = state,
-            onDismiss = { viewModel.dispatch(ClientesContract.Action.HideForm) },
-            onAction = { viewModel.dispatch(it) }
-        )
     }
 }
 
@@ -363,96 +355,4 @@ private fun EmptyClientesState(
             }
         }
     }
-}
-
-@Composable
-private fun ClienteFormDialog(
-    state: ClientesContract.State,
-    onDismiss: () -> Unit,
-    onAction: (ClientesContract.Action) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (state.editingCliente != null) Strings.CLIENTE_FORM_EDITAR else Strings.CLIENTE_FORM_NOVO,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
-                    value = state.nomeRazao,
-                    onValueChange = { onAction(ClientesContract.Action.SetNomeRazao(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_NOME) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.cpfCnpj,
-                    onValueChange = { onAction(ClientesContract.Action.SetCpfCnpj(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_CPF_CNPJ) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.telefoneWhatsapp,
-                    onValueChange = { onAction(ClientesContract.Action.SetTelefoneWhatsapp(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_TELEFONE) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.email,
-                    onValueChange = { onAction(ClientesContract.Action.SetEmail(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_EMAIL) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = state.endereco,
-                    onValueChange = { onAction(ClientesContract.Action.SetEndereco(it)) },
-                    label = { Text(Strings.CLIENTE_FORM_ENDERECO) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(Strings.CLIENTE_FORM_NOTA_FISCAL)
-                    Switch(
-                        checked = state.precisaNotaFiscalPadrao,
-                        onCheckedChange = { onAction(ClientesContract.Action.SetPrecisaNotaFiscal(it)) }
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onAction(ClientesContract.Action.SaveCliente) },
-                enabled = !state.isSaving
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = Color.White
-                    )
-                } else {
-                    Text(if (state.editingCliente != null) Strings.CLIENTE_FORM_ATUALIZAR else Strings.CLIENTE_FORM_CADASTRAR)
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(Strings.COMMON_CANCELAR)
-            }
-        }
-    )
 }

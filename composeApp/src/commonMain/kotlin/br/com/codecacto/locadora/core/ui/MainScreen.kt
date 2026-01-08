@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -36,7 +37,13 @@ import br.com.codecacto.locadora.features.locacoes.presentation.DetalhesLocacaoS
 import br.com.codecacto.locadora.features.entregas.presentation.EntregasScreen
 import br.com.codecacto.locadora.features.recebimentos.presentation.RecebimentosScreen
 import br.com.codecacto.locadora.features.clientes.presentation.ClientesScreen
+import br.com.codecacto.locadora.features.clientes.presentation.ClienteFormScreen
 import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentosScreen
+import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentoFormScreen
+import br.com.codecacto.locadora.features.settings.presentation.SettingsScreen
+import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordScreen
+import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailScreen
+import br.com.codecacto.locadora.getAppVersion
 
 sealed class BottomNavItem(
     val route: String,
@@ -59,6 +66,8 @@ fun MainScreen(
 
     var showNovaLocacaoSheet by remember { mutableStateOf(false) }
     var currentMenuScreen by remember { mutableStateOf<String?>(null) }
+    var editingClienteId by remember { mutableStateOf<String?>(null) }
+    var editingEquipamentoId by remember { mutableStateOf<String?>(null) }
 
     val bottomNavItems = listOf(
         BottomNavItem.Locacoes,
@@ -191,11 +200,49 @@ fun MainScreen(
             }
             composable(BottomNavItem.Menu.route) {
                 when (currentMenuScreen) {
-                    "clientes" -> ClientesScreen(onBack = { currentMenuScreen = null })
-                    "equipamentos" -> EquipamentosScreen(onBack = { currentMenuScreen = null })
+                    "clientes" -> ClientesScreen(
+                        onBack = { currentMenuScreen = null },
+                        onNavigateToForm = { clienteId ->
+                            editingClienteId = clienteId
+                            currentMenuScreen = "cliente_form"
+                        }
+                    )
+                    "cliente_form" -> ClienteFormScreen(
+                        clienteId = editingClienteId,
+                        onBack = {
+                            editingClienteId = null
+                            currentMenuScreen = "clientes"
+                        }
+                    )
+                    "equipamentos" -> EquipamentosScreen(
+                        onBack = { currentMenuScreen = null },
+                        onNavigateToForm = { equipamentoId ->
+                            editingEquipamentoId = equipamentoId
+                            currentMenuScreen = "equipamento_form"
+                        }
+                    )
+                    "equipamento_form" -> EquipamentoFormScreen(
+                        equipamentoId = editingEquipamentoId,
+                        onBack = {
+                            editingEquipamentoId = null
+                            currentMenuScreen = "equipamentos"
+                        }
+                    )
+                    "settings" -> SettingsScreen(
+                        onBack = { currentMenuScreen = null },
+                        onNavigateToChangePassword = { currentMenuScreen = "change_password" },
+                        onNavigateToChangeEmail = { currentMenuScreen = "change_email" }
+                    )
+                    "change_password" -> ChangePasswordScreen(
+                        onBack = { currentMenuScreen = "settings" }
+                    )
+                    "change_email" -> ChangeEmailScreen(
+                        onBack = { currentMenuScreen = "settings" }
+                    )
                     else -> MenuScreen(
                         onNavigateToClientes = { currentMenuScreen = "clientes" },
                         onNavigateToEquipamentos = { currentMenuScreen = "equipamentos" },
+                        onNavigateToSettings = { currentMenuScreen = "settings" },
                         onLogout = onLogout
                     )
                 }
@@ -247,8 +294,12 @@ private fun BottomNavItemView(
 private fun MenuScreen(
     onNavigateToClientes: () -> Unit,
     onNavigateToEquipamentos: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit
 ) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    val appVersion = remember { getAppVersion() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -300,6 +351,14 @@ private fun MenuScreen(
                 iconColor = AppColors.Violet600,
                 onClick = onNavigateToEquipamentos
             )
+            MenuItemCard(
+                icon = Icons.Default.Settings,
+                title = Strings.MENU_CONFIGURACOES,
+                subtitle = Strings.MENU_CONFIGURACOES_SUBTITLE,
+                backgroundColor = AppColors.Slate100,
+                iconColor = AppColors.Slate600,
+                onClick = onNavigateToSettings
+            )
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -312,7 +371,7 @@ private fun MenuScreen(
                 subtitle = Strings.MENU_SAIR_SUBTITLE,
                 backgroundColor = AppColors.RedLight,
                 iconColor = AppColors.Red,
-                onClick = onLogout
+                onClick = { showLogoutDialog = true }
             )
         }
 
@@ -351,13 +410,45 @@ private fun MenuScreen(
                         color = AppColors.Slate900
                     )
                     Text(
-                        text = Strings.APP_VERSION,
+                        text = appVersion.displayVersion,
                         fontSize = 12.sp,
                         color = AppColors.Slate500
                     )
                 }
             }
         }
+    }
+
+    // Dialog de confirmação de logout
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Text(
+                    text = "Sair",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text("Deseja realmente sair do aplicativo?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Red)
+                ) {
+                    Text(Strings.COMMON_CONFIRMAR)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(Strings.COMMON_CANCELAR)
+                }
+            }
+        )
     }
 }
 

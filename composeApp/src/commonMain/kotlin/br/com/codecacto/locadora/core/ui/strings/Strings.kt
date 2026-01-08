@@ -20,8 +20,10 @@ object Strings {
     const val MENU_CLIENTES_SUBTITLE = "Gerenciar clientes"
     const val MENU_EQUIPAMENTOS = "Equipamentos"
     const val MENU_EQUIPAMENTOS_SUBTITLE = "Gerenciar equipamentos"
+    const val MENU_CONFIGURACOES = "Configuracoes"
+    const val MENU_CONFIGURACOES_SUBTITLE = "Alterar senha e email"
     const val MENU_SAIR = "Sair"
-    const val MENU_SAIR_SUBTITLE = "Encerrar sessão"
+    const val MENU_SAIR_SUBTITLE = "Encerrar sessao"
 
     // Auth - Login Screen
     const val LOGIN_TITLE = "Entrar"

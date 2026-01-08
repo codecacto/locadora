@@ -75,6 +75,17 @@ class ClientesViewModel(
             }
             is ClientesContract.Action.SaveCliente -> saveCliente()
             is ClientesContract.Action.Refresh -> loadClientes()
+            is ClientesContract.Action.ClearForm -> {
+                _state.value = _state.value.copy(
+                    editingCliente = null,
+                    nomeRazao = "",
+                    cpfCnpj = "",
+                    telefoneWhatsapp = "",
+                    email = "",
+                    endereco = "",
+                    precisaNotaFiscalPadrao = false
+                )
+            }
         }
     }
 

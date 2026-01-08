@@ -79,6 +79,17 @@ class EquipamentosViewModel(
             }
             is EquipamentosContract.Action.SaveEquipamento -> saveEquipamento()
             is EquipamentosContract.Action.Refresh -> loadEquipamentos()
+            is EquipamentosContract.Action.ClearForm -> {
+                _state.value = _state.value.copy(
+                    editingEquipamento = null,
+                    nome = "",
+                    categoria = "",
+                    identificacao = "",
+                    precoPadraoLocacao = "",
+                    valorCompra = "",
+                    observacoes = ""
+                )
+            }
         }
     }
 
