@@ -12,6 +12,7 @@ import br.com.codecacto.locadora.data.repository.ClienteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 class ClientesViewModel(
@@ -123,22 +124,23 @@ class ClientesViewModel(
 
     private fun loadClientes() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
-                clienteRepository.getClientes().collect { clientes ->
+            _state.value = _state.value.copy(isLoading = true)
+
+            clienteRepository.getClientes()
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar clientes"
+                    )
+                    handleError(e)
+                }
+                .collect { clientes ->
                     _state.value = _state.value.copy(
                         isLoading = false,
                         clientes = clientes,
                         error = null
                     )
                 }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-                handleError(e)
-            }
         }
     }
 

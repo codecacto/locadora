@@ -184,24 +184,46 @@ object Strings {
     const val LOCACOES_EMPTY_FINALIZADAS_SUBTITLE = "As locações concluídas aparecerão aqui"
 
     // Nova Locacao Screen
-    const val NOVA_LOCACAO_TITLE = "Nova Locação"
+    const val NOVA_LOCACAO_TITLE = "Nova Locacao"
     const val NOVA_LOCACAO_CLIENTE = "Cliente"
     const val NOVA_LOCACAO_SELECIONAR_CLIENTE = "Selecionar cliente"
     const val NOVA_LOCACAO_EQUIPAMENTO = "Equipamento"
     const val NOVA_LOCACAO_SELECIONAR_EQUIPAMENTO = "Selecionar equipamento"
-    const val NOVA_LOCACAO_VALOR = "Valor da Locação"
+    const val NOVA_LOCACAO_VALOR = "Valor da Locacao"
     const val NOVA_LOCACAO_VALOR_PLACEHOLDER = "R$ 0,00"
-    const val NOVA_LOCACAO_DATA_INICIO = "Data Início"
+    const val NOVA_LOCACAO_DATA_INICIO = "Data Inicio"
     const val NOVA_LOCACAO_DATA_FIM = "Data Fim Prevista"
     const val NOVA_LOCACAO_SELECIONAR_DATA = "Selecionar data"
     const val NOVA_LOCACAO_STATUS_ENTREGA = "Status de Entrega"
     const val NOVA_LOCACAO_DATA_ENTREGA = "Data de Entrega Prevista"
     const val NOVA_LOCACAO_EMITIR_NOTA = "Emitir Nota Fiscal"
-    const val NOVA_LOCACAO_EMITIR_NOTA_SUBTITLE = "Cliente será notificado sobre a NF"
-    const val NOVA_LOCACAO_CRIAR = "Criar Locação"
+    const val NOVA_LOCACAO_EMITIR_NOTA_SUBTITLE = "Cliente sera notificado sobre a NF"
+    const val NOVA_LOCACAO_CRIAR = "Criar Locacao"
     const val NOVA_LOCACAO_NENHUM_CLIENTE = "Nenhum cliente cadastrado"
-    const val NOVA_LOCACAO_NENHUM_EQUIPAMENTO = "Nenhum equipamento disponível"
-    const val NOVA_LOCACAO_EQUIPAMENTOS_ALUGADOS = "Todos estão alugados ou nenhum foi cadastrado"
+    const val NOVA_LOCACAO_NENHUM_EQUIPAMENTO = "Nenhum equipamento disponivel"
+    const val NOVA_LOCACAO_EQUIPAMENTOS_ALUGADOS = "Todos estao alugados ou nenhum foi cadastrado"
+
+    // Selecionar Cliente Screen
+    const val SELECIONAR_CLIENTE_TITLE = "Selecionar Cliente"
+    const val SELECIONAR_CLIENTE_BUSCAR = "Buscar por nome, CPF/CNPJ ou telefone"
+    const val SELECIONAR_CLIENTE_LIMPAR = "Limpar"
+    const val SELECIONAR_CLIENTE_NENHUM_ENCONTRADO = "Nenhum cliente encontrado"
+    const val SELECIONAR_CLIENTE_NENHUM_CADASTRADO = "Nenhum cliente cadastrado"
+    const val SELECIONAR_CLIENTE_TENTE_OUTROS_TERMOS = "Tente buscar com outros termos ou adicione um novo cliente"
+    const val SELECIONAR_CLIENTE_ADICIONE_PRIMEIRO = "Adicione seu primeiro cliente"
+    const val SELECIONAR_CLIENTE_ADICIONAR = "Adicionar Cliente"
+
+    // Selecionar Equipamento Screen
+    const val SELECIONAR_EQUIPAMENTO_TITLE = "Selecionar Equipamento"
+    const val SELECIONAR_EQUIPAMENTO_BUSCAR = "Buscar por nome, tipo ou identificacao"
+    const val SELECIONAR_EQUIPAMENTO_LIMPAR = "Limpar"
+    const val SELECIONAR_EQUIPAMENTO_INFO = "Mostrando apenas equipamentos disponiveis para locacao"
+    const val SELECIONAR_EQUIPAMENTO_NENHUM_ENCONTRADO = "Nenhum equipamento encontrado"
+    const val SELECIONAR_EQUIPAMENTO_NENHUM_DISPONIVEL = "Nenhum equipamento disponivel"
+    const val SELECIONAR_EQUIPAMENTO_TENTE_OUTROS_TERMOS = "Tente buscar com outros termos ou adicione um novo equipamento"
+    const val SELECIONAR_EQUIPAMENTO_TODOS_ALUGADOS = "Todos os equipamentos estao alugados ou voce ainda nao cadastrou nenhum"
+    const val SELECIONAR_EQUIPAMENTO_ADICIONAR = "Adicionar Equipamento"
+    const val SELECIONAR_EQUIPAMENTO_POR_DIA = "/dia"
 
     // Status Entrega
     const val STATUS_ENTREGA_NAO_AGENDADA = "Não Agendada"
@@ -339,6 +361,22 @@ object Strings {
     const val EQUIPAMENTO_FORM_OBSERVACOES_PLACEHOLDER = "Informações adicionais sobre o equipamento"
     const val EQUIPAMENTO_FORM_CADASTRAR = "Cadastrar"
     const val EQUIPAMENTO_FORM_ATUALIZAR = "Atualizar"
+    const val EQUIPAMENTO_FORM_PRECOS_TITLE = "Preços por Período *"
+    const val EQUIPAMENTO_FORM_PRECOS_SUBTITLE = "Informe pelo menos um preço"
+    const val EQUIPAMENTO_FORM_PRECO_DIARIO = "Preço Diário"
+    const val EQUIPAMENTO_FORM_PRECO_SEMANAL = "Preço Semanal (7 dias)"
+    const val EQUIPAMENTO_FORM_PRECO_QUINZENAL = "Preço Quinzenal (15 dias)"
+    const val EQUIPAMENTO_FORM_PRECO_MENSAL = "Preço Mensal (30 dias)"
+
+    // Períodos
+    const val PERIODO_DIARIO = "Diário"
+    const val PERIODO_SEMANAL = "Semanal"
+    const val PERIODO_QUINZENAL = "Quinzenal"
+    const val PERIODO_MENSAL = "Mensal"
+    const val NOVA_LOCACAO_PERIODO = "Período"
+
+    // Currency
+    const val CURRENCY_SYMBOL = "R$"
 
     // Common
     const val COMMON_VOLTAR = "Voltar"
@@ -358,6 +396,8 @@ object Strings {
     // Validation Messages
     const val VALIDATION_SELECIONE_CLIENTE = "Selecione um cliente"
     const val VALIDATION_SELECIONE_EQUIPAMENTO = "Selecione um equipamento"
+    const val VALIDATION_SELECIONE_PERIODO = "Selecione o período de locação"
+    const val VALIDATION_PELO_MENOS_UM_PRECO = "Informe pelo menos um preço de locação"
     const val VALIDATION_INFORME_DATA_FIM = "Informe a data de fim prevista"
     const val VALIDATION_INFORME_VALOR = "Informe um valor válido"
     const val VALIDATION_INFORME_DATA_ENTREGA = "Informe a data de entrega prevista"
@@ -397,4 +437,7 @@ object Strings {
     fun formatId(id: String) = "ID: $id"
     fun formatPrevista(data: String) = "Prevista: $data"
     fun formatDataPrevista(data: String) = "Data prevista: $data"
+    fun formatPrecoPeriodo(periodo: String) = "Preço ${periodo.lowercase()}"
+    fun formatPeriodoSufixo(periodo: String) = "/${periodo.lowercase()}"
+    fun formatOutrosPeriodos(count: Int) = "+$count ${if (count == 1) "outro" else "outros"}"
 }

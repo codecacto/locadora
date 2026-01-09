@@ -153,6 +153,44 @@ fun NotificationsScreen(
                     ) {
                         CircularProgressIndicator(color = AppColors.Blue600)
                     }
+                } else if (state.error != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.RedLight),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ErrorOutline,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = AppColors.Red
+                                )
+                            }
+                            Text(
+                                text = "Erro ao carregar",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = AppColors.Slate700
+                            )
+                            Text(
+                                text = "Nao foi possivel carregar as notificacoes. Tente novamente.",
+                                fontSize = 14.sp,
+                                color = AppColors.Slate500
+                            )
+                        }
+                    }
                 } else if (state.notificacoes.isEmpty()) {
                     // Empty State
                     Box(

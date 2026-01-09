@@ -9,6 +9,7 @@ import br.com.codecacto.locadora.features.auth.data.repository.AuthRepository
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.Direction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -33,13 +34,14 @@ class LocacaoRepositoryImpl(
     private val authRepository: AuthRepository
 ) : LocacaoRepository {
 
-    private val collection = firestore.collection(Locacao.COLLECTION_NAME)
+    private fun getUserCollection() = authRepository.currentUser?.id?.let { userId ->
+        firestore.collection("usuarios").document(userId).collection(Locacao.COLLECTION_NAME)
+    }
 
     override fun getLocacoes(): Flow<List<Locacao>> {
-        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+        val collection = getUserCollection() ?: return flowOf(emptyList())
 
         return collection
-            .where { "userId" equalTo userId }
             .orderBy("criadoEm", Direction.DESCENDING)
             .snapshots
             .map { snapshot ->
@@ -47,13 +49,13 @@ class LocacaoRepositoryImpl(
                     doc.data<Locacao>().copy(id = doc.id)
                 }
             }
+            .catch { emit(emptyList()) }
     }
 
     override fun getLocacoesAtivas(): Flow<List<Locacao>> {
-        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+        val collection = getUserCollection() ?: return flowOf(emptyList())
 
         return collection
-            .where { "userId" equalTo userId }
             .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
             .orderBy("dataFimPrevista", Direction.ASCENDING)
             .snapshots
@@ -62,13 +64,13 @@ class LocacaoRepositoryImpl(
                     doc.data<Locacao>().copy(id = doc.id)
                 }
             }
+            .catch { emit(emptyList()) }
     }
 
     override fun getLocacoesFinalizadas(): Flow<List<Locacao>> {
-        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+        val collection = getUserCollection() ?: return flowOf(emptyList())
 
         return collection
-            .where { "userId" equalTo userId }
             .where { "statusLocacao" equalTo StatusLocacao.FINALIZADA.name }
             .orderBy("criadoEm", Direction.DESCENDING)
             .snapshots
@@ -77,9 +79,11 @@ class LocacaoRepositoryImpl(
                     doc.data<Locacao>().copy(id = doc.id)
                 }
             }
+            .catch { emit(emptyList()) }
     }
 
     override suspend fun getLocacaoById(id: String): Locacao? {
+        val collection = getUserCollection() ?: return null
         val doc = collection.document(id).get()
         return if (doc.exists) {
             doc.data<Locacao>().copy(id = doc.id)
@@ -87,12 +91,11 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun addLocacao(locacao: Locacao): String {
-        val userId = authRepository.currentUser?.id
+        val collection = getUserCollection()
             ?: throw Exception("Usuario nao autenticado")
 
         val now = System.currentTimeMillis()
         val docRef = collection.add(locacao.copy(
-            userId = userId,
             statusLocacao = StatusLocacao.ATIVA,
             qtdRenovacoes = 0,
             criadoEm = now,
@@ -102,6 +105,9 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun updateLocacao(locacao: Locacao) {
+        val collection = getUserCollection()
+            ?: throw Exception("Usuario nao autenticado")
+
         var updatedLocacao = locacao.copy(atualizadoEm = System.currentTimeMillis())
 
         // Auto-finalizar se pagamento e coleta estiverem concluídos
@@ -114,10 +120,14 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun deleteLocacao(id: String) {
+        val collection = getUserCollection()
+            ?: throw Exception("Usuario nao autenticado")
+
         collection.document(id).delete()
     }
 
     override suspend fun marcarPago(id: String) {
+        val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
         val now = System.currentTimeMillis()
         var updatedLocacao = locacao.copy(
@@ -135,6 +145,7 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun marcarEntregue(id: String) {
+        val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
         val now = System.currentTimeMillis()
         collection.document(id).set(
@@ -147,6 +158,7 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun marcarColetado(id: String) {
+        val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
         val now = System.currentTimeMillis()
         var updatedLocacao = locacao.copy(
@@ -164,6 +176,7 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun marcarNotaEmitida(id: String) {
+        val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
         collection.document(id).set(
             locacao.copy(
@@ -174,6 +187,7 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun renovarLocacao(id: String, novaDataFim: Long, novoValor: Double?) {
+        val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
         val now = System.currentTimeMillis()
         collection.document(id).set(
@@ -188,10 +202,9 @@ class LocacaoRepositoryImpl(
     }
 
     override suspend fun isEquipamentoAlugado(equipamentoId: String): Boolean {
-        val userId = authRepository.currentUser?.id ?: return false
+        val collection = getUserCollection() ?: return false
 
         val snapshot = collection
-            .where { "userId" equalTo userId }
             .where { "equipamentoId" equalTo equipamentoId }
             .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
             .get()

@@ -10,7 +10,8 @@ object NotificationsContract {
         val notificacoes: List<Notificacao> = emptyList(),
         val isLoading: Boolean = true,
         val isRefreshing: Boolean = false,
-        val unreadCount: Int = 0
+        val unreadCount: Int = 0,
+        val error: String? = null
     ) : UiState
 
     sealed interface Effect : UiEffect {

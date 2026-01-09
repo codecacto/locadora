@@ -33,7 +33,8 @@
       "Bash(powershell -Command \"New-Item -ItemType Directory -Force -Path ''E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable''\")",
       "Bash(powershell -Command \"Copy-Item ''E:\\\\CodeCacto\\\\locadora\\\\esse.png'' ''E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\\\\login_background.png''\")",
       "Bash(powershell -Command \"Copy-Item ''E:\\\\CodeCacto\\\\locadora\\\\logo.png'' ''E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\\\\logo.png''\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(gradlew compileKotlinAndroid:*)"
     ]
   }
 }

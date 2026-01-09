@@ -23,7 +23,10 @@ object EquipamentosContract {
         val nome: String = "",
         val categoria: String = "",
         val identificacao: String = "",
-        val precoPadraoLocacao: String = "",
+        val precoDiario: String = "",
+        val precoSemanal: String = "",
+        val precoQuinzenal: String = "",
+        val precoMensal: String = "",
         val valorCompra: String = "",
         val observacoes: String = "",
         val error: String? = null
@@ -49,7 +52,10 @@ object EquipamentosContract {
         data class SetNome(val value: String) : Action()
         data class SetCategoria(val value: String) : Action()
         data class SetIdentificacao(val value: String) : Action()
-        data class SetPrecoPadraoLocacao(val value: String) : Action()
+        data class SetPrecoDiario(val value: String) : Action()
+        data class SetPrecoSemanal(val value: String) : Action()
+        data class SetPrecoQuinzenal(val value: String) : Action()
+        data class SetPrecoMensal(val value: String) : Action()
         data class SetValorCompra(val value: String) : Action()
         data class SetObservacoes(val value: String) : Action()
         data object SaveEquipamento : Action()

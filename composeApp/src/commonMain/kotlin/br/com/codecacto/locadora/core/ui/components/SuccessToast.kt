@@ -41,7 +41,7 @@ fun SuccessToast(
     ) {
         Box(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                 .shadow(8.dp, RoundedCornerShape(12.dp))
                 .background(AppColors.Green, RoundedCornerShape(12.dp))
                 .padding(horizontal = 20.dp, vertical = 14.dp)

@@ -9,6 +9,8 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +35,12 @@ import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.features.locacoes.presentation.LocacoesScreen
 import br.com.codecacto.locadora.features.locacoes.presentation.NovaLocacaoScreen
+import br.com.codecacto.locadora.features.locacoes.presentation.NovaLocacaoViewModel
+import br.com.codecacto.locadora.features.locacoes.presentation.NovaLocacaoContract
 import br.com.codecacto.locadora.features.locacoes.presentation.DetalhesLocacaoScreen
+import br.com.codecacto.locadora.features.locacoes.presentation.SelecionarClienteScreen
+import br.com.codecacto.locadora.features.locacoes.presentation.SelecionarEquipamentoScreen
+import org.koin.compose.viewmodel.koinViewModel
 import br.com.codecacto.locadora.features.entregas.presentation.EntregasScreen
 import br.com.codecacto.locadora.features.recebimentos.presentation.RecebimentosScreen
 import br.com.codecacto.locadora.features.clientes.presentation.ClientesScreen
@@ -64,6 +71,14 @@ sealed class BottomNavItem(
     data object Menu : BottomNavItem("menu", Icons.Default.Menu, Strings.NAV_MENU)
 }
 
+private enum class NovaLocacaoSubScreen {
+    NONE,
+    SELECIONAR_CLIENTE,
+    SELECIONAR_EQUIPAMENTO,
+    ADICIONAR_CLIENTE,
+    ADICIONAR_EQUIPAMENTO
+}
+
 @Composable
 fun MainScreen(
     onLogout: () -> Unit = {}
@@ -73,9 +88,13 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
 
     var showNovaLocacaoSheet by remember { mutableStateOf(false) }
+    var novaLocacaoSubScreen by remember { mutableStateOf(NovaLocacaoSubScreen.NONE) }
     var currentMenuScreen by remember { mutableStateOf<String?>(null) }
     var editingClienteId by remember { mutableStateOf<String?>(null) }
     var editingEquipamentoId by remember { mutableStateOf<String?>(null) }
+
+    // ViewModel compartilhado para Nova Locacao
+    val novaLocacaoViewModel: NovaLocacaoViewModel = koinViewModel()
 
     // Notification state
     val notificacaoRepository: NotificacaoRepository = koinInject()
@@ -300,9 +319,94 @@ fun MainScreen(
     // Nova Locação Bottom Sheet
     if (showNovaLocacaoSheet) {
         NovaLocacaoBottomSheet(
-            onDismiss = { showNovaLocacaoSheet = false },
-            onSuccess = { showNovaLocacaoSheet = false }
+            onDismiss = {
+                showNovaLocacaoSheet = false
+                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+            },
+            onSuccess = {
+                showNovaLocacaoSheet = false
+                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+            },
+            onNavigateToSelecionarCliente = {
+                novaLocacaoSubScreen = NovaLocacaoSubScreen.SELECIONAR_CLIENTE
+            },
+            onNavigateToSelecionarEquipamento = {
+                novaLocacaoSubScreen = NovaLocacaoSubScreen.SELECIONAR_EQUIPAMENTO
+            },
+            viewModel = novaLocacaoViewModel
         )
+    }
+
+    // Telas de selecao como overlay (por cima de tudo usando Dialog)
+    val novaLocacaoState by novaLocacaoViewModel.state.collectAsState()
+
+    if (novaLocacaoSubScreen != NovaLocacaoSubScreen.NONE) {
+        Dialog(
+            onDismissRequest = {
+                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+            },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.White
+            ) {
+                when (novaLocacaoSubScreen) {
+                    NovaLocacaoSubScreen.SELECIONAR_CLIENTE -> {
+                        SelecionarClienteScreen(
+                            clientes = novaLocacaoState.clientes,
+                            onSelect = { cliente ->
+                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.SelectCliente(cliente))
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+                            },
+                            onAddNew = {
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.ADICIONAR_CLIENTE
+                            },
+                            onDismiss = {
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+                            }
+                        )
+                    }
+                    NovaLocacaoSubScreen.SELECIONAR_EQUIPAMENTO -> {
+                        SelecionarEquipamentoScreen(
+                            equipamentos = novaLocacaoState.equipamentosDisponiveis,
+                            onSelect = { equipamento ->
+                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.SelectEquipamento(equipamento))
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+                            },
+                            onAddNew = {
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.ADICIONAR_EQUIPAMENTO
+                            },
+                            onDismiss = {
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+                            }
+                        )
+                    }
+                    NovaLocacaoSubScreen.ADICIONAR_CLIENTE -> {
+                        ClienteFormScreen(
+                            clienteId = null,
+                            onBack = {
+                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.ReloadData)
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.SELECIONAR_CLIENTE
+                            }
+                        )
+                    }
+                    NovaLocacaoSubScreen.ADICIONAR_EQUIPAMENTO -> {
+                        EquipamentoFormScreen(
+                            equipamentoId = null,
+                            onBack = {
+                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.ReloadData)
+                                novaLocacaoSubScreen = NovaLocacaoSubScreen.SELECIONAR_EQUIPAMENTO
+                            }
+                        )
+                    }
+                    NovaLocacaoSubScreen.NONE -> { /* Nao deveria chegar aqui */ }
+                }
+            }
+        }
     }
 }
 
@@ -603,7 +707,10 @@ private fun MenuItemCard(
 @Composable
 private fun NovaLocacaoBottomSheet(
     onDismiss: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    onNavigateToSelecionarCliente: () -> Unit,
+    onNavigateToSelecionarEquipamento: () -> Unit,
+    viewModel: NovaLocacaoViewModel
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -613,7 +720,10 @@ private fun NovaLocacaoBottomSheet(
     ) {
         NovaLocacaoScreen(
             onDismiss = onDismiss,
-            onSuccess = onSuccess
+            onSuccess = onSuccess,
+            onNavigateToSelecionarCliente = onNavigateToSelecionarCliente,
+            onNavigateToSelecionarEquipamento = onNavigateToSelecionarEquipamento,
+            viewModel = viewModel
         )
     }
 }

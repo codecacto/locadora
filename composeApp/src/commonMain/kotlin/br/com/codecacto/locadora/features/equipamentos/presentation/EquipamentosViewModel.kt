@@ -5,12 +5,14 @@ import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.StatusLocacao
+import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -39,7 +41,10 @@ class EquipamentosViewModel(
                     nome = "",
                     categoria = "",
                     identificacao = "",
-                    precoPadraoLocacao = "",
+                    precoDiario = "",
+                    precoSemanal = "",
+                    precoQuinzenal = "",
+                    precoMensal = "",
                     valorCompra = "",
                     observacoes = "",
                     isSaving = false
@@ -50,7 +55,10 @@ class EquipamentosViewModel(
             }
             is EquipamentosContract.Action.EditEquipamento -> {
                 // Convert prices to cents format for masked input
-                val precoInCents = (action.equipamento.precoPadraoLocacao * 100).toLong().toString()
+                val precoDiarioInCents = action.equipamento.precoDiario?.let { (it * 100).toLong().toString() } ?: ""
+                val precoSemanalInCents = action.equipamento.precoSemanal?.let { (it * 100).toLong().toString() } ?: ""
+                val precoQuinzenalInCents = action.equipamento.precoQuinzenal?.let { (it * 100).toLong().toString() } ?: ""
+                val precoMensalInCents = action.equipamento.precoMensal?.let { (it * 100).toLong().toString() } ?: ""
                 val valorCompraInCents = action.equipamento.valorCompra?.let { (it * 100).toLong().toString() } ?: ""
                 _state.value = _state.value.copy(
                     showForm = true,
@@ -58,7 +66,10 @@ class EquipamentosViewModel(
                     nome = action.equipamento.nome,
                     categoria = action.equipamento.categoria,
                     identificacao = action.equipamento.identificacao ?: "",
-                    precoPadraoLocacao = precoInCents,
+                    precoDiario = precoDiarioInCents,
+                    precoSemanal = precoSemanalInCents,
+                    precoQuinzenal = precoQuinzenalInCents,
+                    precoMensal = precoMensalInCents,
                     valorCompra = valorCompraInCents,
                     observacoes = action.equipamento.observacoes ?: "",
                     isSaving = false
@@ -74,8 +85,17 @@ class EquipamentosViewModel(
             is EquipamentosContract.Action.SetIdentificacao -> {
                 _state.value = _state.value.copy(identificacao = action.value)
             }
-            is EquipamentosContract.Action.SetPrecoPadraoLocacao -> {
-                _state.value = _state.value.copy(precoPadraoLocacao = action.value)
+            is EquipamentosContract.Action.SetPrecoDiario -> {
+                _state.value = _state.value.copy(precoDiario = action.value)
+            }
+            is EquipamentosContract.Action.SetPrecoSemanal -> {
+                _state.value = _state.value.copy(precoSemanal = action.value)
+            }
+            is EquipamentosContract.Action.SetPrecoQuinzenal -> {
+                _state.value = _state.value.copy(precoQuinzenal = action.value)
+            }
+            is EquipamentosContract.Action.SetPrecoMensal -> {
+                _state.value = _state.value.copy(precoMensal = action.value)
             }
             is EquipamentosContract.Action.SetValorCompra -> {
                 _state.value = _state.value.copy(valorCompra = action.value)
@@ -91,7 +111,10 @@ class EquipamentosViewModel(
                     nome = "",
                     categoria = "",
                     identificacao = "",
-                    precoPadraoLocacao = "",
+                    precoDiario = "",
+                    precoSemanal = "",
+                    precoQuinzenal = "",
+                    precoMensal = "",
                     valorCompra = "",
                     observacoes = ""
                 )
@@ -101,38 +124,38 @@ class EquipamentosViewModel(
 
     private fun loadEquipamentos() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true)
 
-                combine(
-                    equipamentoRepository.getEquipamentos(),
-                    locacaoRepository.getLocacoesAtivas()
-                ) { equipamentos, locacoesAtivas ->
-                    val equipamentosAlugadosIds = locacoesAtivas
-                        .filter { it.statusLocacao == StatusLocacao.ATIVA }
-                        .map { it.equipamentoId }
-                        .toSet()
+            combine(
+                equipamentoRepository.getEquipamentos(),
+                locacaoRepository.getLocacoesAtivas()
+            ) { equipamentos, locacoesAtivas ->
+                val equipamentosAlugadosIds = locacoesAtivas
+                    .filter { it.statusLocacao == StatusLocacao.ATIVA }
+                    .map { it.equipamentoId }
+                    .toSet()
 
-                    equipamentos.map { equipamento ->
-                        EquipamentoComStatus(
-                            equipamento = equipamento,
-                            isAlugado = equipamento.id in equipamentosAlugadosIds
-                        )
-                    }
-                }.collect { equipamentos ->
+                equipamentos.map { equipamento ->
+                    EquipamentoComStatus(
+                        equipamento = equipamento,
+                        isAlugado = equipamento.id in equipamentosAlugadosIds
+                    )
+                }
+            }
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar equipamentos"
+                    )
+                    handleError(e)
+                }
+                .collect { equipamentos ->
                     _state.value = _state.value.copy(
                         isLoading = false,
                         equipamentos = equipamentos,
                         error = null
                     )
                 }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-                handleError(e)
-            }
         }
     }
 
@@ -157,9 +180,13 @@ class EquipamentosViewModel(
             return
         }
 
-        val precoPadraoLocacao = currentState.precoPadraoLocacao.currencyToDouble()
-        if (precoPadraoLocacao <= 0) {
-            emitEffect(EquipamentosContract.Effect.ShowError("Preço de locação inválido"))
+        val precoDiario = currentState.precoDiario.currencyToDouble().takeIf { it > 0 }
+        val precoSemanal = currentState.precoSemanal.currencyToDouble().takeIf { it > 0 }
+        val precoQuinzenal = currentState.precoQuinzenal.currencyToDouble().takeIf { it > 0 }
+        val precoMensal = currentState.precoMensal.currencyToDouble().takeIf { it > 0 }
+
+        if (precoDiario == null && precoSemanal == null && precoQuinzenal == null && precoMensal == null) {
+            emitEffect(EquipamentosContract.Effect.ShowError(Strings.VALIDATION_PELO_MENOS_UM_PRECO))
             return
         }
 
@@ -176,7 +203,10 @@ class EquipamentosViewModel(
                     nome = currentState.nome,
                     categoria = currentState.categoria,
                     identificacao = currentState.identificacao.ifBlank { null },
-                    precoPadraoLocacao = precoPadraoLocacao,
+                    precoDiario = precoDiario,
+                    precoSemanal = precoSemanal,
+                    precoQuinzenal = precoQuinzenal,
+                    precoMensal = precoMensal,
                     valorCompra = valorCompra,
                     observacoes = currentState.observacoes.ifBlank { null }
                 )

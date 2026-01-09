@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Notificacao(
     val id: String = "",
-    val usuarioId: String = "",
     val titulo: String = "",
     val mensagem: String = "",
     val tipo: String = NotificacaoTipo.INFO.valor,

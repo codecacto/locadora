@@ -8,6 +8,7 @@ import br.com.codecacto.locadora.data.repository.NotificacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -34,9 +35,16 @@ class NotificationsViewModel(
                     isLoading = false,
                     unreadCount = unreadCount
                 )
-            }.collect { newState ->
-                _state.value = newState
             }
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar notificações"
+                    )
+                }
+                .collect { newState ->
+                    _state.value = newState
+                }
         }
     }
 

@@ -11,6 +11,7 @@ import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -47,65 +48,56 @@ class LocacoesViewModel(
 
     private fun loadLocacoes() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
-                collectLocacoes()
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-                handleError(e)
+            _state.value = _state.value.copy(isLoading = true)
+
+            combine(
+                locacaoRepository.getLocacoes(),
+                clienteRepository.getClientes(),
+                equipamentoRepository.getEquipamentos()
+            ) { locacoes, clientes, equipamentos ->
+                val clientesMap = clientes.associateBy { it.id }
+                val equipamentosMap = equipamentos.associateBy { it.id }
+
+                locacoes.map { locacao ->
+                    LocacaoComDetalhes(
+                        locacao = locacao,
+                        cliente = clientesMap[locacao.clienteId],
+                        equipamento = equipamentosMap[locacao.equipamentoId],
+                        statusPrazo = calcularStatusPrazo(locacao)
+                    )
+                }
             }
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar locacoes"
+                    )
+                    handleError(e)
+                }
+                .collect { locacoesComDetalhes ->
+                    val ativas = locacoesComDetalhes
+                        .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.ATIVA }
+                        .sortedBy { it.locacao.dataFimPrevista }
+
+                    val finalizadas = locacoesComDetalhes
+                        .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.FINALIZADA }
+                        .sortedByDescending { it.locacao.criadoEm }
+
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        locacoesAtivas = ativas,
+                        locacoesFinalizadas = finalizadas,
+                        error = null
+                    )
+                }
         }
     }
 
     private fun refreshLocacoes() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isRefreshing = true)
-                // Small delay to show refresh indicator
-                kotlinx.coroutines.delay(500)
-                _state.value = _state.value.copy(isRefreshing = false)
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(isRefreshing = false)
-                handleError(e)
-            }
-        }
-    }
-
-    private suspend fun collectLocacoes() {
-        combine(
-            locacaoRepository.getLocacoes(),
-            clienteRepository.getClientes(),
-            equipamentoRepository.getEquipamentos()
-        ) { locacoes, clientes, equipamentos ->
-            val clientesMap = clientes.associateBy { it.id }
-            val equipamentosMap = equipamentos.associateBy { it.id }
-
-            locacoes.map { locacao ->
-                LocacaoComDetalhes(
-                    locacao = locacao,
-                    cliente = clientesMap[locacao.clienteId],
-                    equipamento = equipamentosMap[locacao.equipamentoId],
-                    statusPrazo = calcularStatusPrazo(locacao)
-                )
-            }
-        }.collect { locacoesComDetalhes ->
-            val ativas = locacoesComDetalhes
-                .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.ATIVA }
-                .sortedBy { it.locacao.dataFimPrevista }
-
-            val finalizadas = locacoesComDetalhes
-                .filter { it.locacao.statusLocacao == br.com.codecacto.locadora.core.model.StatusLocacao.FINALIZADA }
-                .sortedByDescending { it.locacao.criadoEm }
-
-            _state.value = _state.value.copy(
-                isLoading = false,
-                locacoesAtivas = ativas,
-                locacoesFinalizadas = finalizadas,
-                error = null
-            )
+            _state.value = _state.value.copy(isRefreshing = true)
+            kotlinx.coroutines.delay(500)
+            _state.value = _state.value.copy(isRefreshing = false)
         }
     }
 

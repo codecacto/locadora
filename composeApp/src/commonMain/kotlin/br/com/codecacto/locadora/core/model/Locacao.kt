@@ -36,10 +36,10 @@ enum class StatusPrazo {
 @Serializable
 data class Locacao(
     val id: String = "",
-    val userId: String = "",
     val clienteId: String = "",
     val equipamentoId: String = "",
     val valorLocacao: Double = 0.0,
+    val periodo: PeriodoLocacao = PeriodoLocacao.DIARIO,
     val dataInicio: Long = System.currentTimeMillis(),
     val dataFimPrevista: Long = System.currentTimeMillis(),
     val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,

@@ -277,13 +277,15 @@ private fun EquipamentoCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
+                    val primeiroPreco = equipamento.getPrimeiroPrecoDisponivel()
                     Text(
-                        text = Strings.EQUIPAMENTOS_PRECO_LOCACAO,
+                        text = primeiroPreco?.let { Strings.formatPrecoPeriodo(it.first.label) }
+                            ?: Strings.EQUIPAMENTOS_PRECO_LOCACAO,
                         fontSize = 12.sp,
                         color = AppColors.Slate500
                     )
                     Text(
-                        text = formatCurrency(equipamento.precoPadraoLocacao),
+                        text = primeiroPreco?.let { formatCurrency(it.second) } ?: "-",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppColors.Slate900

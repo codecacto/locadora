@@ -208,19 +208,107 @@ fun EquipamentoFormScreen(
                     singleLine = true
                 )
 
-                // Preço Padrão Locação
+                // Seção de Preços por Período
+                Text(
+                    text = Strings.EQUIPAMENTO_FORM_PRECOS_TITLE,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = AppColors.Slate700
+                )
+                Text(
+                    text = Strings.EQUIPAMENTO_FORM_PRECOS_SUBTITLE,
+                    fontSize = 12.sp,
+                    color = AppColors.Slate500
+                )
+
+                // Preço Diário
                 OutlinedTextField(
-                    value = state.precoPadraoLocacao,
+                    value = state.precoDiario,
                     onValueChange = { newValue ->
                         val filtered = filterCurrencyInput(newValue)
-                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoPadraoLocacao(filtered))
+                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoDiario(filtered))
                     },
                     enabled = equipamentoSelecionado,
-                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO) },
+                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO_DIARIO) },
                     placeholder = { Text("0,00") },
                     leadingIcon = {
                         Text(
-                            text = "R$",
+                            text = Strings.CURRENCY_SYMBOL,
+                            fontWeight = FontWeight.Medium,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    },
+                    visualTransformation = CurrencyVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+
+                // Preço Semanal
+                OutlinedTextField(
+                    value = state.precoSemanal,
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoSemanal(filtered))
+                    },
+                    enabled = equipamentoSelecionado,
+                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO_SEMANAL) },
+                    placeholder = { Text("0,00") },
+                    leadingIcon = {
+                        Text(
+                            text = Strings.CURRENCY_SYMBOL,
+                            fontWeight = FontWeight.Medium,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    },
+                    visualTransformation = CurrencyVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+
+                // Preço Quinzenal
+                OutlinedTextField(
+                    value = state.precoQuinzenal,
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoQuinzenal(filtered))
+                    },
+                    enabled = equipamentoSelecionado,
+                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO_QUINZENAL) },
+                    placeholder = { Text("0,00") },
+                    leadingIcon = {
+                        Text(
+                            text = Strings.CURRENCY_SYMBOL,
+                            fontWeight = FontWeight.Medium,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    },
+                    visualTransformation = CurrencyVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+
+                // Preço Mensal
+                OutlinedTextField(
+                    value = state.precoMensal,
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetPrecoMensal(filtered))
+                    },
+                    enabled = equipamentoSelecionado,
+                    label = { Text(Strings.EQUIPAMENTO_FORM_PRECO_MENSAL) },
+                    placeholder = { Text("0,00") },
+                    leadingIcon = {
+                        Text(
+                            text = Strings.CURRENCY_SYMBOL,
                             fontWeight = FontWeight.Medium,
                             color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
                             modifier = Modifier.padding(start = 12.dp)
@@ -245,7 +333,7 @@ fun EquipamentoFormScreen(
                     placeholder = { Text("0,00") },
                     leadingIcon = {
                         Text(
-                            text = "R$",
+                            text = Strings.CURRENCY_SYMBOL,
                             fontWeight = FontWeight.Medium,
                             color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
                             modifier = Modifier.padding(start = 12.dp)
@@ -281,9 +369,13 @@ fun EquipamentoFormScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Save Button
+                val hasAtLeastOnePrice = state.precoDiario.isNotBlank() ||
+                        state.precoSemanal.isNotBlank() ||
+                        state.precoQuinzenal.isNotBlank() ||
+                        state.precoMensal.isNotBlank()
                 Button(
                     onClick = { viewModel.dispatch(EquipamentosContract.Action.SaveEquipamento) },
-                    enabled = !state.isSaving && state.categoria.isNotBlank() && state.nome.isNotBlank() && state.precoPadraoLocacao.isNotBlank(),
+                    enabled = !state.isSaving && state.categoria.isNotBlank() && state.nome.isNotBlank() && hasAtLeastOnePrice,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),

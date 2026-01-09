@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Cliente(
     val id: String = "",
-    val userId: String = "",
     val nomeRazao: String = "",
     val cpfCnpj: String? = null,
     val telefoneWhatsapp: String = "",

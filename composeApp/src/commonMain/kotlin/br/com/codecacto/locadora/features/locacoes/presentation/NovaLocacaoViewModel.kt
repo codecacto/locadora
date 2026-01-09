@@ -6,7 +6,9 @@ import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
+import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
@@ -40,18 +42,42 @@ class NovaLocacaoViewModel(
                 )
             }
             is NovaLocacaoContract.Action.SelectEquipamento -> {
-                // Convert the price to cents (digits only) for the masked input
-                val priceInCents = (action.equipamento.precoPadraoLocacao * 100).toLong().toString()
+                val periodosDisponiveis = action.equipamento.getPeriodosDisponiveis()
+                val primeiroPeriodo = periodosDisponiveis.firstOrNull()
+                val preco = primeiroPeriodo?.let { action.equipamento.getPreco(it) }
+                val priceInCents = preco?.let { (it * 100).toLong().toString() } ?: ""
+                val dataFim = primeiroPeriodo?.let {
+                    calcularDataFim(_state.value.dataInicio, it)
+                }
                 _state.value = _state.value.copy(
                     equipamentoSelecionado = action.equipamento,
-                    valorLocacao = priceInCents
+                    periodosDisponiveis = periodosDisponiveis,
+                    periodoSelecionado = primeiroPeriodo,
+                    valorLocacao = priceInCents,
+                    dataFimPrevista = dataFim
+                )
+            }
+            is NovaLocacaoContract.Action.SetPeriodo -> {
+                val equipamento = _state.value.equipamentoSelecionado ?: return
+                val preco = equipamento.getPreco(action.periodo)
+                val priceInCents = preco?.let { (it * 100).toLong().toString() } ?: ""
+                val dataFim = calcularDataFim(_state.value.dataInicio, action.periodo)
+                _state.value = _state.value.copy(
+                    periodoSelecionado = action.periodo,
+                    valorLocacao = priceInCents,
+                    dataFimPrevista = dataFim
                 )
             }
             is NovaLocacaoContract.Action.SetValorLocacao -> {
                 _state.value = _state.value.copy(valorLocacao = action.valor)
             }
             is NovaLocacaoContract.Action.SetDataInicio -> {
-                _state.value = _state.value.copy(dataInicio = action.data)
+                val periodo = _state.value.periodoSelecionado
+                val dataFim = periodo?.let { calcularDataFim(action.data, it) }
+                _state.value = _state.value.copy(
+                    dataInicio = action.data,
+                    dataFimPrevista = dataFim ?: _state.value.dataFimPrevista
+                )
             }
             is NovaLocacaoContract.Action.SetDataFimPrevista -> {
                 _state.value = _state.value.copy(dataFimPrevista = action.data)
@@ -67,6 +93,9 @@ class NovaLocacaoViewModel(
             }
             is NovaLocacaoContract.Action.CriarLocacao -> {
                 criarLocacao()
+            }
+            is NovaLocacaoContract.Action.ReloadData -> {
+                loadData()
             }
         }
     }
@@ -102,28 +131,33 @@ class NovaLocacaoViewModel(
         val currentState = _state.value
 
         if (currentState.clienteSelecionado == null) {
-            emitEffect(NovaLocacaoContract.Effect.ShowError("Selecione um cliente"))
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_SELECIONE_CLIENTE))
             return
         }
 
         if (currentState.equipamentoSelecionado == null) {
-            emitEffect(NovaLocacaoContract.Effect.ShowError("Selecione um equipamento"))
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_SELECIONE_EQUIPAMENTO))
+            return
+        }
+
+        if (currentState.periodoSelecionado == null) {
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_SELECIONE_PERIODO))
             return
         }
 
         if (currentState.dataFimPrevista == null) {
-            emitEffect(NovaLocacaoContract.Effect.ShowError("Informe a data de fim prevista"))
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_INFORME_DATA_FIM))
             return
         }
 
         val valorLocacao = currentState.valorLocacao.currencyToDouble()
         if (valorLocacao <= 0) {
-            emitEffect(NovaLocacaoContract.Effect.ShowError("Informe um valor válido"))
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_INFORME_VALOR))
             return
         }
 
         if (currentState.statusEntrega == StatusEntrega.AGENDADA && currentState.dataEntregaPrevista == null) {
-            emitEffect(NovaLocacaoContract.Effect.ShowError("Informe a data de entrega prevista"))
+            emitEffect(NovaLocacaoContract.Effect.ShowError(Strings.VALIDATION_INFORME_DATA_ENTREGA))
             return
         }
 
@@ -135,6 +169,7 @@ class NovaLocacaoViewModel(
                     clienteId = currentState.clienteSelecionado.id,
                     equipamentoId = currentState.equipamentoSelecionado.id,
                     valorLocacao = valorLocacao,
+                    periodo = currentState.periodoSelecionado,
                     dataInicio = currentState.dataInicio,
                     dataFimPrevista = currentState.dataFimPrevista,
                     statusEntrega = currentState.statusEntrega,
@@ -150,8 +185,13 @@ class NovaLocacaoViewModel(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isSaving = false)
                 handleError(e)
-                emitEffect(NovaLocacaoContract.Effect.ShowError(e.message ?: "Erro ao criar locação"))
+                emitEffect(NovaLocacaoContract.Effect.ShowError(e.message ?: Strings.ERROR_CRIAR_LOCACAO))
             }
         }
+    }
+
+    private fun calcularDataFim(dataInicio: Long, periodo: PeriodoLocacao): Long {
+        val diasEmMillis = periodo.dias * 24L * 60L * 60L * 1000L
+        return dataInicio + diasEmMillis
     }
 }

@@ -261,8 +261,13 @@ actual class ReceiptPdfGenerator {
     }
 
     private fun formatPhone(phone: String): String {
-        if (phone.length < 10) return phone
-        return "(${phone.take(2)}) ${phone.drop(2).take(5)}-${phone.drop(7)}"
+        val digits = phone.filter { it.isDigit() }
+        if (digits.length < 10) return phone
+        return if (digits.length == 11) {
+            "(${digits.take(2)}) ${digits.drop(2).take(5)}-${digits.drop(7)}"
+        } else {
+            "(${digits.take(2)}) ${digits.drop(2).take(4)}-${digits.drop(6)}"
+        }
     }
 
     private fun formatCpf(cpf: String): String {

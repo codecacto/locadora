@@ -3,8 +3,6 @@ package br.com.codecacto.locadora.features.locacoes.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,8 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.com.codecacto.locadora.core.model.Cliente
-import br.com.codecacto.locadora.core.model.Equipamento
+import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
@@ -36,11 +33,11 @@ import org.koin.compose.viewmodel.koinViewModel
 fun NovaLocacaoScreen(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
+    onNavigateToSelecionarCliente: () -> Unit,
+    onNavigateToSelecionarEquipamento: () -> Unit,
     viewModel: NovaLocacaoViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var showClienteSelector by remember { mutableStateOf(false) }
-    var showEquipamentoSelector by remember { mutableStateOf(false) }
     var showDataInicioPicker by remember { mutableStateOf(false) }
     var showDataFimPicker by remember { mutableStateOf(false) }
     var showDataEntregaPicker by remember { mutableStateOf(false) }
@@ -97,7 +94,7 @@ fun NovaLocacaoScreen(
             SelectorCard(
                 label = state.clienteSelecionado?.nomeRazao ?: Strings.NOVA_LOCACAO_SELECIONAR_CLIENTE,
                 isSelected = state.clienteSelecionado != null,
-                onClick = { showClienteSelector = true }
+                onClick = onNavigateToSelecionarCliente
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -108,8 +105,49 @@ fun NovaLocacaoScreen(
                 label = state.equipamentoSelecionado?.let { "${it.nome} - ${it.categoria}" }
                     ?: Strings.NOVA_LOCACAO_SELECIONAR_EQUIPAMENTO,
                 isSelected = state.equipamentoSelecionado != null,
-                onClick = { showEquipamentoSelector = true }
+                onClick = onNavigateToSelecionarEquipamento
             )
+
+            // Período Selector (só aparece após selecionar equipamento)
+            if (state.periodosDisponiveis.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                SectionTitle(Strings.NOVA_LOCACAO_PERIODO)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    state.periodosDisponiveis.forEach { periodo ->
+                        val preco = state.equipamentoSelecionado?.getPreco(periodo)
+                        FilterChip(
+                            selected = state.periodoSelecionado == periodo,
+                            onClick = {
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetPeriodo(periodo))
+                            },
+                            label = {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = periodo.label,
+                                        fontSize = 12.sp
+                                    )
+                                    preco?.let {
+                                        Text(
+                                            text = "${Strings.CURRENCY_SYMBOL} ${formatCurrencyValue(it)}",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AppColors.Violet100,
+                                selectedLabelColor = AppColors.Violet600
+                            )
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -127,7 +165,7 @@ fun NovaLocacaoScreen(
                 visualTransformation = CurrencyVisualTransformation(),
                 leadingIcon = {
                     Text(
-                        text = "R$",
+                        text = Strings.CURRENCY_SYMBOL,
                         fontWeight = FontWeight.Medium,
                         color = AppColors.Slate500,
                         modifier = Modifier.padding(start = 12.dp)
@@ -290,30 +328,6 @@ fun NovaLocacaoScreen(
         }
     }
 
-    // Cliente Selector Dialog
-    if (showClienteSelector) {
-        ClienteSelectorDialog(
-            clientes = state.clientes,
-            onSelect = { cliente ->
-                viewModel.dispatch(NovaLocacaoContract.Action.SelectCliente(cliente))
-                showClienteSelector = false
-            },
-            onDismiss = { showClienteSelector = false }
-        )
-    }
-
-    // Equipamento Selector Dialog
-    if (showEquipamentoSelector) {
-        EquipamentoSelectorDialog(
-            equipamentos = state.equipamentosDisponiveis,
-            onSelect = { equipamento ->
-                viewModel.dispatch(NovaLocacaoContract.Action.SelectEquipamento(equipamento))
-                showEquipamentoSelector = false
-            },
-            onDismiss = { showEquipamentoSelector = false }
-        )
-    }
-
     // Date Pickers
     if (showDataInicioPicker) {
         DatePickerDialog(
@@ -434,113 +448,6 @@ private fun DateSelectorCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ClienteSelectorDialog(
-    clientes: List<Cliente>,
-    onSelect: (Cliente) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(Strings.NOVA_LOCACAO_CLIENTE) },
-        text = {
-            if (clientes.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = Strings.NOVA_LOCACAO_NENHUM_CLIENTE,
-                        color = AppColors.Slate500
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                ) {
-                    items(clientes) { cliente ->
-                        ListItem(
-                            headlineContent = { Text(cliente.nomeRazao) },
-                            supportingContent = {
-                                cliente.telefoneWhatsapp.let { Text(it) }
-                            },
-                            modifier = Modifier.clickable { onSelect(cliente) }
-                        )
-                        HorizontalDivider()
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(Strings.COMMON_CANCELAR)
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EquipamentoSelectorDialog(
-    equipamentos: List<Equipamento>,
-    onSelect: (Equipamento) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(Strings.NOVA_LOCACAO_EQUIPAMENTO) },
-        text = {
-            if (equipamentos.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = Strings.NOVA_LOCACAO_NENHUM_EQUIPAMENTO,
-                            color = AppColors.Slate500
-                        )
-                        Text(
-                            text = Strings.NOVA_LOCACAO_EQUIPAMENTOS_ALUGADOS,
-                            fontSize = 12.sp,
-                            color = AppColors.Slate400
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                ) {
-                    items(equipamentos) { equipamento ->
-                        ListItem(
-                            headlineContent = { Text(equipamento.nome) },
-                            supportingContent = {
-                                Text("${equipamento.categoria} - R$ ${formatCurrency(equipamento.precoPadraoLocacao)}")
-                            },
-                            modifier = Modifier.clickable { onSelect(equipamento) }
-                        )
-                        HorizontalDivider()
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(Strings.COMMON_CANCELAR)
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 private fun DatePickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit,
@@ -579,7 +486,7 @@ private fun formatDate(timestamp: Long): String {
     }/${localDateTime.year}"
 }
 
-private fun formatCurrency(value: Double): String {
+private fun formatCurrencyValue(value: Double): String {
     val intPart = value.toLong()
     val decPart = ((value - intPart) * 100).toInt()
     return "$intPart,${decPart.toString().padStart(2, '0')}"

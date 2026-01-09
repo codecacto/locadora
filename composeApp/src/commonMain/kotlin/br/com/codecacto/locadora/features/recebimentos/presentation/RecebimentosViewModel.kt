@@ -12,6 +12,7 @@ import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -49,32 +50,43 @@ class RecebimentosViewModel(
 
     private fun loadRecebimentos() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true)
 
-                combine(
-                    locacaoRepository.getLocacoesAtivas(),
-                    clienteRepository.getClientes(),
-                    equipamentoRepository.getEquipamentos()
-                ) { locacoes, clientes, equipamentos ->
-                    val clientesMap = clientes.associateBy { it.id }
-                    val equipamentosMap = equipamentos.associateBy { it.id }
+            combine(
+                locacaoRepository.getLocacoesAtivas(),
+                clienteRepository.getClientes(),
+                equipamentoRepository.getEquipamentos()
+            ) { locacoes, clientes, equipamentos ->
+                val clientesMap = clientes.associateBy { it.id }
+                val equipamentosMap = equipamentos.associateBy { it.id }
+                val currentTime = System.currentTimeMillis()
 
-                    // Filtrar locações com equipamento coletado mas pagamento pendente
-                    val locacoesPendentes = locacoes.filter {
-                        it.statusLocacao == StatusLocacao.ATIVA &&
-                        it.statusColeta == StatusColeta.COLETADO &&
-                        it.statusPagamento == StatusPagamento.PENDENTE
-                    }
+                // Filtrar locações pendentes de pagamento:
+                // 1. Equipamento coletado E pagamento pendente
+                // 2. OU período vencido E pagamento pendente
+                val locacoesPendentes = locacoes.filter { locacao ->
+                    locacao.statusLocacao == StatusLocacao.ATIVA &&
+                    locacao.statusPagamento == StatusPagamento.PENDENTE &&
+                    (locacao.statusColeta == StatusColeta.COLETADO ||
+                     locacao.dataFimPrevista <= currentTime)
+                }
 
-                    locacoesPendentes.map { locacao ->
-                        RecebimentoComDetalhes(
-                            locacao = locacao,
-                            cliente = clientesMap[locacao.clienteId],
-                            equipamento = equipamentosMap[locacao.equipamentoId]
-                        )
-                    }
-                }.collect { recebimentos ->
+                locacoesPendentes.map { locacao ->
+                    RecebimentoComDetalhes(
+                        locacao = locacao,
+                        cliente = clientesMap[locacao.clienteId],
+                        equipamento = equipamentosMap[locacao.equipamentoId]
+                    )
+                }
+            }
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar recebimentos"
+                    )
+                    handleError(e)
+                }
+                .collect { recebimentos ->
                     val totalPendente = recebimentos.sumOf { it.locacao.valorLocacao }
 
                     _state.value = _state.value.copy(
@@ -84,13 +96,6 @@ class RecebimentosViewModel(
                         error = null
                     )
                 }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-                handleError(e)
-            }
         }
     }
 

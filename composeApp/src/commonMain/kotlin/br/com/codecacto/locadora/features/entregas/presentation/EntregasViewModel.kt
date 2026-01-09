@@ -11,6 +11,7 @@ import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
@@ -53,43 +54,50 @@ class EntregasViewModel(
 
     private fun loadEntregas() {
         viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true)
 
-                combine(
-                    locacaoRepository.getLocacoesAtivas(),
-                    clienteRepository.getClientes(),
-                    equipamentoRepository.getEquipamentos()
-                ) { locacoes, clientes, equipamentos ->
-                    val clientesMap = clientes.associateBy { it.id }
-                    val equipamentosMap = equipamentos.associateBy { it.id }
+            combine(
+                locacaoRepository.getLocacoesAtivas(),
+                clienteRepository.getClientes(),
+                equipamentoRepository.getEquipamentos()
+            ) { locacoes, clientes, equipamentos ->
+                val clientesMap = clientes.associateBy { it.id }
+                val equipamentosMap = equipamentos.associateBy { it.id }
 
-                    // Filtrar apenas locações com entrega pendente (não entregue)
-                    val locacoesPendentes = locacoes.filter {
-                        it.statusLocacao == StatusLocacao.ATIVA &&
-                        it.statusEntrega != StatusEntrega.ENTREGUE
+                // Filtrar apenas locações com entrega pendente (não entregue)
+                val locacoesPendentes = locacoes.filter {
+                    it.statusLocacao == StatusLocacao.ATIVA &&
+                    it.statusEntrega != StatusEntrega.ENTREGUE
+                }
+
+                val hoje: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+                locacoesPendentes.map { locacao ->
+                    val dataEntrega = locacao.dataEntregaPrevista?.let {
+                        Instant.fromEpochMilliseconds(it)
+                            .toLocalDateTime(TimeZone.currentSystemDefault()).date
                     }
 
-                    val hoje: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                    val isAtrasada = dataEntrega?.let { it < hoje } ?: false
+                    val isHoje = dataEntrega?.let { it == hoje } ?: false
 
-                    locacoesPendentes.map { locacao ->
-                        val dataEntrega = locacao.dataEntregaPrevista?.let {
-                            Instant.fromEpochMilliseconds(it)
-                                .toLocalDateTime(TimeZone.currentSystemDefault()).date
-                        }
-
-                        val isAtrasada = dataEntrega?.let { it < hoje } ?: false
-                        val isHoje = dataEntrega?.let { it == hoje } ?: false
-
-                        EntregaComDetalhes(
-                            locacao = locacao,
-                            cliente = clientesMap[locacao.clienteId],
-                            equipamento = equipamentosMap[locacao.equipamentoId],
-                            isAtrasada = isAtrasada,
-                            isHoje = isHoje
-                        )
-                    }
-                }.collect { entregas ->
+                    EntregaComDetalhes(
+                        locacao = locacao,
+                        cliente = clientesMap[locacao.clienteId],
+                        equipamento = equipamentosMap[locacao.equipamentoId],
+                        isAtrasada = isAtrasada,
+                        isHoje = isHoje
+                    )
+                }
+            }
+                .catch { e ->
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Erro ao carregar entregas"
+                    )
+                    handleError(e)
+                }
+                .collect { entregas ->
                     val atrasadas = entregas.filter { it.isAtrasada }.sortedBy { it.locacao.dataEntregaPrevista }
                     val hoje = entregas.filter { it.isHoje }
                     val agendadas = entregas.filter { !it.isAtrasada && !it.isHoje && it.locacao.statusEntrega == StatusEntrega.AGENDADA }
@@ -103,13 +111,6 @@ class EntregasViewModel(
                         error = null
                     )
                 }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message
-                )
-                handleError(e)
-            }
         }
     }
 

@@ -5,6 +5,7 @@ import br.com.codecacto.locadora.features.auth.data.repository.AuthRepository
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.Direction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -22,13 +23,14 @@ class ClienteRepositoryImpl(
     private val authRepository: AuthRepository
 ) : ClienteRepository {
 
-    private val collection = firestore.collection(Cliente.COLLECTION_NAME)
+    private fun getUserCollection() = authRepository.currentUser?.id?.let { userId ->
+        firestore.collection("usuarios").document(userId).collection(Cliente.COLLECTION_NAME)
+    }
 
     override fun getClientes(): Flow<List<Cliente>> {
-        val userId = authRepository.currentUser?.id ?: return flowOf(emptyList())
+        val collection = getUserCollection() ?: return flowOf(emptyList())
 
         return collection
-            .where { "userId" equalTo userId }
             .orderBy("criadoEm", Direction.DESCENDING)
             .snapshots
             .map { snapshot ->
@@ -36,9 +38,11 @@ class ClienteRepositoryImpl(
                     doc.data<Cliente>().copy(id = doc.id)
                 }
             }
+            .catch { emit(emptyList()) }
     }
 
     override suspend fun getClienteById(id: String): Cliente? {
+        val collection = getUserCollection() ?: return null
         val doc = collection.document(id).get()
         return if (doc.exists) {
             doc.data<Cliente>().copy(id = doc.id)
@@ -46,11 +50,10 @@ class ClienteRepositoryImpl(
     }
 
     override suspend fun addCliente(cliente: Cliente): String {
-        val userId = authRepository.currentUser?.id
+        val collection = getUserCollection()
             ?: throw Exception("Usuario nao autenticado")
 
         val docRef = collection.add(cliente.copy(
-            userId = userId,
             criadoEm = System.currentTimeMillis(),
             atualizadoEm = System.currentTimeMillis()
         ))
@@ -58,21 +61,25 @@ class ClienteRepositoryImpl(
     }
 
     override suspend fun updateCliente(cliente: Cliente) {
+        val collection = getUserCollection()
+            ?: throw Exception("Usuario nao autenticado")
+
         collection.document(cliente.id).set(
             cliente.copy(atualizadoEm = System.currentTimeMillis())
         )
     }
 
     override suspend fun deleteCliente(id: String) {
+        val collection = getUserCollection()
+            ?: throw Exception("Usuario nao autenticado")
+
         collection.document(id).delete()
     }
 
     override suspend fun searchClientes(query: String): List<Cliente> {
-        val userId = authRepository.currentUser?.id ?: return emptyList()
+        val collection = getUserCollection() ?: return emptyList()
 
-        val snapshot = collection
-            .where { "userId" equalTo userId }
-            .get()
+        val snapshot = collection.get()
         val queryLower = query.lowercase()
         return snapshot.documents
             .map { doc -> doc.data<Cliente>().copy(id = doc.id) }
