@@ -147,13 +147,13 @@ class EquipamentosViewModel(
     private fun saveEquipamento() {
         val currentState = _state.value
 
-        if (currentState.nome.isBlank()) {
-            emitEffect(EquipamentosContract.Effect.ShowError("Nome do equipamento é obrigatório"))
+        if (currentState.categoria.isBlank()) {
+            emitEffect(EquipamentosContract.Effect.ShowError("Selecione o tipo de equipamento"))
             return
         }
 
-        if (currentState.categoria.isBlank()) {
-            emitEffect(EquipamentosContract.Effect.ShowError("Categoria é obrigatória"))
+        if (currentState.nome.isBlank()) {
+            emitEffect(EquipamentosContract.Effect.ShowError("Nome do equipamento é obrigatório"))
             return
         }
 

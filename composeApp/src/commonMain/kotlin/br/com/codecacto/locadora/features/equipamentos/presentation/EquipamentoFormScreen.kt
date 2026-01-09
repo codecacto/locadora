@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.ui.components.SuccessToast
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.CategoriaEquipamento
@@ -36,6 +37,9 @@ fun EquipamentoFormScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val isEditing = equipamentoId != null
 
+    var showSuccessToast by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+
     LaunchedEffect(equipamentoId) {
         if (equipamentoId != null) {
             val equipamento = state.equipamentos.find { it.equipamento.id == equipamentoId }?.equipamento
@@ -51,8 +55,8 @@ fun EquipamentoFormScreen(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is EquipamentosContract.Effect.ShowSuccess -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                    onBack()
+                    successMessage = effect.message
+                    showSuccessToast = true
                 }
                 is EquipamentosContract.Effect.ShowError -> {
                     snackbarHostState.showSnackbar(effect.message)
@@ -61,6 +65,7 @@ fun EquipamentoFormScreen(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -112,25 +117,9 @@ fun EquipamentoFormScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Nome
-                OutlinedTextField(
-                    value = state.nome,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetNome(it)) },
-                    label = { Text(Strings.EQUIPAMENTO_FORM_NOME) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_NOME_PLACEHOLDER) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Inventory2,
-                            contentDescription = null,
-                            tint = AppColors.Slate500
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                val equipamentoSelecionado = state.categoria.isNotBlank()
 
-                // Categoria Dropdown
+                // Equipamento (Categoria) - Dropdown fixo
                 var categoriaExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = categoriaExpanded,
@@ -140,11 +129,11 @@ fun EquipamentoFormScreen(
                         value = state.categoria,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA) },
-                        placeholder = { Text(Strings.EQUIPAMENTO_FORM_CATEGORIA_PLACEHOLDER) },
+                        label = { Text("Equipamento *") },
+                        placeholder = { Text("Selecione o tipo de equipamento") },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Category,
+                                imageVector = Icons.Default.Inventory2,
                                 contentDescription = null,
                                 tint = AppColors.Slate500
                             )
@@ -167,6 +156,10 @@ fun EquipamentoFormScreen(
                                 text = { Text(categoria.label) },
                                 onClick = {
                                     viewModel.dispatch(EquipamentosContract.Action.SetCategoria(categoria.label))
+                                    // Preenche o nome automaticamente se estiver vazio ou igual à categoria anterior
+                                    if (state.nome.isBlank() || CategoriaEquipamento.entries.any { it.label == state.nome }) {
+                                        viewModel.dispatch(EquipamentosContract.Action.SetNome(categoria.label))
+                                    }
                                     categoriaExpanded = false
                                 }
                             )
@@ -174,17 +167,40 @@ fun EquipamentoFormScreen(
                     }
                 }
 
+                // Nome - Editável, preenchido automaticamente
+                OutlinedTextField(
+                    value = state.nome,
+                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetNome(it)) },
+                    enabled = equipamentoSelecionado,
+                    label = { Text("Nome *") },
+                    placeholder = { Text("Ex: Betoneira 400L") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
+                        )
+                    },
+                    supportingText = if (equipamentoSelecionado) {
+                        { Text("Adicione detalhes como modelo ou capacidade") }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+
                 // Identificação
                 OutlinedTextField(
                     value = state.identificacao,
                     onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetIdentificacao(it)) },
+                    enabled = equipamentoSelecionado,
                     label = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO) },
                     placeholder = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Tag,
                             contentDescription = null,
-                            tint = AppColors.Slate500
+                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -199,13 +215,14 @@ fun EquipamentoFormScreen(
                         val filtered = filterCurrencyInput(newValue)
                         viewModel.dispatch(EquipamentosContract.Action.SetPrecoPadraoLocacao(filtered))
                     },
+                    enabled = equipamentoSelecionado,
                     label = { Text(Strings.EQUIPAMENTO_FORM_PRECO) },
                     placeholder = { Text("0,00") },
                     leadingIcon = {
                         Text(
                             text = "R$",
                             fontWeight = FontWeight.Medium,
-                            color = AppColors.Slate500,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
                             modifier = Modifier.padding(start = 12.dp)
                         )
                     },
@@ -223,13 +240,14 @@ fun EquipamentoFormScreen(
                         val filtered = filterCurrencyInput(newValue)
                         viewModel.dispatch(EquipamentosContract.Action.SetValorCompra(filtered))
                     },
+                    enabled = equipamentoSelecionado,
                     label = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA) },
                     placeholder = { Text("0,00") },
                     leadingIcon = {
                         Text(
                             text = "R$",
                             fontWeight = FontWeight.Medium,
-                            color = AppColors.Slate500,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
                             modifier = Modifier.padding(start = 12.dp)
                         )
                     },
@@ -244,13 +262,14 @@ fun EquipamentoFormScreen(
                 OutlinedTextField(
                     value = state.observacoes,
                     onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetObservacoes(it)) },
+                    enabled = equipamentoSelecionado,
                     label = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES) },
                     placeholder = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES_PLACEHOLDER) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Notes,
                             contentDescription = null,
-                            tint = AppColors.Slate500
+                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -264,7 +283,7 @@ fun EquipamentoFormScreen(
                 // Save Button
                 Button(
                     onClick = { viewModel.dispatch(EquipamentosContract.Action.SaveEquipamento) },
-                    enabled = !state.isSaving && state.nome.isNotBlank() && state.categoria.isNotBlank() && state.precoPadraoLocacao.isNotBlank(),
+                    enabled = !state.isSaving && state.categoria.isNotBlank() && state.nome.isNotBlank() && state.precoPadraoLocacao.isNotBlank(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -309,5 +328,17 @@ fun EquipamentoFormScreen(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
+    }
+
+    // Success Toast
+    SuccessToast(
+        message = successMessage,
+        visible = showSuccessToast,
+        onDismiss = {
+            showSuccessToast = false
+            onBack()
+        },
+        modifier = Modifier.align(Alignment.TopCenter)
+    )
     }
 }

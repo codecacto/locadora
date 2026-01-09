@@ -35,6 +35,39 @@ fun ClientesScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var clienteToDelete by remember { mutableStateOf<Cliente?>(null) }
+
+    // Modal de confirmação de exclusão
+    clienteToDelete?.let { cliente ->
+        AlertDialog(
+            onDismissRequest = { clienteToDelete = null },
+            title = {
+                Text(
+                    text = "Confirmar exclusão",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text("Deseja realmente excluir o cliente \"${cliente.nomeRazao}\"? Esta ação não pode ser desfeita.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(ClientesContract.Action.DeleteCliente(cliente))
+                        clienteToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Red)
+                ) {
+                    Text("Excluir")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { clienteToDelete = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -165,7 +198,7 @@ fun ClientesScreen(
                             ClienteCard(
                                 cliente = cliente,
                                 onEdit = { onNavigateToForm(cliente.id) },
-                                onDelete = { viewModel.dispatch(ClientesContract.Action.DeleteCliente(cliente)) }
+                                onDelete = { clienteToDelete = cliente }
                             )
                         }
                         item {

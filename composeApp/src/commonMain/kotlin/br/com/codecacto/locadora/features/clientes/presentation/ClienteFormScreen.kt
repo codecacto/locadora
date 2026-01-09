@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.model.Cliente
+import br.com.codecacto.locadora.core.ui.components.SuccessToast
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.TipoPessoa
@@ -41,6 +42,9 @@ fun ClienteFormScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val isEditing = clienteId != null
 
+    var showSuccessToast by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
+
     LaunchedEffect(clienteId) {
         if (clienteId != null) {
             val cliente = state.clientes.find { it.id == clienteId }
@@ -56,8 +60,8 @@ fun ClienteFormScreen(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is ClientesContract.Effect.ShowSuccess -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                    onBack()
+                    successMessage = effect.message
+                    showSuccessToast = true
                 }
                 is ClientesContract.Effect.ShowError -> {
                     snackbarHostState.showSnackbar(effect.message)
@@ -66,6 +70,7 @@ fun ClienteFormScreen(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -371,5 +376,17 @@ fun ClienteFormScreen(
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
+    }
+
+    // Success Toast
+    SuccessToast(
+        message = successMessage,
+        visible = showSuccessToast,
+        onDismiss = {
+            showSuccessToast = false
+            onBack()
+        },
+        modifier = Modifier.align(Alignment.TopCenter)
+    )
     }
 }

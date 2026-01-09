@@ -34,6 +34,39 @@ fun EquipamentosScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var equipamentoToDelete by remember { mutableStateOf<Equipamento?>(null) }
+
+    // Modal de confirmação de exclusão
+    equipamentoToDelete?.let { equipamento ->
+        AlertDialog(
+            onDismissRequest = { equipamentoToDelete = null },
+            title = {
+                Text(
+                    text = "Confirmar exclusão",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text("Deseja realmente excluir o equipamento \"${equipamento.nome}\"? Esta ação não pode ser desfeita.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(EquipamentosContract.Action.DeleteEquipamento(equipamento))
+                        equipamentoToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Red)
+                ) {
+                    Text("Excluir")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { equipamentoToDelete = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -164,7 +197,7 @@ fun EquipamentosScreen(
                             EquipamentoCard(
                                 equipamentoComStatus = equipamentoComStatus,
                                 onEdit = { onNavigateToForm(equipamentoComStatus.equipamento.id) },
-                                onDelete = { viewModel.dispatch(EquipamentosContract.Action.DeleteEquipamento(equipamentoComStatus.equipamento)) }
+                                onDelete = { equipamentoToDelete = equipamentoComStatus.equipamento }
                             )
                         }
                         item {
