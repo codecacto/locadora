@@ -10,6 +10,8 @@ import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepositoryImpl
 import br.com.codecacto.locadora.data.repository.NotificacaoRepository
 import br.com.codecacto.locadora.data.repository.NotificacaoRepositoryImpl
+import br.com.codecacto.locadora.data.repository.RecebimentoRepository
+import br.com.codecacto.locadora.data.repository.RecebimentoRepositoryImpl
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import org.koin.dsl.module
@@ -24,4 +26,5 @@ val dataModule = module {
     single<LocacaoRepository> { LocacaoRepositoryImpl(get(), get()) }
     single<FeedbackRepository> { FeedbackRepositoryImpl(get(), get()) }
     single<NotificacaoRepository> { NotificacaoRepositoryImpl(get(), get()) }
+    single<RecebimentoRepository> { RecebimentoRepositoryImpl(get(), get()) }
 }

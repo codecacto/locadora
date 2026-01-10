@@ -3,13 +3,9 @@ package br.com.codecacto.locadora.features.recebimentos.presentation
 import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
-import br.com.codecacto.locadora.core.model.MomentoPagamento
-import br.com.codecacto.locadora.core.model.StatusColeta
-import br.com.codecacto.locadora.core.model.StatusLocacao
-import br.com.codecacto.locadora.core.model.StatusPagamento
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
-import br.com.codecacto.locadora.data.repository.LocacaoRepository
+import br.com.codecacto.locadora.data.repository.RecebimentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class RecebimentosViewModel(
-    private val locacaoRepository: LocacaoRepository,
+    private val recebimentoRepository: RecebimentoRepository,
     private val clienteRepository: ClienteRepository,
     private val equipamentoRepository: EquipamentoRepository,
     errorHandler: ErrorHandler
@@ -36,9 +32,9 @@ class RecebimentosViewModel(
             is RecebimentosContract.Action.SelectTab -> {
                 _state.value = _state.value.copy(tabSelecionada = action.tab)
             }
-            is RecebimentosContract.Action.MarcarRecebido -> marcarRecebido(action.locacaoId)
-            is RecebimentosContract.Action.SelectLocacao -> {
-                emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.locacao.id))
+            is RecebimentosContract.Action.MarcarRecebido -> marcarRecebido(action.recebimentoId)
+            is RecebimentosContract.Action.SelectRecebimento -> {
+                emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.recebimento.locacaoId))
             }
             is RecebimentosContract.Action.Refresh -> refreshRecebimentos()
         }
@@ -58,45 +54,27 @@ class RecebimentosViewModel(
             }
 
             combine(
-                locacaoRepository.getLocacoes(),
+                recebimentoRepository.getRecebimentosPendentes(),
+                recebimentoRepository.getRecebimentosPagos(),
                 clienteRepository.getClientes(),
                 equipamentoRepository.getEquipamentos()
-            ) { locacoes, clientes, equipamentos ->
+            ) { pendentes, pagos, clientes, equipamentos ->
                 val clientesMap = clientes.associateBy { it.id }
                 val equipamentosMap = equipamentos.associateBy { it.id }
-                val currentTime = System.currentTimeMillis()
 
-                // Filtrar locações pendentes de pagamento:
-                // 1. Se momento pagamento = NO_INICIO: aparece imediatamente
-                // 2. Se momento pagamento = NO_VENCIMENTO:
-                //    - Equipamento coletado E pagamento pendente
-                //    - OU período vencido E pagamento pendente
-                val locacoesPendentes = locacoes.filter { locacao ->
-                    locacao.statusLocacao == StatusLocacao.ATIVA &&
-                    locacao.statusPagamento == StatusPagamento.PENDENTE &&
-                    (locacao.momentoPagamento == MomentoPagamento.NO_INICIO ||
-                     locacao.statusColeta == StatusColeta.COLETADO ||
-                     locacao.dataFimPrevista <= currentTime)
-                }
-
-                // Filtrar locações com pagamento confirmado
-                val locacoesPagas = locacoes.filter { locacao ->
-                    locacao.statusPagamento == StatusPagamento.PAGO
-                }.sortedByDescending { it.dataPagamento ?: it.criadoEm }
-
-                val recebimentosPendentes = locacoesPendentes.map { locacao ->
+                val recebimentosPendentes = pendentes.map { recebimento ->
                     RecebimentoComDetalhes(
-                        locacao = locacao,
-                        cliente = clientesMap[locacao.clienteId],
-                        equipamento = equipamentosMap[locacao.equipamentoId]
+                        recebimento = recebimento,
+                        cliente = clientesMap[recebimento.clienteId],
+                        equipamento = equipamentosMap[recebimento.equipamentoId]
                     )
                 }
 
-                val recebimentosPagos = locacoesPagas.map { locacao ->
+                val recebimentosPagos = pagos.map { recebimento ->
                     RecebimentoComDetalhes(
-                        locacao = locacao,
-                        cliente = clientesMap[locacao.clienteId],
-                        equipamento = equipamentosMap[locacao.equipamentoId]
+                        recebimento = recebimento,
+                        cliente = clientesMap[recebimento.clienteId],
+                        equipamento = equipamentosMap[recebimento.equipamentoId]
                     )
                 }
 
@@ -110,8 +88,8 @@ class RecebimentosViewModel(
                     handleError(e)
                 }
                 .collect { (pendentes, pagos) ->
-                    val totalPendente = pendentes.sumOf { it.locacao.valorLocacao }
-                    val totalPago = pagos.sumOf { it.locacao.valorLocacao }
+                    val totalPendente = pendentes.sumOf { it.recebimento.valor }
+                    val totalPago = pagos.sumOf { it.recebimento.valor }
 
                     _state.value = _state.value.copy(
                         isLoading = false,
@@ -126,10 +104,10 @@ class RecebimentosViewModel(
         }
     }
 
-    private fun marcarRecebido(locacaoId: String) {
+    private fun marcarRecebido(recebimentoId: String) {
         viewModelScope.launch {
             try {
-                locacaoRepository.marcarPago(locacaoId)
+                recebimentoRepository.marcarPago(recebimentoId)
                 emitEffect(RecebimentosContract.Effect.ShowSuccess("Pagamento confirmado!"))
             } catch (e: Exception) {
                 handleError(e)

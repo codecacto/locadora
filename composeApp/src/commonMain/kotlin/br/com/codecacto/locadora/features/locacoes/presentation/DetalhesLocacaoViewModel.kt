@@ -5,6 +5,7 @@ import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.DadosEmpresa
 import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.model.Recebimento
 import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.model.StatusPrazo
 import br.com.codecacto.locadora.core.pdf.ReceiptData
@@ -13,6 +14,7 @@ import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.DadosEmpresaRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
+import br.com.codecacto.locadora.data.repository.RecebimentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,7 @@ class DetalhesLocacaoViewModel(
     private val clienteRepository: ClienteRepository,
     private val equipamentoRepository: EquipamentoRepository,
     private val dadosEmpresaRepository: DadosEmpresaRepository,
+    private val recebimentoRepository: RecebimentoRepository,
     private val receiptPdfGenerator: ReceiptPdfGenerator,
     errorHandler: ErrorHandler
 ) : BaseViewModel<DetalhesLocacaoContract.State, DetalhesLocacaoContract.Effect, DetalhesLocacaoContract.Action>(errorHandler) {
@@ -145,7 +148,23 @@ class DetalhesLocacaoViewModel(
     private fun renovarLocacao(novaDataFim: Long, novoValor: Double?) {
         viewModelScope.launch {
             try {
+                val currentLocacao = _state.value.locacao
+                    ?: throw Exception("Locação não encontrada")
+
                 locacaoRepository.renovarLocacao(locacaoId, novaDataFim, novoValor)
+
+                // Criar recebimento para a renovação
+                val valorRecebimento = novoValor ?: currentLocacao.valorLocacao
+                val recebimento = Recebimento(
+                    locacaoId = locacaoId,
+                    clienteId = currentLocacao.clienteId,
+                    equipamentoId = currentLocacao.equipamentoId,
+                    valor = valorRecebimento,
+                    dataVencimento = novaDataFim,
+                    numeroRenovacao = currentLocacao.qtdRenovacoes + 1
+                )
+                recebimentoRepository.addRecebimento(recebimento)
+
                 _state.value = _state.value.copy(showRenovarDialog = false)
                 loadLocacao()
                 emitEffect(DetalhesLocacaoContract.Effect.ShowSuccess("Locação renovada com sucesso!"))

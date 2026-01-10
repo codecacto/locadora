@@ -179,13 +179,13 @@ fun RecebimentosScreen(
                             if (state.tabSelecionada == 0) {
                                 RecebimentoCard(
                                     recebimento = recebimento,
-                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) },
-                                    onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.locacao.id)) }
+                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectRecebimento(recebimento.recebimento)) },
+                                    onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.recebimento.id)) }
                                 )
                             } else {
                                 RecebimentoPagoCard(
                                     recebimento = recebimento,
-                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) }
+                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectRecebimento(recebimento.recebimento)) }
                                 )
                             }
                         }
@@ -319,7 +319,7 @@ private fun RecebimentoCard(
                         )
                     }
                     Text(
-                        text = formatCurrency(recebimento.locacao.valorLocacao),
+                        text = formatCurrency(recebimento.recebimento.valor),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Emerald600
@@ -335,16 +335,18 @@ private fun RecebimentoCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 InfoBox(
-                    label = Strings.RECEBIMENTOS_PERIODO,
-                    value = "${formatDate(recebimento.locacao.dataInicio)} - ${formatDate(recebimento.locacao.dataFimPrevista)}",
+                    label = Strings.RECEBIMENTOS_VENCIMENTO,
+                    value = formatDateFull(recebimento.recebimento.dataVencimento),
                     modifier = Modifier.weight(1f)
                 )
-                InfoBox(
-                    label = Strings.RECEBIMENTOS_STATUS,
-                    value = Strings.STATUS_COLETA_COLETADO,
-                    modifier = Modifier.weight(1f),
-                    valueColor = AppColors.Emerald600
-                )
+                if (recebimento.recebimento.numeroRenovacao > 0) {
+                    InfoBox(
+                        label = Strings.RECEBIMENTOS_RENOVACAO,
+                        value = "${recebimento.recebimento.numeroRenovacao}ª",
+                        modifier = Modifier.weight(1f),
+                        valueColor = AppColors.Emerald600
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -485,7 +487,7 @@ private fun RecebimentoPagoCard(
                         )
                     }
                     Text(
-                        text = formatCurrency(recebimento.locacao.valorLocacao),
+                        text = formatCurrency(recebimento.recebimento.valor),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.Green
@@ -501,16 +503,19 @@ private fun RecebimentoPagoCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 InfoBox(
-                    label = Strings.RECEBIMENTOS_PERIODO,
-                    value = "${formatDate(recebimento.locacao.dataInicio)} - ${formatDate(recebimento.locacao.dataFimPrevista)}",
-                    modifier = Modifier.weight(1f)
-                )
-                InfoBox(
                     label = Strings.RECEBIMENTOS_DATA_PAGAMENTO,
-                    value = recebimento.locacao.dataPagamento?.let { formatDateFull(it) } ?: "-",
+                    value = recebimento.recebimento.dataPagamento?.let { formatDateFull(it) } ?: "-",
                     modifier = Modifier.weight(1f),
                     valueColor = AppColors.Green
                 )
+                if (recebimento.recebimento.numeroRenovacao > 0) {
+                    InfoBox(
+                        label = Strings.RECEBIMENTOS_RENOVACAO,
+                        value = "${recebimento.recebimento.numeroRenovacao}ª",
+                        modifier = Modifier.weight(1f),
+                        valueColor = AppColors.Green
+                    )
+                }
             }
         }
     }

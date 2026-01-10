@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import br.com.codecacto.locadora.core.model.Equipamento
-import br.com.codecacto.locadora.core.model.MomentoPagamento
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
@@ -43,6 +42,7 @@ fun NovaLocacaoScreen(
     val state by viewModel.state.collectAsState()
     var showDataInicioPicker by remember { mutableStateOf(false) }
     var showDataFimPicker by remember { mutableStateOf(false) }
+    var showDataVencimentoPicker by remember { mutableStateOf(false) }
     var showDataEntregaPicker by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
@@ -194,6 +194,15 @@ fun NovaLocacaoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Data de Vencimento do Pagamento
+            SectionTitle(Strings.NOVA_LOCACAO_DATA_VENCIMENTO)
+            DateSelectorCard(
+                date = state.dataVencimentoPagamento,
+                onClick = { showDataVencimentoPicker = true }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Status de Entrega
             SectionTitle(Strings.NOVA_LOCACAO_STATUS_ENTREGA)
             StatusEntregaSelector(
@@ -212,17 +221,6 @@ fun NovaLocacaoScreen(
                     onClick = { showDataEntregaPicker = true }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Momento do Pagamento
-            SectionTitle(Strings.NOVA_LOCACAO_MOMENTO_PAGAMENTO)
-            MomentoPagamentoSelector(
-                momentoSelecionado = state.momentoPagamento,
-                onMomentoSelected = { momento ->
-                    viewModel.dispatch(NovaLocacaoContract.Action.SetMomentoPagamento(momento))
-                }
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -329,6 +327,17 @@ fun NovaLocacaoScreen(
                 showDataFimPicker = false
             },
             initialSelectedDateMillis = state.dataFimPrevista
+        )
+    }
+
+    if (showDataVencimentoPicker) {
+        DatePickerDialog(
+            onDismiss = { showDataVencimentoPicker = false },
+            onConfirm = { millis ->
+                viewModel.dispatch(NovaLocacaoContract.Action.SetDataVencimentoPagamento(millis))
+                showDataVencimentoPicker = false
+            },
+            initialSelectedDateMillis = state.dataVencimentoPagamento
         )
     }
 
@@ -623,64 +632,6 @@ private fun StatusEntregaSelector(
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (isSelected) AppColors.Violet600 else AppColors.Slate600,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MomentoPagamentoSelector(
-    momentoSelecionado: MomentoPagamento,
-    onMomentoSelected: (MomentoPagamento) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(AppColors.Slate100)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        MomentoPagamento.entries.forEach { momento ->
-            val isSelected = momentoSelecionado == momento
-            val (label, icon) = when (momento) {
-                MomentoPagamento.NO_INICIO -> Strings.MOMENTO_PAGAMENTO_NO_INICIO to Icons.Default.PlayArrow
-                MomentoPagamento.NO_VENCIMENTO -> Strings.MOMENTO_PAGAMENTO_NO_VENCIMENTO to Icons.Default.Event
-            }
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isSelected) Color.White else Color.Transparent)
-                    .then(
-                        if (isSelected) Modifier.border(
-                            width = 1.dp,
-                            color = AppColors.Violet200,
-                            shape = RoundedCornerShape(10.dp)
-                        ) else Modifier
-                    )
-                    .clickable { onMomentoSelected(momento) }
-                    .padding(vertical = 14.dp, horizontal = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = if (isSelected) AppColors.Violet600 else AppColors.Slate500
-                    )
-                    Text(
-                        text = label,
-                        fontSize = 13.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (isSelected) AppColors.Violet600 else AppColors.Slate600
                     )
                 }
             }

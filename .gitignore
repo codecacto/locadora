@@ -6,6 +6,11 @@ xcuserdata
 !src/**/build/
 local.properties
 .idea
+
+# Keystore files (NEVER commit to version control!)
+*.keystore
+*.jks
+composeApp/keystore/
 .DS_Store
 captures
 .externalNativeBuild

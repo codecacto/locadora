@@ -6,16 +6,15 @@ import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
-import br.com.codecacto.locadora.core.model.MomentoPagamento
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
+import br.com.codecacto.locadora.core.model.Recebimento
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
-import br.com.codecacto.locadora.data.repository.UserPreferencesRepository
-import kotlinx.coroutines.flow.first
+import br.com.codecacto.locadora.data.repository.RecebimentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +25,7 @@ class NovaLocacaoViewModel(
     private val locacaoRepository: LocacaoRepository,
     private val clienteRepository: ClienteRepository,
     private val equipamentoRepository: EquipamentoRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
+    private val recebimentoRepository: RecebimentoRepository,
     errorHandler: ErrorHandler
 ) : BaseViewModel<NovaLocacaoContract.State, NovaLocacaoContract.Effect, NovaLocacaoContract.Action>(errorHandler) {
 
@@ -58,7 +57,8 @@ class NovaLocacaoViewModel(
                     periodosDisponiveis = periodosDisponiveis,
                     periodoSelecionado = primeiroPeriodo,
                     valorLocacao = priceInCents,
-                    dataFimPrevista = dataFim
+                    dataFimPrevista = dataFim,
+                    dataVencimentoPagamento = dataFim
                 )
             }
             is NovaLocacaoContract.Action.SetPeriodo -> {
@@ -69,7 +69,8 @@ class NovaLocacaoViewModel(
                 _state.value = _state.value.copy(
                     periodoSelecionado = action.periodo,
                     valorLocacao = priceInCents,
-                    dataFimPrevista = dataFim
+                    dataFimPrevista = dataFim,
+                    dataVencimentoPagamento = dataFim
                 )
             }
             is NovaLocacaoContract.Action.SetValorLocacao -> {
@@ -80,20 +81,21 @@ class NovaLocacaoViewModel(
                 val dataFim = periodo?.let { calcularDataFim(action.data, it) }
                 _state.value = _state.value.copy(
                     dataInicio = action.data,
-                    dataFimPrevista = dataFim ?: _state.value.dataFimPrevista
+                    dataFimPrevista = dataFim ?: _state.value.dataFimPrevista,
+                    dataVencimentoPagamento = dataFim ?: _state.value.dataVencimentoPagamento
                 )
             }
             is NovaLocacaoContract.Action.SetDataFimPrevista -> {
                 _state.value = _state.value.copy(dataFimPrevista = action.data)
+            }
+            is NovaLocacaoContract.Action.SetDataVencimentoPagamento -> {
+                _state.value = _state.value.copy(dataVencimentoPagamento = action.data)
             }
             is NovaLocacaoContract.Action.SetStatusEntrega -> {
                 _state.value = _state.value.copy(statusEntrega = action.status)
             }
             is NovaLocacaoContract.Action.SetDataEntregaPrevista -> {
                 _state.value = _state.value.copy(dataEntregaPrevista = action.data)
-            }
-            is NovaLocacaoContract.Action.SetMomentoPagamento -> {
-                _state.value = _state.value.copy(momentoPagamento = action.momento)
             }
             is NovaLocacaoContract.Action.SetEmitirNota -> {
                 _state.value = _state.value.copy(emitirNota = action.emitir)
@@ -111,33 +113,26 @@ class NovaLocacaoViewModel(
     }
 
     private fun clearForm() {
-        viewModelScope.launch {
-            val momentoPagamentoPadrao = userPreferencesRepository.getMomentoPagamentoPadrao().first()
-            _state.value = _state.value.copy(
-                clienteSelecionado = null,
-                equipamentoSelecionado = null,
-                periodosDisponiveis = emptyList(),
-                periodoSelecionado = null,
-                valorLocacao = "",
-                dataInicio = System.currentTimeMillis(),
-                dataFimPrevista = null,
-                statusEntrega = StatusEntrega.NAO_AGENDADA,
-                dataEntregaPrevista = null,
-                momentoPagamento = momentoPagamentoPadrao,
-                emitirNota = false,
-                error = null
-            )
-        }
+        _state.value = _state.value.copy(
+            clienteSelecionado = null,
+            equipamentoSelecionado = null,
+            periodosDisponiveis = emptyList(),
+            periodoSelecionado = null,
+            valorLocacao = "",
+            dataInicio = System.currentTimeMillis(),
+            dataFimPrevista = null,
+            dataVencimentoPagamento = null,
+            statusEntrega = StatusEntrega.NAO_AGENDADA,
+            dataEntregaPrevista = null,
+            emitirNota = false,
+            error = null
+        )
     }
 
     private fun loadData() {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(isLoading = true)
-
-                // Carregar configuração padrão de momento do pagamento
-                val momentoPagamentoPadrao = userPreferencesRepository.getMomentoPagamentoPadrao().first()
-                _state.value = _state.value.copy(momentoPagamento = momentoPagamentoPadrao)
 
                 combine(
                     clienteRepository.getClientes(),
@@ -204,7 +199,6 @@ class NovaLocacaoViewModel(
                     equipamentoId = currentState.equipamentoSelecionado.id,
                     valorLocacao = valorLocacao,
                     periodo = currentState.periodoSelecionado,
-                    momentoPagamento = currentState.momentoPagamento,
                     dataInicio = currentState.dataInicio,
                     dataFimPrevista = currentState.dataFimPrevista,
                     statusEntrega = currentState.statusEntrega,
@@ -214,7 +208,19 @@ class NovaLocacaoViewModel(
                     emitirNota = currentState.emitirNota
                 )
 
-                locacaoRepository.addLocacao(locacao)
+                val locacaoId = locacaoRepository.addLocacao(locacao)
+
+                // Criar recebimento para esta locação
+                val recebimento = Recebimento(
+                    locacaoId = locacaoId,
+                    clienteId = currentState.clienteSelecionado.id,
+                    equipamentoId = currentState.equipamentoSelecionado.id,
+                    valor = valorLocacao,
+                    dataVencimento = currentState.dataVencimentoPagamento ?: currentState.dataFimPrevista,
+                    numeroRenovacao = 0
+                )
+                recebimentoRepository.addRecebimento(recebimento)
+
                 _state.value = _state.value.copy(isSaving = false)
                 emitEffect(NovaLocacaoContract.Effect.LocacaoCriada)
             } catch (e: Exception) {

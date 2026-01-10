@@ -57,7 +57,6 @@ import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileScr
 import br.com.codecacto.locadora.features.settings.presentation.DataPrivacyScreen
 import br.com.codecacto.locadora.features.settings.presentation.DadosEmpresaScreen
 import br.com.codecacto.locadora.features.settings.presentation.HorarioNotificacaoScreen
-import br.com.codecacto.locadora.features.settings.presentation.MomentoPagamentoScreen
 import br.com.codecacto.locadora.features.feedback.presentation.FeedbackScreen
 import br.com.codecacto.locadora.features.notifications.presentation.NotificationsScreen
 import br.com.codecacto.locadora.core.ui.components.NotificationBadge
@@ -320,9 +319,6 @@ fun MainScreen(
                     "horario_notificacao" -> HorarioNotificacaoScreen(
                         onBack = { currentMenuScreen = null }
                     )
-                    "momento_pagamento" -> MomentoPagamentoScreen(
-                        onBack = { currentMenuScreen = null }
-                    )
                     else -> MenuScreen(
                         onNavigateToClientes = { currentMenuScreen = "clientes" },
                         onNavigateToEquipamentos = { currentMenuScreen = "equipamentos" },
@@ -332,7 +328,6 @@ fun MainScreen(
                         onNavigateToDataPrivacy = { currentMenuScreen = "data_privacy" },
                         onNavigateToDadosEmpresa = { currentMenuScreen = "dados_empresa" },
                         onNavigateToHorarioNotificacao = { currentMenuScreen = "horario_notificacao" },
-                        onNavigateToMomentoPagamento = { currentMenuScreen = "momento_pagamento" },
                         onNavigateToNotifications = { navController.navigate("notifications") },
                         unreadNotifications = unreadNotifications,
                         onLogout = onLogout
@@ -485,7 +480,6 @@ private fun MenuScreen(
     onNavigateToDataPrivacy: () -> Unit,
     onNavigateToDadosEmpresa: () -> Unit,
     onNavigateToHorarioNotificacao: () -> Unit,
-    onNavigateToMomentoPagamento: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     unreadNotifications: Int,
     onLogout: () -> Unit
@@ -572,14 +566,6 @@ private fun MenuScreen(
                 backgroundColor = AppColors.Amber100,
                 iconColor = AppColors.Amber500,
                 onClick = onNavigateToHorarioNotificacao
-            )
-            MenuItemCard(
-                icon = Icons.Default.Payment,
-                title = Strings.MENU_MOMENTO_PAGAMENTO,
-                subtitle = Strings.MENU_MOMENTO_PAGAMENTO_SUBTITLE,
-                backgroundColor = AppColors.Emerald100,
-                iconColor = AppColors.Emerald600,
-                onClick = onNavigateToMomentoPagamento
             )
             MenuItemCard(
                 icon = Icons.Default.Settings,

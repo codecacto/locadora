@@ -37,7 +37,15 @@
       "Bash(gradlew compileKotlinAndroid:*)",
       "Bash(.gradlew composeApp:compileDebugKotlinAndroid --no-daemon)",
       "Bash(gradlew.bat composeApp:compileDebugKotlinAndroid --no-daemon)",
-      "Bash(./gradlew.bat composeApp:compileDebugKotlinAndroid --no-daemon)"
+      "Bash(./gradlew.bat composeApp:compileDebugKotlinAndroid --no-daemon)",
+      "Bash(cd:*)",
+      "Bash(gradlew.bat compileKotlinAndroid:*)",
+      "Bash(E:)",
+      "Bash(cmd.exe /c \"cd /d E:\\\\CodeCacto\\\\locadora && gradlew.bat compileKotlinAndroid\")",
+      "Bash(cmd.exe /c \"cd /d E:\\\\CodeCacto\\\\locadora && gradlew.bat compileDebugKotlinAndroid --console=plain 2>&1\")",
+      "Bash(powershell.exe -Command \"cd ''E:\\\\CodeCacto\\\\locadora''; .\\\\gradlew.bat compileDebugKotlinAndroid --console=plain\")",
+      "Bash(powershell.exe -Command \"cd ''E:\\\\CodeCacto\\\\locadora''; .\\\\gradlew.bat compileDebugKotlinAndroid --console=plain 2>&1\")",
+      "Bash(powershell.exe:*)"
     ]
   }
 }

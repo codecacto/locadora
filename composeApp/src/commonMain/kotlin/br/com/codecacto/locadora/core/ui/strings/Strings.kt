@@ -231,6 +231,7 @@ object Strings {
     const val NOVA_LOCACAO_VALOR_PLACEHOLDER = "R$ 0,00"
     const val NOVA_LOCACAO_DATA_INICIO = "Data Inicio"
     const val NOVA_LOCACAO_DATA_FIM = "Data Fim Prevista"
+    const val NOVA_LOCACAO_DATA_VENCIMENTO = "Vencimento do Pagamento"
     const val NOVA_LOCACAO_SELECIONAR_DATA = "Selecionar data"
     const val NOVA_LOCACAO_STATUS_ENTREGA = "Status de Entrega"
     const val NOVA_LOCACAO_DATA_ENTREGA = "Data de Entrega Prevista"
@@ -350,6 +351,8 @@ object Strings {
     const val RECEBIMENTOS_PERIODO = "Período"
     const val RECEBIMENTOS_STATUS = "Status"
     const val RECEBIMENTOS_DATA_PAGAMENTO = "Data do Pagamento"
+    const val RECEBIMENTOS_VENCIMENTO = "Vencimento"
+    const val RECEBIMENTOS_RENOVACAO = "Renovação"
     const val RECEBIMENTOS_LOCACAO_SUBTITLE = "Recebimento desta locação"
     const val RECEBIMENTO_CONFIRMADO = "Recebimento confirmado!"
 

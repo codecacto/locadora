@@ -5,10 +5,10 @@ import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
-import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.model.Recebimento
 
 data class RecebimentoComDetalhes(
-    val locacao: Locacao,
+    val recebimento: Recebimento,
     val cliente: Cliente?,
     val equipamento: Equipamento?
 )
@@ -27,8 +27,8 @@ object RecebimentosContract {
 
     sealed class Action : UiAction {
         data class SelectTab(val tab: Int) : Action()
-        data class MarcarRecebido(val locacaoId: String) : Action()
-        data class SelectLocacao(val locacao: Locacao) : Action()
+        data class MarcarRecebido(val recebimentoId: String) : Action()
+        data class SelectRecebimento(val recebimento: Recebimento) : Action()
         data object Refresh : Action()
     }
 
