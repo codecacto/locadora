@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -67,6 +68,7 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             // Background Image
             Image(
@@ -150,6 +152,7 @@ fun LoginScreen(
                             onValueChange = { viewModel.dispatch(LoginContract.Action.SetEmail(it)) },
                             label = { Text(Strings.LOGIN_EMAIL_LABEL) },
                             placeholder = { Text(Strings.LOGIN_EMAIL_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Email,
@@ -172,8 +175,16 @@ fun LoginScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )
@@ -184,6 +195,7 @@ fun LoginScreen(
                             onValueChange = { viewModel.dispatch(LoginContract.Action.SetPassword(it)) },
                             label = { Text(Strings.LOGIN_SENHA_LABEL) },
                             placeholder = { Text(Strings.LOGIN_SENHA_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
@@ -219,8 +231,16 @@ fun LoginScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )
@@ -358,13 +378,22 @@ private fun ForgotPasswordDialog(
                     value = email,
                     onValueChange = onEmailChange,
                     label = { Text(Strings.LOGIN_EMAIL_LABEL) },
+                    textStyle = LocalTextStyle.current.copy(color = Color.Black),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = error != null,
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedPlaceholderColor = AppColors.Slate500,
+                        unfocusedPlaceholderColor = AppColors.Slate500,
                         focusedBorderColor = AppColors.Orange500,
-                        focusedLabelColor = AppColors.Orange500
+                        unfocusedBorderColor = AppColors.Slate300,
+                        focusedLabelColor = AppColors.Orange500,
+                        unfocusedLabelColor = AppColors.Slate600
                     )
                 )
                 error?.let {

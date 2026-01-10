@@ -40,6 +40,7 @@ data class Locacao(
     val equipamentoId: String = "",
     val valorLocacao: Double = 0.0,
     val periodo: PeriodoLocacao = PeriodoLocacao.DIARIO,
+    val momentoPagamento: MomentoPagamento = MomentoPagamento.NO_VENCIMENTO,
     val dataInicio: Long = System.currentTimeMillis(),
     val dataFimPrevista: Long = System.currentTimeMillis(),
     val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,

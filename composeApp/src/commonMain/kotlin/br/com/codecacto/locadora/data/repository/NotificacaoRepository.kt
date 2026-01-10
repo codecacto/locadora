@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 interface NotificacaoRepository {
     fun getNotificacoes(): Flow<List<Notificacao>>
     fun getUnreadCount(): Flow<Int>
+    suspend fun criarNotificacao(notificacao: Notificacao): Result<String>
     suspend fun marcarComoLida(id: String): Result<Unit>
     suspend fun marcarTodasComoLidas(): Result<Unit>
     suspend fun deleteNotificacao(id: String): Result<Unit>
@@ -49,6 +50,20 @@ class NotificacaoRepositoryImpl(
             .snapshots
             .map { snapshot -> snapshot.documents.size }
             .catch { emit(0) }
+    }
+
+    override suspend fun criarNotificacao(notificacao: Notificacao): Result<String> {
+        return try {
+            val collection = getUserCollection()
+                ?: return Result.failure(Exception("Usuario nao autenticado"))
+
+            val docRef = collection.add(notificacao.copy(
+                criadoEm = System.currentTimeMillis()
+            ))
+            Result.success(docRef.id)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun marcarComoLida(id: String): Result<Unit> {

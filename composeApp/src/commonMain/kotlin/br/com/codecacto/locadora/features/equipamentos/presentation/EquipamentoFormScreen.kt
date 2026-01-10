@@ -208,6 +208,51 @@ fun EquipamentoFormScreen(
                     singleLine = true
                 )
 
+                // Valor de Compra
+                OutlinedTextField(
+                    value = state.valorCompra,
+                    onValueChange = { newValue ->
+                        val filtered = filterCurrencyInput(newValue)
+                        viewModel.dispatch(EquipamentosContract.Action.SetValorCompra(filtered))
+                    },
+                    enabled = equipamentoSelecionado,
+                    label = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA) },
+                    placeholder = { Text("0,00") },
+                    leadingIcon = {
+                        Text(
+                            text = Strings.CURRENCY_SYMBOL,
+                            fontWeight = FontWeight.Medium,
+                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    },
+                    visualTransformation = CurrencyVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+
+                // Observações
+                OutlinedTextField(
+                    value = state.observacoes,
+                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetObservacoes(it)) },
+                    enabled = equipamentoSelecionado,
+                    label = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES) },
+                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES_PLACEHOLDER) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Notes,
+                            contentDescription = null,
+                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    minLines = 3,
+                    maxLines = 5
+                )
+
                 // Seção de Preços por Período
                 Text(
                     text = Strings.EQUIPAMENTO_FORM_PRECOS_TITLE,
@@ -319,51 +364,6 @@ fun EquipamentoFormScreen(
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
-                )
-
-                // Valor de Compra
-                OutlinedTextField(
-                    value = state.valorCompra,
-                    onValueChange = { newValue ->
-                        val filtered = filterCurrencyInput(newValue)
-                        viewModel.dispatch(EquipamentosContract.Action.SetValorCompra(filtered))
-                    },
-                    enabled = equipamentoSelecionado,
-                    label = { Text(Strings.EQUIPAMENTO_FORM_VALOR_COMPRA) },
-                    placeholder = { Text("0,00") },
-                    leadingIcon = {
-                        Text(
-                            text = Strings.CURRENCY_SYMBOL,
-                            fontWeight = FontWeight.Medium,
-                            color = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300,
-                            modifier = Modifier.padding(start = 12.dp)
-                        )
-                    },
-                    visualTransformation = CurrencyVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-
-                // Observações
-                OutlinedTextField(
-                    value = state.observacoes,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetObservacoes(it)) },
-                    enabled = equipamentoSelecionado,
-                    label = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_OBSERVACOES_PLACEHOLDER) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Notes,
-                            contentDescription = null,
-                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    minLines = 3,
-                    maxLines = 5
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

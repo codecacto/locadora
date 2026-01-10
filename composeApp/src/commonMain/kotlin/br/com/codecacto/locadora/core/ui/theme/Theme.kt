@@ -1,37 +1,10 @@
 package br.com.codecacto.locadora.core.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = AppColors.Violet500,
-    onPrimary = Color.White,
-    primaryContainer = AppColors.Violet600,
-    onPrimaryContainer = AppColors.Violet100,
-    secondary = AppColors.Purple600,
-    onSecondary = Color.White,
-    secondaryContainer = AppColors.Violet400,
-    onSecondaryContainer = AppColors.Violet100,
-    tertiary = AppColors.Emerald600,
-    onTertiary = Color.White,
-    tertiaryContainer = AppColors.GreenDark,
-    onTertiaryContainer = AppColors.GreenLight,
-    error = AppColors.Red,
-    onError = Color.White,
-    errorContainer = AppColors.RedDark,
-    onErrorContainer = AppColors.RedLight,
-    background = AppColors.Slate900,
-    onBackground = AppColors.Slate100,
-    surface = AppColors.Slate800,
-    onSurface = AppColors.Slate100,
-    surfaceVariant = AppColors.Slate700,
-    onSurfaceVariant = AppColors.Slate300,
-    outline = AppColors.Slate600,
-    outlineVariant = AppColors.Slate700,
-)
-
+// App sempre usa tema claro - sem suporte a dark mode
 private val LightColorScheme = lightColorScheme(
     primary = AppColors.Violet600,
     onPrimary = Color.White,
@@ -61,17 +34,10 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun AppTheme(
-    darkTheme: Boolean? = null,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        darkTheme == null -> if (isSystemInDarkTheme()) DarkColorScheme else LightColorScheme
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = LightColorScheme,
         typography = Typography(),
         content = content
     )

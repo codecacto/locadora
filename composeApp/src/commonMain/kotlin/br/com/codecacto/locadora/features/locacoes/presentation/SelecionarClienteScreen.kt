@@ -44,6 +44,20 @@ fun SelecionarClienteScreen(
         }
     }
 
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddNew,
+                containerColor = AppColors.Blue600,
+                contentColor = Color.White
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = Strings.SELECIONAR_CLIENTE_ADICIONAR
+                )
+            }
+        }
+    ) { paddingValues ->
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,54 +72,33 @@ fun SelecionarClienteScreen(
                 .padding(top = 48.dp, bottom = 24.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.2f))
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = Strings.COMMON_VOLTAR,
-                            tint = Color.White
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = Strings.SELECIONAR_CLIENTE_TITLE,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = Strings.clientesCadastrados(clientes.size),
-                            fontSize = 14.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                    }
-                }
-
-                // Botao Adicionar
                 IconButton(
-                    onClick = onAddNew,
+                    onClick = onDismiss,
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(Color.White.copy(alpha = 0.2f))
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = Strings.SELECIONAR_CLIENTE_ADICIONAR,
-                        tint = AppColors.Blue600
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = Strings.COMMON_VOLTAR,
+                        tint = Color.White
+                    )
+                }
+                Column {
+                    Text(
+                        text = Strings.SELECIONAR_CLIENTE_TITLE,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = Strings.clientesCadastrados(clientes.size),
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.8f)
                     )
                 }
             }
@@ -222,12 +215,13 @@ fun SelecionarClienteScreen(
                     )
                 }
 
-                // Espaco extra no final
+                // Espaco extra no final para o FAB
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
+    }
     }
 }
 

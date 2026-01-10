@@ -21,7 +21,8 @@ class DadosEmpresaRepositoryImpl(
         val TELEFONE = stringPreferencesKey("telefone")
         val EMAIL = stringPreferencesKey("email")
         val ENDERECO = stringPreferencesKey("endereco")
-        val CNPJ = stringPreferencesKey("cnpj")
+        val DOCUMENTO = stringPreferencesKey("documento")
+        val TIPO_PESSOA = stringPreferencesKey("tipo_pessoa")
     }
 
     override fun getDadosEmpresa(): Flow<DadosEmpresa> {
@@ -31,7 +32,8 @@ class DadosEmpresaRepositoryImpl(
                 telefone = preferences[PreferencesKeys.TELEFONE] ?: "",
                 email = preferences[PreferencesKeys.EMAIL] ?: "",
                 endereco = preferences[PreferencesKeys.ENDERECO] ?: "",
-                cnpj = preferences[PreferencesKeys.CNPJ] ?: ""
+                documento = preferences[PreferencesKeys.DOCUMENTO] ?: "",
+                tipoPessoa = preferences[PreferencesKeys.TIPO_PESSOA] ?: "JURIDICA"
             )
         }
     }
@@ -42,7 +44,8 @@ class DadosEmpresaRepositoryImpl(
             preferences[PreferencesKeys.TELEFONE] = dados.telefone
             preferences[PreferencesKeys.EMAIL] = dados.email
             preferences[PreferencesKeys.ENDERECO] = dados.endereco
-            preferences[PreferencesKeys.CNPJ] = dados.cnpj
+            preferences[PreferencesKeys.DOCUMENTO] = dados.documento
+            preferences[PreferencesKeys.TIPO_PESSOA] = dados.tipoPessoa
         }
     }
 }

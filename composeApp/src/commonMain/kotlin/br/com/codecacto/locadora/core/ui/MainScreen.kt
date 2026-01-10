@@ -3,7 +3,9 @@ package br.com.codecacto.locadora.core.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
@@ -43,6 +45,7 @@ import br.com.codecacto.locadora.features.locacoes.presentation.SelecionarEquipa
 import org.koin.compose.viewmodel.koinViewModel
 import br.com.codecacto.locadora.features.entregas.presentation.EntregasScreen
 import br.com.codecacto.locadora.features.recebimentos.presentation.RecebimentosScreen
+import br.com.codecacto.locadora.features.recebimentos.presentation.RecebimentosLocacaoScreen
 import br.com.codecacto.locadora.features.clientes.presentation.ClientesScreen
 import br.com.codecacto.locadora.features.clientes.presentation.ClienteFormScreen
 import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentosScreen
@@ -53,6 +56,8 @@ import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailScree
 import br.com.codecacto.locadora.features.settings.presentation.ChangeProfileScreen
 import br.com.codecacto.locadora.features.settings.presentation.DataPrivacyScreen
 import br.com.codecacto.locadora.features.settings.presentation.DadosEmpresaScreen
+import br.com.codecacto.locadora.features.settings.presentation.HorarioNotificacaoScreen
+import br.com.codecacto.locadora.features.settings.presentation.MomentoPagamentoScreen
 import br.com.codecacto.locadora.features.feedback.presentation.FeedbackScreen
 import br.com.codecacto.locadora.features.notifications.presentation.NotificationsScreen
 import br.com.codecacto.locadora.core.ui.components.NotificationBadge
@@ -108,7 +113,7 @@ fun MainScreen(
     )
 
     // Hide bottom bar on certain routes
-    val hideBottomBar = currentDestination?.route in listOf("notifications", "detalhes_locacao/{locacaoId}")
+    val hideBottomBar = currentDestination?.route in listOf("notifications", "detalhes_locacao/{locacaoId}", "recebimentos_locacao/{locacaoId}")
 
     Scaffold(
         bottomBar = {
@@ -237,11 +242,24 @@ fun MainScreen(
                 val locacaoId = backStackEntry.arguments?.getString("locacaoId") ?: return@composable
                 DetalhesLocacaoScreen(
                     locacaoId = locacaoId,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToRecebimentos = { locId ->
+                        navController.navigate("recebimentos_locacao/$locId")
+                    }
                 )
             }
             composable("notifications") {
                 NotificationsScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "recebimentos_locacao/{locacaoId}",
+                arguments = listOf(navArgument("locacaoId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val locacaoId = backStackEntry.arguments?.getString("locacaoId") ?: return@composable
+                RecebimentosLocacaoScreen(
+                    locacaoId = locacaoId,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -299,6 +317,12 @@ fun MainScreen(
                     "dados_empresa" -> DadosEmpresaScreen(
                         onBack = { currentMenuScreen = null }
                     )
+                    "horario_notificacao" -> HorarioNotificacaoScreen(
+                        onBack = { currentMenuScreen = null }
+                    )
+                    "momento_pagamento" -> MomentoPagamentoScreen(
+                        onBack = { currentMenuScreen = null }
+                    )
                     else -> MenuScreen(
                         onNavigateToClientes = { currentMenuScreen = "clientes" },
                         onNavigateToEquipamentos = { currentMenuScreen = "equipamentos" },
@@ -307,6 +331,8 @@ fun MainScreen(
                         onNavigateToFeedback = { currentMenuScreen = "feedback" },
                         onNavigateToDataPrivacy = { currentMenuScreen = "data_privacy" },
                         onNavigateToDadosEmpresa = { currentMenuScreen = "dados_empresa" },
+                        onNavigateToHorarioNotificacao = { currentMenuScreen = "horario_notificacao" },
+                        onNavigateToMomentoPagamento = { currentMenuScreen = "momento_pagamento" },
                         onNavigateToNotifications = { navController.navigate("notifications") },
                         unreadNotifications = unreadNotifications,
                         onLogout = onLogout
@@ -326,6 +352,14 @@ fun MainScreen(
             onSuccess = {
                 showNovaLocacaoSheet = false
                 novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
+                // Navegar para a aba Locações após criar com sucesso
+                navController.navigate(BottomNavItem.Locacoes.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             },
             onNavigateToSelecionarCliente = {
                 novaLocacaoSubScreen = NovaLocacaoSubScreen.SELECIONAR_CLIENTE
@@ -450,6 +484,8 @@ private fun MenuScreen(
     onNavigateToFeedback: () -> Unit,
     onNavigateToDataPrivacy: () -> Unit,
     onNavigateToDadosEmpresa: () -> Unit,
+    onNavigateToHorarioNotificacao: () -> Unit,
+    onNavigateToMomentoPagamento: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     unreadNotifications: Int,
     onLogout: () -> Unit
@@ -500,6 +536,8 @@ private fun MenuScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -520,12 +558,28 @@ private fun MenuScreen(
                 onClick = onNavigateToEquipamentos
             )
             MenuItemCard(
-                icon = Icons.Default.Business,
-                title = Strings.MENU_DADOS_EMPRESA,
-                subtitle = Strings.MENU_DADOS_EMPRESA_SUBTITLE,
+                icon = Icons.Default.Description,
+                title = Strings.MENU_DADOS_COMPROVANTE,
+                subtitle = Strings.MENU_DADOS_COMPROVANTE_SUBTITLE,
                 backgroundColor = AppColors.Emerald100,
                 iconColor = AppColors.Emerald600,
                 onClick = onNavigateToDadosEmpresa
+            )
+            MenuItemCard(
+                icon = Icons.Default.Notifications,
+                title = Strings.MENU_HORARIO_NOTIFICACAO,
+                subtitle = Strings.MENU_HORARIO_NOTIFICACAO_SUBTITLE,
+                backgroundColor = AppColors.Amber100,
+                iconColor = AppColors.Amber500,
+                onClick = onNavigateToHorarioNotificacao
+            )
+            MenuItemCard(
+                icon = Icons.Default.Payment,
+                title = Strings.MENU_MOMENTO_PAGAMENTO,
+                subtitle = Strings.MENU_MOMENTO_PAGAMENTO_SUBTITLE,
+                backgroundColor = AppColors.Emerald100,
+                iconColor = AppColors.Emerald600,
+                onClick = onNavigateToMomentoPagamento
             )
             MenuItemCard(
                 icon = Icons.Default.Settings,
@@ -573,49 +627,49 @@ private fun MenuScreen(
                 iconColor = AppColors.Red,
                 onClick = { showLogoutDialog = true }
             )
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // App Info
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // App Info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.Slate100),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = AppColors.Slate600
-                    )
-                }
-                Column {
-                    Text(
-                        text = Strings.APP_DESCRIPTION,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppColors.Slate900
-                    )
-                    Text(
-                        text = appVersion.displayVersion,
-                        fontSize = 12.sp,
-                        color = AppColors.Slate500
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(AppColors.Slate100),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = AppColors.Slate600
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = Strings.APP_DESCRIPTION,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.Slate900
+                        )
+                        Text(
+                            text = appVersion.displayVersion,
+                            fontSize = 12.sp,
+                            color = AppColors.Slate500
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 

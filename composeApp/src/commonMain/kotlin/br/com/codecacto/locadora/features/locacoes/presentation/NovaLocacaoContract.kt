@@ -5,6 +5,7 @@ import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
+import br.com.codecacto.locadora.core.model.MomentoPagamento
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
 
@@ -23,6 +24,7 @@ object NovaLocacaoContract {
         val dataFimPrevista: Long? = null,
         val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,
         val dataEntregaPrevista: Long? = null,
+        val momentoPagamento: MomentoPagamento = MomentoPagamento.NO_VENCIMENTO,
         val emitirNota: Boolean = false,
         val error: String? = null
     ) : UiState
@@ -36,9 +38,11 @@ object NovaLocacaoContract {
         data class SetDataFimPrevista(val data: Long) : Action()
         data class SetStatusEntrega(val status: StatusEntrega) : Action()
         data class SetDataEntregaPrevista(val data: Long) : Action()
+        data class SetMomentoPagamento(val momento: MomentoPagamento) : Action()
         data class SetEmitirNota(val emitir: Boolean) : Action()
         data object CriarLocacao : Action()
         data object ReloadData : Action()
+        data object ClearForm : Action()
     }
 
     sealed interface Effect : UiEffect {

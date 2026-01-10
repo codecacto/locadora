@@ -40,8 +40,23 @@ class LocacoesViewModel(
             is LocacoesContract.Action.SelectLocacao -> {
                 emitEffect(LocacoesContract.Effect.NavigateToDetalhes(action.locacao.id))
             }
+            is LocacoesContract.Action.DeleteLocacao -> {
+                deleteLocacao(action.locacao)
+            }
             is LocacoesContract.Action.Refresh -> {
                 refreshLocacoes()
+            }
+        }
+    }
+
+    private fun deleteLocacao(locacao: Locacao) {
+        viewModelScope.launch {
+            try {
+                locacaoRepository.deleteLocacao(locacao.id)
+                emitEffect(LocacoesContract.Effect.ShowSuccess("Locação excluída com sucesso!"))
+            } catch (e: Exception) {
+                handleError(e)
+                emitEffect(LocacoesContract.Effect.ShowError(e.message ?: "Erro ao excluir locação"))
             }
         }
     }

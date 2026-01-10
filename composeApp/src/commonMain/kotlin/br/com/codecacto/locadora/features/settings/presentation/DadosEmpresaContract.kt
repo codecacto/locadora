@@ -3,6 +3,7 @@ package br.com.codecacto.locadora.features.settings.presentation
 import br.com.codecacto.locadora.core.base.UiAction
 import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
+import br.com.codecacto.locadora.core.ui.util.TipoPessoa
 
 object DadosEmpresaContract {
     data class State(
@@ -10,7 +11,9 @@ object DadosEmpresaContract {
         val telefone: String = "",
         val email: String = "",
         val endereco: String = "",
-        val cnpj: String = "",
+        val documento: String = "",
+        val tipoPessoa: TipoPessoa = TipoPessoa.JURIDICA,
+        val documentoError: String? = null,
         val isLoading: Boolean = false,
         val isSaving: Boolean = false
     ) : UiState
@@ -26,7 +29,8 @@ object DadosEmpresaContract {
         data class SetTelefone(val value: String) : Action()
         data class SetEmail(val value: String) : Action()
         data class SetEndereco(val value: String) : Action()
-        data class SetCnpj(val value: String) : Action()
+        data class SetDocumento(val value: String) : Action()
+        data class SetTipoPessoa(val value: TipoPessoa) : Action()
         data object Save : Action()
     }
 }

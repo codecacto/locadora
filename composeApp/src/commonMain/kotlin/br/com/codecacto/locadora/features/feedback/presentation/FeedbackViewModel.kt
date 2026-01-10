@@ -70,7 +70,6 @@ class FeedbackViewModel(
                 .onSuccess {
                     _state.value = _state.value.copy(isLoading = false, isSent = true)
                     emitEffect(FeedbackContract.Effect.ShowSuccess(Strings.FEEDBACK_SUCESSO))
-                    delay(1500)
                     emitEffect(FeedbackContract.Effect.NavigateBack)
                 }
                 .onFailure { exception ->

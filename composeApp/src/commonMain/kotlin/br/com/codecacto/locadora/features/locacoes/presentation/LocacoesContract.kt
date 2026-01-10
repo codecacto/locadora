@@ -30,11 +30,13 @@ object LocacoesContract {
         data class SelectTab(val tab: Int) : Action()
         data class Search(val query: String) : Action()
         data class SelectLocacao(val locacao: Locacao) : Action()
+        data class DeleteLocacao(val locacao: Locacao) : Action()
         data object Refresh : Action()
     }
 
     sealed interface Effect : UiEffect {
         data class NavigateToDetalhes(val locacaoId: String) : Effect
+        data class ShowSuccess(val message: String) : Effect
         data class ShowError(val message: String) : Effect
     }
 }

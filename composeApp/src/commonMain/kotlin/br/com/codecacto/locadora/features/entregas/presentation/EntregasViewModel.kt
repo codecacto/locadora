@@ -47,14 +47,15 @@ class EntregasViewModel(
     private fun refreshEntregas() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isRefreshing = true)
-            kotlinx.coroutines.delay(500)
-            _state.value = _state.value.copy(isRefreshing = false)
+            loadEntregas(isRefresh = true)
         }
     }
 
-    private fun loadEntregas() {
+    private fun loadEntregas(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            if (!isRefresh) {
+                _state.value = _state.value.copy(isLoading = true)
+            }
 
             combine(
                 locacaoRepository.getLocacoesAtivas(),
@@ -73,7 +74,16 @@ class EntregasViewModel(
                 val hoje: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
                 locacoesPendentes.map { locacao ->
-                    val dataEntrega = locacao.dataEntregaPrevista?.let {
+                    // Para entrega:
+                    // - NAO_AGENDADA: usar dataInicio (entrega é para o dia da locação)
+                    // - AGENDADA: usar dataEntregaPrevista
+                    val dataEntregaMillis = when (locacao.statusEntrega) {
+                        StatusEntrega.AGENDADA -> locacao.dataEntregaPrevista
+                        StatusEntrega.NAO_AGENDADA -> locacao.dataInicio
+                        else -> null
+                    }
+
+                    val dataEntrega = dataEntregaMillis?.let {
                         Instant.fromEpochMilliseconds(it)
                             .toLocalDateTime(TimeZone.currentSystemDefault()).date
                     }
@@ -98,13 +108,15 @@ class EntregasViewModel(
                     handleError(e)
                 }
                 .collect { entregas ->
-                    val atrasadas = entregas.filter { it.isAtrasada }.sortedBy { it.locacao.dataEntregaPrevista }
+                    val atrasadas = entregas.filter { it.isAtrasada }
+                        .sortedBy { it.locacao.dataEntregaPrevista ?: it.locacao.dataInicio }
                     val hoje = entregas.filter { it.isHoje }
-                    val agendadas = entregas.filter { !it.isAtrasada && !it.isHoje && it.locacao.statusEntrega == StatusEntrega.AGENDADA }
-                        .sortedBy { it.locacao.dataEntregaPrevista }
+                    val agendadas = entregas.filter { !it.isAtrasada && !it.isHoje }
+                        .sortedBy { it.locacao.dataEntregaPrevista ?: it.locacao.dataInicio }
 
                     _state.value = _state.value.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         entregasAtrasadas = atrasadas,
                         entregasHoje = hoje,
                         entregasAgendadas = agendadas,

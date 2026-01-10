@@ -1,6 +1,8 @@
 package br.com.codecacto.locadora.features.clientes.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -141,40 +144,13 @@ fun ClienteFormScreen(
                 )
 
                 // Tipo de Pessoa Selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TipoPessoa.entries.forEach { tipo ->
-                        FilterChip(
-                            selected = state.tipoPessoa == tipo,
-                            onClick = {
-                                viewModel.dispatch(ClientesContract.Action.SetTipoPessoa(tipo))
-                            },
-                            label = {
-                                Text(
-                                    text = tipo.label,
-                                    fontSize = 13.sp
-                                )
-                            },
-                            leadingIcon = if (state.tipoPessoa == tipo) {
-                                {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            } else null,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AppColors.Blue100,
-                                selectedLabelColor = AppColors.Blue600,
-                                selectedLeadingIconColor = AppColors.Blue600
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
+                TipoPessoaSelector(
+                    tipoPessoaSelecionado = state.tipoPessoa,
+                    onTipoPessoaSelected = { tipo ->
+                        viewModel.dispatch(ClientesContract.Action.SetTipoPessoa(tipo))
+                    },
+                    accentColor = AppColors.Blue600
+                )
 
                 // CPF/CNPJ
                 OutlinedTextField(
@@ -388,5 +364,67 @@ fun ClienteFormScreen(
         },
         modifier = Modifier.align(Alignment.TopCenter)
     )
+    }
+}
+
+@Composable
+private fun TipoPessoaSelector(
+    tipoPessoaSelecionado: TipoPessoa,
+    onTipoPessoaSelected: (TipoPessoa) -> Unit,
+    accentColor: Color = AppColors.Blue600,
+    enabled: Boolean = true
+) {
+    val accentLight = accentColor.copy(alpha = 0.1f)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.Slate100)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        TipoPessoa.entries.forEach { tipo ->
+            val isSelected = tipoPessoaSelecionado == tipo
+            val icon = when (tipo) {
+                TipoPessoa.FISICA -> Icons.Default.Person
+                TipoPessoa.JURIDICA -> Icons.Default.Business
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isSelected) Color.White else Color.Transparent)
+                    .then(
+                        if (isSelected) Modifier.border(
+                            width = 1.dp,
+                            color = accentLight,
+                            shape = RoundedCornerShape(10.dp)
+                        ) else Modifier
+                    )
+                    .clickable(enabled = enabled) { onTipoPessoaSelected(tipo) }
+                    .padding(vertical = 14.dp, horizontal = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = if (isSelected) accentColor else AppColors.Slate500
+                    )
+                    Text(
+                        text = tipo.label,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (isSelected) accentColor else AppColors.Slate600
+                    )
+                }
+            }
+        }
     }
 }

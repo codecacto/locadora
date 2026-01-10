@@ -196,7 +196,10 @@ class LocacaoRepositoryImpl(
                 valorLocacao = novoValor ?: locacao.valorLocacao,
                 qtdRenovacoes = locacao.qtdRenovacoes + 1,
                 ultimaRenovacaoEm = now,
-                atualizadoEm = now
+                atualizadoEm = now,
+                // Resetar pagamento para gerar novo recebimento
+                statusPagamento = StatusPagamento.PENDENTE,
+                dataPagamento = null
             )
         )
     }

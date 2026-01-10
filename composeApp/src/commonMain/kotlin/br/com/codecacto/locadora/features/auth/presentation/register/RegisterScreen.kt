@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -66,6 +67,7 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             // Background Image
             Image(
@@ -151,6 +153,7 @@ fun RegisterScreen(
                             onValueChange = { viewModel.dispatch(RegisterContract.Action.SetName(it)) },
                             label = { Text(Strings.REGISTER_NOME_LABEL) },
                             placeholder = { Text(Strings.REGISTER_NOME_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Person,
@@ -169,8 +172,16 @@ fun RegisterScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )
@@ -181,6 +192,7 @@ fun RegisterScreen(
                             onValueChange = { viewModel.dispatch(RegisterContract.Action.SetEmail(it)) },
                             label = { Text(Strings.LOGIN_EMAIL_LABEL) },
                             placeholder = { Text(Strings.LOGIN_EMAIL_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Email,
@@ -203,8 +215,16 @@ fun RegisterScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )
@@ -215,6 +235,7 @@ fun RegisterScreen(
                             onValueChange = { viewModel.dispatch(RegisterContract.Action.SetPassword(it)) },
                             label = { Text(Strings.LOGIN_SENHA_LABEL) },
                             placeholder = { Text(Strings.REGISTER_SENHA_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
@@ -249,8 +270,16 @@ fun RegisterScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )
@@ -261,6 +290,7 @@ fun RegisterScreen(
                             onValueChange = { viewModel.dispatch(RegisterContract.Action.SetConfirmPassword(it)) },
                             label = { Text(Strings.REGISTER_CONFIRMAR_SENHA_LABEL) },
                             placeholder = { Text(Strings.REGISTER_CONFIRMAR_SENHA_PLACEHOLDER) },
+                            textStyle = LocalTextStyle.current.copy(color = Color.Black),
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
@@ -300,8 +330,16 @@ fun RegisterScreen(
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedPlaceholderColor = AppColors.Slate500,
+                                unfocusedPlaceholderColor = AppColors.Slate500,
                                 focusedBorderColor = AppColors.Orange500,
+                                unfocusedBorderColor = AppColors.Slate300,
                                 focusedLabelColor = AppColors.Orange500,
+                                unfocusedLabelColor = AppColors.Slate600,
                                 cursorColor = AppColors.Orange500
                             )
                         )

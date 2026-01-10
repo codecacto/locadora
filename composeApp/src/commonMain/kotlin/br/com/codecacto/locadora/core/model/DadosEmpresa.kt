@@ -8,5 +8,6 @@ data class DadosEmpresa(
     val telefone: String = "",
     val email: String = "",
     val endereco: String = "",
-    val cnpj: String = ""
+    val documento: String = "", // CPF ou CNPJ
+    val tipoPessoa: String = "JURIDICA" // FISICA ou JURIDICA
 )

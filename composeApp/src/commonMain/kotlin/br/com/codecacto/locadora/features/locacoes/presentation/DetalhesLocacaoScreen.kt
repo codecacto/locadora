@@ -25,6 +25,9 @@ import br.com.codecacto.locadora.core.model.*
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.pdf.ReceiptPdfGenerator
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
+import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
+import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import kotlinx.datetime.Instant
 import org.koin.compose.koinInject
 import kotlinx.datetime.TimeZone
@@ -37,6 +40,7 @@ import org.koin.core.parameter.parametersOf
 fun DetalhesLocacaoScreen(
     locacaoId: String,
     onBack: () -> Unit,
+    onNavigateToRecebimentos: (String) -> Unit = {},
     viewModel: DetalhesLocacaoViewModel = koinViewModel { parametersOf(locacaoId) }
 ) {
     val state by viewModel.state.collectAsState()
@@ -198,6 +202,7 @@ fun DetalhesLocacaoScreen(
                         icon = Icons.Default.Info
                     ) {
                         InfoRow(Strings.DETALHES_VALOR, formatCurrency(locacao.valorLocacao))
+                        InfoRow(Strings.DETALHES_PERIODO, locacao.periodo.label)
                         InfoRow(Strings.DETALHES_DATA_INICIO, formatDate(locacao.dataInicio))
                         InfoRow(Strings.DETALHES_DATA_FIM, formatDate(locacao.dataFimPrevista))
                         if (locacao.qtdRenovacoes > 0) {
@@ -338,6 +343,33 @@ fun DetalhesLocacaoScreen(
                         )
                     }
 
+                    // Ver Recebimentos Button
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedButton(
+                        onClick = { onNavigateToRecebimentos(locacaoId) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = AppColors.Violet600
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AttachMoney,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = Strings.DETALHES_VER_RECEBIMENTOS,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(32.dp))
                 }
             }
@@ -364,18 +396,21 @@ private fun StatusHeader(
     locacao: Locacao,
     statusPrazo: StatusPrazo
 ) {
+    // Se já foi pago, não mostrar status de vencimento
+    val isPago = locacao.statusPagamento == StatusPagamento.PAGO
+
     val (backgroundColor, statusText, statusColor) = when {
         locacao.statusLocacao == StatusLocacao.FINALIZADA -> Triple(
             AppColors.Green,
             Strings.STATUS_LOCACAO_FINALIZADA,
             AppColors.GreenLight
         )
-        statusPrazo == StatusPrazo.VENCIDO -> Triple(
+        !isPago && statusPrazo == StatusPrazo.VENCIDO -> Triple(
             AppColors.Red,
             Strings.STATUS_LOCACAO_VENCIDA,
             AppColors.RedLight
         )
-        statusPrazo == StatusPrazo.PROXIMO_VENCIMENTO -> Triple(
+        !isPago && statusPrazo == StatusPrazo.PROXIMO_VENCIMENTO -> Triple(
             AppColors.Yellow,
             Strings.STATUS_LOCACAO_PROXIMO_VENCIMENTO,
             AppColors.YellowLight
@@ -591,7 +626,8 @@ private fun RenovarDialog(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var novaDataFim by remember { mutableStateOf(currentDataFim + (30L * 24 * 60 * 60 * 1000)) }
-    var novoValor by remember { mutableStateOf(currentValor.toString()) }
+    // Valor em centavos para a máscara
+    var novoValor by remember { mutableStateOf((currentValor * 100).toLong().toString()) }
     var manterValor by remember { mutableStateOf(true) }
 
     AlertDialog(
@@ -639,9 +675,11 @@ private fun RenovarDialog(
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = novoValor,
-                        onValueChange = { novoValor = it },
+                        onValueChange = { novoValor = filterCurrencyInput(it) },
                         label = { Text(Strings.RENOVAR_NOVO_VALOR) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = CurrencyVisualTransformation(),
+                        leadingIcon = { Text("R$", color = AppColors.Slate500) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -650,7 +688,7 @@ private fun RenovarDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val valor = if (manterValor) null else novoValor.toDoubleOrNull()
+                    val valor = if (manterValor) null else novoValor.currencyToDouble()
                     onConfirm(novaDataFim, valor)
                 }
             ) {

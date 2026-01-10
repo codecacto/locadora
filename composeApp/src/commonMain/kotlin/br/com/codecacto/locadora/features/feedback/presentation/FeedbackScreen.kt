@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.model.FeedbackMotivo
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,16 +33,17 @@ fun FeedbackScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is FeedbackContract.Effect.NavigateBack -> onBack()
                 is FeedbackContract.Effect.ShowSuccess -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    scope.launch { snackbarHostState.showSnackbar(effect.message) }
                 }
                 is FeedbackContract.Effect.ShowError -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    scope.launch { snackbarHostState.showSnackbar(effect.message) }
                 }
             }
         }

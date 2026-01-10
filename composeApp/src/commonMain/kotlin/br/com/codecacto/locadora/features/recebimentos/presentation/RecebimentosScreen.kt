@@ -62,7 +62,7 @@ fun RecebimentosScreen(
             .background(AppColors.Slate50)
     ) {
         // Header
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
@@ -71,7 +71,7 @@ fun RecebimentosScreen(
                     )
                 )
                 .padding(horizontal = 16.dp)
-                .padding(top = 48.dp, bottom = 24.dp)
+                .padding(top = 48.dp, bottom = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -86,21 +86,30 @@ fun RecebimentosScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = Strings.recebimentosPendentes(state.recebimentosPendentes.size),
+                        text = if (state.tabSelecionada == 0) {
+                            Strings.recebimentosPendentes(state.recebimentosPendentes.size)
+                        } else {
+                            Strings.recebimentosPagos(state.recebimentosPagos.size)
+                        },
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 14.sp
                     )
-                    if (state.recebimentosPendentes.isNotEmpty()) {
+                    val showTotal = if (state.tabSelecionada == 0) {
+                        state.recebimentosPendentes.isNotEmpty()
+                    } else {
+                        state.recebimentosPagos.isNotEmpty()
+                    }
+                    if (showTotal) {
                         Spacer(modifier = Modifier.height(12.dp))
                         HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = Strings.RECEBIMENTOS_TOTAL,
+                            text = if (state.tabSelecionada == 0) Strings.RECEBIMENTOS_TOTAL else Strings.RECEBIMENTOS_TOTAL_PAGO,
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 12.sp
                         )
                         Text(
-                            text = formatCurrency(state.totalPendente),
+                            text = formatCurrency(if (state.tabSelecionada == 0) state.totalPendente else state.totalPago),
                             color = Color.White,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold
@@ -111,6 +120,27 @@ fun RecebimentosScreen(
                 NotificationBadge(
                     count = unreadNotifications,
                     onClick = onNavigateToNotifications
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Tabs
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TabButton(
+                    text = Strings.RECEBIMENTOS_TAB_PENDENTES,
+                    isSelected = state.tabSelecionada == 0,
+                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectTab(0)) },
+                    modifier = Modifier.weight(1f)
+                )
+                TabButton(
+                    text = Strings.RECEBIMENTOS_TAB_PAGOS,
+                    isSelected = state.tabSelecionada == 1,
+                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectTab(1)) },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -129,20 +159,35 @@ fun RecebimentosScreen(
                     CircularProgressIndicator(color = AppColors.Emerald600)
                 }
             } else {
-                if (state.recebimentosPendentes.isEmpty()) {
-                    EmptyRecebimentosState()
+                val recebimentos = if (state.tabSelecionada == 0) {
+                    state.recebimentosPendentes
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.recebimentosPendentes) { recebimento ->
-                            RecebimentoCard(
-                                recebimento = recebimento,
-                                onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) },
-                                onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.locacao.id)) }
-                            )
+                    state.recebimentosPagos
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (recebimentos.isEmpty()) {
+                        item {
+                            EmptyRecebimentosState(isPagos = state.tabSelecionada == 1)
+                        }
+                    } else {
+                        items(recebimentos) { recebimento ->
+                            if (state.tabSelecionada == 0) {
+                                RecebimentoCard(
+                                    recebimento = recebimento,
+                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) },
+                                    onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.locacao.id)) }
+                                )
+                            } else {
+                                RecebimentoPagoCard(
+                                    recebimento = recebimento,
+                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectLocacao(recebimento.locacao)) }
+                                )
+                            }
                         }
                         item {
                             Spacer(modifier = Modifier.height(80.dp))
@@ -152,6 +197,33 @@ fun RecebimentosScreen(
             }
         }
     }
+    }
+}
+
+@Composable
+private fun TabButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(
+                if (isSelected) Color.White
+                else Color.White.copy(alpha = 0.1f)
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = if (isSelected) AppColors.Emerald600 else Color.White.copy(alpha = 0.8f),
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp
+        )
     }
 }
 
@@ -327,46 +399,161 @@ private fun InfoBox(
 }
 
 @Composable
-private fun EmptyRecebimentosState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+private fun RecebimentoPagoCard(
+    recebimento: RecebimentoComDetalhes,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = recebimento.cliente?.nomeRazao ?: Strings.COMMON_CLIENTE_NAO_ENCONTRADO,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        color = AppColors.Slate900
+                    )
+                    Text(
+                        text = recebimento.equipamento?.nome ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO,
+                        fontSize = 14.sp,
+                        color = AppColors.Slate600
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppColors.GreenLight)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = Strings.STATUS_PAGAMENTO_PAGO,
+                        color = AppColors.Green,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Valor em destaque
             Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(AppColors.Emerald100),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AppColors.Slate100)
+                    .padding(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.AttachMoney,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = AppColors.Green
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(AppColors.GreenLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = AppColors.Green,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Text(
+                            text = Strings.RECEBIMENTOS_VALOR_PAGO,
+                            fontSize = 14.sp,
+                            color = AppColors.Slate600
+                        )
+                    }
+                    Text(
+                        text = formatCurrency(recebimento.locacao.valorLocacao),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Green
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Info Grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                InfoBox(
+                    label = Strings.RECEBIMENTOS_PERIODO,
+                    value = "${formatDate(recebimento.locacao.dataInicio)} - ${formatDate(recebimento.locacao.dataFimPrevista)}",
+                    modifier = Modifier.weight(1f)
+                )
+                InfoBox(
+                    label = Strings.RECEBIMENTOS_DATA_PAGAMENTO,
+                    value = recebimento.locacao.dataPagamento?.let { formatDateFull(it) } ?: "-",
+                    modifier = Modifier.weight(1f),
+                    valueColor = AppColors.Green
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = Strings.RECEBIMENTOS_EMPTY_TITLE,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.Slate800,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = Strings.RECEBIMENTOS_EMPTY_SUBTITLE,
-                fontSize = 14.sp,
-                color = AppColors.Slate500,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
+        }
+    }
+}
+
+@Composable
+private fun EmptyRecebimentosState(isPagos: Boolean = false) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 64.dp, horizontal = 32.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(AppColors.Emerald100),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isPagos) Icons.Default.CheckCircle else Icons.Default.AttachMoney,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = AppColors.Green
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = if (isPagos) Strings.RECEBIMENTOS_EMPTY_PAGOS_TITLE else Strings.RECEBIMENTOS_EMPTY_TITLE,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors.Slate800,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = if (isPagos) Strings.RECEBIMENTOS_EMPTY_PAGOS_SUBTITLE else Strings.RECEBIMENTOS_EMPTY_SUBTITLE,
+            fontSize = 14.sp,
+            color = AppColors.Slate500,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
     }
 }
 
@@ -376,6 +563,14 @@ private fun formatDate(timestamp: Long): String {
     return "${localDateTime.dayOfMonth.toString().padStart(2, '0')}/${
         localDateTime.monthNumber.toString().padStart(2, '0')
     }"
+}
+
+private fun formatDateFull(timestamp: Long): String {
+    val instant = Instant.fromEpochMilliseconds(timestamp)
+    val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${localDateTime.dayOfMonth.toString().padStart(2, '0')}/${
+        localDateTime.monthNumber.toString().padStart(2, '0')
+    }/${localDateTime.year}"
 }
 
 private fun formatCurrency(value: Double): String {

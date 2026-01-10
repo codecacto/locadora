@@ -34,7 +34,10 @@
       "Bash(powershell -Command \"Copy-Item ''E:\\\\CodeCacto\\\\locadora\\\\esse.png'' ''E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\\\\login_background.png''\")",
       "Bash(powershell -Command \"Copy-Item ''E:\\\\CodeCacto\\\\locadora\\\\logo.png'' ''E:\\\\CodeCacto\\\\locadora\\\\composeApp\\\\src\\\\commonMain\\\\composeResources\\\\drawable\\\\logo.png''\")",
       "Bash(powershell:*)",
-      "Bash(gradlew compileKotlinAndroid:*)"
+      "Bash(gradlew compileKotlinAndroid:*)",
+      "Bash(.gradlew composeApp:compileDebugKotlinAndroid --no-daemon)",
+      "Bash(gradlew.bat composeApp:compileDebugKotlinAndroid --no-daemon)",
+      "Bash(./gradlew.bat composeApp:compileDebugKotlinAndroid --no-daemon)"
     ]
   }
 }

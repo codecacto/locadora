@@ -118,78 +118,80 @@ fun EntregasScreen(
                         state.entregasHoje.isEmpty() &&
                         state.entregasAgendadas.isEmpty()
 
-                if (isEmpty) {
-                    EmptyEntregasState()
-                } else {
-                    LazyColumn(
+                LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Entregas Atrasadas
-                    if (state.entregasAtrasadas.isNotEmpty()) {
+                    if (isEmpty) {
                         item {
-                            SectionHeader(
-                                title = "Atrasadas",
-                                count = state.entregasAtrasadas.size,
-                                backgroundColor = AppColors.RedLight,
-                                textColor = AppColors.RedDark
-                            )
+                            EmptyEntregasState()
                         }
-                        items(state.entregasAtrasadas) { entrega ->
-                            EntregaCard(
-                                entrega = entrega,
-                                isAtrasada = true,
-                                onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
-                            )
+                    } else {
+                        // Entregas Atrasadas
+                        if (state.entregasAtrasadas.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = "Atrasadas",
+                                    count = state.entregasAtrasadas.size,
+                                    backgroundColor = AppColors.RedLight,
+                                    textColor = AppColors.RedDark
+                                )
+                            }
+                            items(state.entregasAtrasadas) { entrega ->
+                                EntregaCard(
+                                    entrega = entrega,
+                                    isAtrasada = true,
+                                    onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
+                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                )
+                            }
                         }
-                    }
 
-                    // Entregas Hoje
-                    if (state.entregasHoje.isNotEmpty()) {
+                        // Entregas Hoje
+                        if (state.entregasHoje.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = "Hoje",
+                                    count = state.entregasHoje.size,
+                                    backgroundColor = AppColors.YellowLight,
+                                    textColor = AppColors.Amber500
+                                )
+                            }
+                            items(state.entregasHoje) { entrega ->
+                                EntregaCard(
+                                    entrega = entrega,
+                                    isAtrasada = false,
+                                    onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
+                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                )
+                            }
+                        }
+
+                        // Entregas Agendadas
+                        if (state.entregasAgendadas.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = "Agendadas",
+                                    count = state.entregasAgendadas.size,
+                                    backgroundColor = AppColors.Slate200,
+                                    textColor = AppColors.Slate700
+                                )
+                            }
+                            items(state.entregasAgendadas) { entrega ->
+                                EntregaCard(
+                                    entrega = entrega,
+                                    isAtrasada = false,
+                                    onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
+                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                )
+                            }
+                        }
+
                         item {
-                            SectionHeader(
-                                title = "Hoje",
-                                count = state.entregasHoje.size,
-                                backgroundColor = AppColors.YellowLight,
-                                textColor = AppColors.Amber500
-                            )
-                        }
-                        items(state.entregasHoje) { entrega ->
-                            EntregaCard(
-                                entrega = entrega,
-                                isAtrasada = false,
-                                onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
-                            )
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
-
-                    // Entregas Agendadas
-                    if (state.entregasAgendadas.isNotEmpty()) {
-                        item {
-                            SectionHeader(
-                                title = "Agendadas",
-                                count = state.entregasAgendadas.size,
-                                backgroundColor = AppColors.Slate200,
-                                textColor = AppColors.Slate700
-                            )
-                        }
-                        items(state.entregasAgendadas) { entrega ->
-                            EntregaCard(
-                                entrega = entrega,
-                                isAtrasada = false,
-                                onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
-                            )
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
-                    }
-                }
                 }
             }
         }
@@ -324,44 +326,41 @@ private fun EntregaCard(
 
 @Composable
 private fun EmptyEntregasState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 64.dp, horizontal = 32.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(AppColors.Orange100),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(AppColors.Orange100),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocalShipping,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = AppColors.Orange400
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = Strings.ENTREGAS_EMPTY_TITLE,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.Slate800,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = Strings.ENTREGAS_EMPTY_SUBTITLE,
-                fontSize = 14.sp,
-                color = AppColors.Slate500,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = Icons.Default.LocalShipping,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = AppColors.Orange400
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = Strings.ENTREGAS_EMPTY_TITLE,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors.Slate800,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = Strings.ENTREGAS_EMPTY_SUBTITLE,
+            fontSize = 14.sp,
+            color = AppColors.Slate500,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

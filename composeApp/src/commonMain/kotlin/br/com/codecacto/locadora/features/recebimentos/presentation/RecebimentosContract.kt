@@ -18,11 +18,15 @@ object RecebimentosContract {
         val isLoading: Boolean = true,
         val isRefreshing: Boolean = false,
         val recebimentosPendentes: List<RecebimentoComDetalhes> = emptyList(),
+        val recebimentosPagos: List<RecebimentoComDetalhes> = emptyList(),
         val totalPendente: Double = 0.0,
+        val totalPago: Double = 0.0,
+        val tabSelecionada: Int = 0, // 0 = Pendentes, 1 = Pagos
         val error: String? = null
     ) : UiState
 
     sealed class Action : UiAction {
+        data class SelectTab(val tab: Int) : Action()
         data class MarcarRecebido(val locacaoId: String) : Action()
         data class SelectLocacao(val locacao: Locacao) : Action()
         data object Refresh : Action()

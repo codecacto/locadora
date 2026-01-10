@@ -7,6 +7,7 @@ object AppColors {
     val Violet600 = Color(0xFF7C3AED)
     val Violet500 = Color(0xFF8B5CF6)
     val Violet400 = Color(0xFFA78BFA)
+    val Violet200 = Color(0xFFDDD6FE)
     val Violet100 = Color(0xFFEDE9FE)
     val Purple600 = Color(0xFF9333EA)
 
@@ -16,12 +17,16 @@ object AppColors {
     val GreenDark = Color(0xFF059669)
     val Green600 = Color(0xFF16A34A)
     val Green100 = Color(0xFFDCFCE7)
+    val Emerald700 = Color(0xFF047857)
     val Emerald600 = Color(0xFF059669)
     val Emerald100 = Color(0xFFD1FAE5)
+    val Emerald50 = Color(0xFFECFDF5)
 
     // Warning - Yellow/Amber
     val Yellow = Color(0xFFF59E0B)
     val YellowLight = Color(0xFFFEF3C7)
+    val Amber700 = Color(0xFFB45309)
+    val Amber600 = Color(0xFFD97706)
     val Amber500 = Color(0xFFF59E0B)
     val Amber100 = Color(0xFFFEF3C7)
 

@@ -13,6 +13,10 @@ import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Delete
+import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.ui.components.SuccessToast
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -46,6 +50,10 @@ fun LocacoesScreen(
     viewModel: LocacoesViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var locacaoToDelete by remember { mutableStateOf<Locacao?>(null) }
+    var showSuccessToast by remember { mutableStateOf(false) }
+    var successMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -55,6 +63,10 @@ fun LocacoesScreen(
                 }
                 is LocacoesContract.Effect.ShowError -> {
                     // Handle error
+                }
+                is LocacoesContract.Effect.ShowSuccess -> {
+                    successMessage = effect.message
+                    showSuccessToast = true
                 }
             }
         }
@@ -170,6 +182,10 @@ fun LocacoesScreen(
                                     viewModel.dispatch(
                                         LocacoesContract.Action.SelectLocacao(locacaoComDetalhes.locacao)
                                     )
+                                },
+                                onDelete = {
+                                    locacaoToDelete = locacaoComDetalhes.locacao
+                                    showDeleteDialog = true
                                 }
                             )
                         }
@@ -181,6 +197,63 @@ fun LocacoesScreen(
             }
         }
     }
+
+    // Confirmation Dialog
+    if (showDeleteDialog && locacaoToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                locacaoToDelete = null
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = AppColors.RedDark
+                )
+            },
+            title = {
+                Text(
+                    text = Strings.LOCACOES_EXCLUIR_TITULO,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(text = Strings.LOCACOES_EXCLUIR_MENSAGEM)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        locacaoToDelete?.let {
+                            viewModel.dispatch(LocacoesContract.Action.DeleteLocacao(it))
+                        }
+                        showDeleteDialog = false
+                        locacaoToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.RedDark)
+                ) {
+                    Text(Strings.COMMON_EXCLUIR)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        locacaoToDelete = null
+                    }
+                ) {
+                    Text(Strings.COMMON_CANCELAR)
+                }
+            }
+        )
+    }
+
+    // Success Toast
+    SuccessToast(
+        message = successMessage,
+        visible = showSuccessToast,
+        onDismiss = { showSuccessToast = false }
+    )
 }
 
 @Composable
@@ -213,8 +286,11 @@ private fun TabButton(
 @Composable
 private fun LocacaoCard(
     locacaoComDetalhes: LocacaoComDetalhes,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -243,7 +319,57 @@ private fun LocacaoCard(
                         color = AppColors.Slate600
                     )
                 }
-                StatusPrazoBadge(statusPrazo = locacaoComDetalhes.statusPrazo)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Só mostrar badge se não foi pago E não está normal
+                    val isPago = locacaoComDetalhes.locacao.statusPagamento == StatusPagamento.PAGO
+                    val statusPrazo = locacaoComDetalhes.statusPrazo
+                    if (!isPago && statusPrazo != StatusPrazo.NORMAL) {
+                        StatusPrazoBadge(statusPrazo = statusPrazo)
+                    }
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = Strings.MENU_TITLE,
+                                tint = AppColors.Slate500
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = AppColors.RedDark,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = Strings.COMMON_EXCLUIR,
+                                            color = AppColors.RedDark
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onDelete()
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

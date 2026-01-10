@@ -102,7 +102,14 @@ actual class ReceiptPdfGenerator {
             }
 
             val companyInfo2 = buildString {
-                if (data.dadosEmpresa.cnpj.isNotBlank()) append("CNPJ: ${formatCnpj(data.dadosEmpresa.cnpj)}")
+                if (data.dadosEmpresa.documento.isNotBlank()) {
+                    val formattedDoc = if (data.dadosEmpresa.tipoPessoa == "FISICA") {
+                        "CPF: ${formatCpf(data.dadosEmpresa.documento)}"
+                    } else {
+                        "CNPJ: ${formatCnpj(data.dadosEmpresa.documento)}"
+                    }
+                    append(formattedDoc)
+                }
                 if (data.dadosEmpresa.email.isNotBlank()) {
                     if (isNotBlank()) append(" | ")
                     append(data.dadosEmpresa.email)

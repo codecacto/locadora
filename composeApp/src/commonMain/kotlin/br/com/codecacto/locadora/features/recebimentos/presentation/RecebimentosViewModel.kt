@@ -3,6 +3,7 @@ package br.com.codecacto.locadora.features.recebimentos.presentation
 import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
+import br.com.codecacto.locadora.core.model.MomentoPagamento
 import br.com.codecacto.locadora.core.model.StatusColeta
 import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.model.StatusPagamento
@@ -32,6 +33,9 @@ class RecebimentosViewModel(
 
     override fun onAction(action: RecebimentosContract.Action) {
         when (action) {
+            is RecebimentosContract.Action.SelectTab -> {
+                _state.value = _state.value.copy(tabSelecionada = action.tab)
+            }
             is RecebimentosContract.Action.MarcarRecebido -> marcarRecebido(action.locacaoId)
             is RecebimentosContract.Action.SelectLocacao -> {
                 emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.locacao.id))
@@ -43,17 +47,18 @@ class RecebimentosViewModel(
     private fun refreshRecebimentos() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isRefreshing = true)
-            kotlinx.coroutines.delay(500)
-            _state.value = _state.value.copy(isRefreshing = false)
+            loadRecebimentos(isRefresh = true)
         }
     }
 
-    private fun loadRecebimentos() {
+    private fun loadRecebimentos(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            if (!isRefresh) {
+                _state.value = _state.value.copy(isLoading = true)
+            }
 
             combine(
-                locacaoRepository.getLocacoesAtivas(),
+                locacaoRepository.getLocacoes(),
                 clienteRepository.getClientes(),
                 equipamentoRepository.getEquipamentos()
             ) { locacoes, clientes, equipamentos ->
@@ -62,22 +67,40 @@ class RecebimentosViewModel(
                 val currentTime = System.currentTimeMillis()
 
                 // Filtrar locações pendentes de pagamento:
-                // 1. Equipamento coletado E pagamento pendente
-                // 2. OU período vencido E pagamento pendente
+                // 1. Se momento pagamento = NO_INICIO: aparece imediatamente
+                // 2. Se momento pagamento = NO_VENCIMENTO:
+                //    - Equipamento coletado E pagamento pendente
+                //    - OU período vencido E pagamento pendente
                 val locacoesPendentes = locacoes.filter { locacao ->
                     locacao.statusLocacao == StatusLocacao.ATIVA &&
                     locacao.statusPagamento == StatusPagamento.PENDENTE &&
-                    (locacao.statusColeta == StatusColeta.COLETADO ||
+                    (locacao.momentoPagamento == MomentoPagamento.NO_INICIO ||
+                     locacao.statusColeta == StatusColeta.COLETADO ||
                      locacao.dataFimPrevista <= currentTime)
                 }
 
-                locacoesPendentes.map { locacao ->
+                // Filtrar locações com pagamento confirmado
+                val locacoesPagas = locacoes.filter { locacao ->
+                    locacao.statusPagamento == StatusPagamento.PAGO
+                }.sortedByDescending { it.dataPagamento ?: it.criadoEm }
+
+                val recebimentosPendentes = locacoesPendentes.map { locacao ->
                     RecebimentoComDetalhes(
                         locacao = locacao,
                         cliente = clientesMap[locacao.clienteId],
                         equipamento = equipamentosMap[locacao.equipamentoId]
                     )
                 }
+
+                val recebimentosPagos = locacoesPagas.map { locacao ->
+                    RecebimentoComDetalhes(
+                        locacao = locacao,
+                        cliente = clientesMap[locacao.clienteId],
+                        equipamento = equipamentosMap[locacao.equipamentoId]
+                    )
+                }
+
+                Pair(recebimentosPendentes, recebimentosPagos)
             }
                 .catch { e ->
                     _state.value = _state.value.copy(
@@ -86,13 +109,17 @@ class RecebimentosViewModel(
                     )
                     handleError(e)
                 }
-                .collect { recebimentos ->
-                    val totalPendente = recebimentos.sumOf { it.locacao.valorLocacao }
+                .collect { (pendentes, pagos) ->
+                    val totalPendente = pendentes.sumOf { it.locacao.valorLocacao }
+                    val totalPago = pagos.sumOf { it.locacao.valorLocacao }
 
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        recebimentosPendentes = recebimentos,
+                        isRefreshing = false,
+                        recebimentosPendentes = pendentes,
+                        recebimentosPagos = pagos,
                         totalPendente = totalPendente,
+                        totalPago = totalPago,
                         error = null
                     )
                 }
