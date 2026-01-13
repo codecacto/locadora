@@ -22,6 +22,11 @@
 
 # Ktor
 -keep class io.ktor.** { *; }
+-dontwarn io.ktor.util.debug.**
+
+# Missing classes on Android (JVM-only classes)
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
 
 # Koin
 -keep class org.koin.** { *; }
