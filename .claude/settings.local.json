@@ -60,7 +60,8 @@
       "Bash(xcrun simctl launch:*)",
       "Bash(xcrun simctl get_app_container:*)",
       "Bash(defaults read:*)",
-      "Bash(xcrun simctl spawn:*)"
+      "Bash(xcrun simctl spawn:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

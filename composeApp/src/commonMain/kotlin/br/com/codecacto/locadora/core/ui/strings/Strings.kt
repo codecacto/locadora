@@ -355,6 +355,15 @@ object Strings {
     const val RECEBIMENTOS_RENOVACAO = "Renovação"
     const val RECEBIMENTOS_LOCACAO_SUBTITLE = "Recebimento desta locação"
     const val RECEBIMENTO_CONFIRMADO = "Recebimento confirmado!"
+    const val RECEBIMENTOS_FILTRO_MES = "Filtrar por mês"
+    const val RECEBIMENTOS_TODOS_MESES = "Todos os meses"
+
+    // Meses do ano
+    val MESES = listOf(
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    )
+    fun formatMesAno(mes: Int, ano: Int) = "${MESES[mes - 1]}/$ano"
 
     // Clientes Screen
     const val CLIENTES_TITLE = "Clientes"

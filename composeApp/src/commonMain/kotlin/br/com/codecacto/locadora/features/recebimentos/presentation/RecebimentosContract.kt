@@ -13,15 +13,26 @@ data class RecebimentoComDetalhes(
     val equipamento: Equipamento?
 )
 
+data class MesAno(
+    val mes: Int,
+    val ano: Int
+) {
+    override fun toString(): String = "$mes/$ano"
+}
+
 object RecebimentosContract {
     data class State(
         val isLoading: Boolean = true,
         val isRefreshing: Boolean = false,
         val recebimentosPendentes: List<RecebimentoComDetalhes> = emptyList(),
         val recebimentosPagos: List<RecebimentoComDetalhes> = emptyList(),
+        val recebimentosPendentesFiltrados: List<RecebimentoComDetalhes> = emptyList(),
+        val recebimentosPagosFiltrados: List<RecebimentoComDetalhes> = emptyList(),
         val totalPendente: Double = 0.0,
         val totalPago: Double = 0.0,
         val tabSelecionada: Int = 0, // 0 = Pendentes, 1 = Pagos
+        val mesesDisponiveis: List<MesAno> = emptyList(),
+        val mesSelecionado: MesAno? = null, // null = todos os meses
         val error: String? = null
     ) : UiState
 
@@ -29,6 +40,7 @@ object RecebimentosContract {
         data class SelectTab(val tab: Int) : Action()
         data class MarcarRecebido(val recebimentoId: String) : Action()
         data class SelectRecebimento(val recebimento: Recebimento) : Action()
+        data class SelectMes(val mesAno: MesAno?) : Action()
         data object Refresh : Action()
     }
 

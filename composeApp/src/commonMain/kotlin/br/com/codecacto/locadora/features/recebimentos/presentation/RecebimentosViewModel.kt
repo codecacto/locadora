@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class RecebimentosViewModel(
     private val recebimentoRepository: RecebimentoRepository,
@@ -36,8 +39,75 @@ class RecebimentosViewModel(
             is RecebimentosContract.Action.SelectRecebimento -> {
                 emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.recebimento.locacaoId))
             }
+            is RecebimentosContract.Action.SelectMes -> selectMes(action.mesAno)
             is RecebimentosContract.Action.Refresh -> refreshRecebimentos()
         }
+    }
+
+    private fun selectMes(mesAno: MesAno?) {
+        val currentState = _state.value
+        val (pendentesFiltrados, pagosFiltrados) = filtrarPorMes(
+            currentState.recebimentosPendentes,
+            currentState.recebimentosPagos,
+            mesAno
+        )
+        val totalPendente = pendentesFiltrados.sumOf { it.recebimento.valor }
+        val totalPago = pagosFiltrados.sumOf { it.recebimento.valor }
+
+        _state.value = currentState.copy(
+            mesSelecionado = mesAno,
+            recebimentosPendentesFiltrados = pendentesFiltrados,
+            recebimentosPagosFiltrados = pagosFiltrados,
+            totalPendente = totalPendente,
+            totalPago = totalPago
+        )
+    }
+
+    private fun filtrarPorMes(
+        pendentes: List<RecebimentoComDetalhes>,
+        pagos: List<RecebimentoComDetalhes>,
+        mesAno: MesAno?
+    ): Pair<List<RecebimentoComDetalhes>, List<RecebimentoComDetalhes>> {
+        if (mesAno == null) {
+            return Pair(pendentes, pagos)
+        }
+
+        val pendentesFiltrados = pendentes.filter { recebimento ->
+            val localDate = Instant.fromEpochMilliseconds(recebimento.recebimento.dataVencimento)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+            localDate.monthNumber == mesAno.mes && localDate.year == mesAno.ano
+        }
+
+        val pagosFiltrados = pagos.filter { recebimento ->
+            val timestamp = recebimento.recebimento.dataPagamento ?: recebimento.recebimento.dataVencimento
+            val localDate = Instant.fromEpochMilliseconds(timestamp)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+            localDate.monthNumber == mesAno.mes && localDate.year == mesAno.ano
+        }
+
+        return Pair(pendentesFiltrados, pagosFiltrados)
+    }
+
+    private fun calcularMesesDisponiveis(
+        pendentes: List<RecebimentoComDetalhes>,
+        pagos: List<RecebimentoComDetalhes>
+    ): List<MesAno> {
+        val meses = mutableSetOf<MesAno>()
+
+        pendentes.forEach { recebimento ->
+            val localDate = Instant.fromEpochMilliseconds(recebimento.recebimento.dataVencimento)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+            meses.add(MesAno(localDate.monthNumber, localDate.year))
+        }
+
+        pagos.forEach { recebimento ->
+            val timestamp = recebimento.recebimento.dataPagamento ?: recebimento.recebimento.dataVencimento
+            val localDate = Instant.fromEpochMilliseconds(timestamp)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+            meses.add(MesAno(localDate.monthNumber, localDate.year))
+        }
+
+        return meses.sortedByDescending { it.ano * 100 + it.mes }
     }
 
     private fun refreshRecebimentos() {
@@ -88,16 +158,23 @@ class RecebimentosViewModel(
                     handleError(e)
                 }
                 .collect { (pendentes, pagos) ->
-                    val totalPendente = pendentes.sumOf { it.recebimento.valor }
-                    val totalPago = pagos.sumOf { it.recebimento.valor }
+                    val mesesDisponiveis = calcularMesesDisponiveis(pendentes, pagos)
+                    val mesSelecionado = _state.value.mesSelecionado
+
+                    val (pendentesFiltrados, pagosFiltrados) = filtrarPorMes(pendentes, pagos, mesSelecionado)
+                    val totalPendente = pendentesFiltrados.sumOf { it.recebimento.valor }
+                    val totalPago = pagosFiltrados.sumOf { it.recebimento.valor }
 
                     _state.value = _state.value.copy(
                         isLoading = false,
                         isRefreshing = false,
                         recebimentosPendentes = pendentes,
                         recebimentosPagos = pagos,
+                        recebimentosPendentesFiltrados = pendentesFiltrados,
+                        recebimentosPagosFiltrados = pagosFiltrados,
                         totalPendente = totalPendente,
                         totalPago = totalPago,
+                        mesesDisponiveis = mesesDisponiveis,
                         error = null
                     )
                 }

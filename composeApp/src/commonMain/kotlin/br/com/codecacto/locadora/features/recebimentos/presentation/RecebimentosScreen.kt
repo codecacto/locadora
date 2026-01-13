@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.ui.components.NotificationBadge
@@ -87,17 +88,17 @@ fun RecebimentosScreen(
                     )
                     Text(
                         text = if (state.tabSelecionada == 0) {
-                            Strings.recebimentosPendentes(state.recebimentosPendentes.size)
+                            Strings.recebimentosPendentes(state.recebimentosPendentesFiltrados.size)
                         } else {
-                            Strings.recebimentosPagos(state.recebimentosPagos.size)
+                            Strings.recebimentosPagos(state.recebimentosPagosFiltrados.size)
                         },
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 14.sp
                     )
                     val showTotal = if (state.tabSelecionada == 0) {
-                        state.recebimentosPendentes.isNotEmpty()
+                        state.recebimentosPendentesFiltrados.isNotEmpty()
                     } else {
-                        state.recebimentosPagos.isNotEmpty()
+                        state.recebimentosPagosFiltrados.isNotEmpty()
                     }
                     if (showTotal) {
                         Spacer(modifier = Modifier.height(12.dp))
@@ -143,6 +144,18 @@ fun RecebimentosScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            // Filtro por Mês
+            if (state.mesesDisponiveis.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                MesFilterDropdown(
+                    mesesDisponiveis = state.mesesDisponiveis,
+                    mesSelecionado = state.mesSelecionado,
+                    onMesSelecionado = { mesAno ->
+                        viewModel.dispatch(RecebimentosContract.Action.SelectMes(mesAno))
+                    }
+                )
+            }
         }
 
         // Content
@@ -160,9 +173,9 @@ fun RecebimentosScreen(
                 }
             } else {
                 val recebimentos = if (state.tabSelecionada == 0) {
-                    state.recebimentosPendentes
+                    state.recebimentosPendentesFiltrados
                 } else {
-                    state.recebimentosPagos
+                    state.recebimentosPagosFiltrados
                 }
 
                 LazyColumn(
@@ -197,6 +210,120 @@ fun RecebimentosScreen(
             }
         }
     }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MesFilterDropdown(
+    mesesDisponiveis: List<MesAno>,
+    mesSelecionado: MesAno?,
+    onMesSelecionado: (MesAno?) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.15f))
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .clickable { expanded = true }
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = mesSelecionado?.let { Strings.formatMesAno(it.mes, it.ano) }
+                            ?: Strings.RECEBIMENTOS_TODOS_MESES,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = Color.White
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = Strings.RECEBIMENTOS_TODOS_MESES,
+                        fontWeight = if (mesSelecionado == null) FontWeight.Bold else FontWeight.Normal,
+                        color = if (mesSelecionado == null) AppColors.Emerald600 else AppColors.Slate900
+                    )
+                },
+                onClick = {
+                    onMesSelecionado(null)
+                    expanded = false
+                },
+                leadingIcon = if (mesSelecionado == null) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = AppColors.Emerald600,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                } else null
+            )
+            HorizontalDivider(color = AppColors.Slate200)
+            mesesDisponiveis.forEach { mesAno ->
+                val isSelected = mesSelecionado == mesAno
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = Strings.formatMesAno(mesAno.mes, mesAno.ano),
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) AppColors.Emerald600 else AppColors.Slate900
+                        )
+                    },
+                    onClick = {
+                        onMesSelecionado(mesAno)
+                        expanded = false
+                    },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = AppColors.Emerald600,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    } else null
+                )
+            }
+        }
     }
 }
 
