@@ -40,6 +40,9 @@ fun RecebimentosScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var recebimentoParaConfirmar by remember { mutableStateOf<RecebimentoComDetalhes?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -52,6 +55,59 @@ fun RecebimentosScreen(
                 }
             }
         }
+    }
+
+    // Modal de Confirmação
+    if (showConfirmDialog && recebimentoParaConfirmar != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showConfirmDialog = false
+                recebimentoParaConfirmar = null
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.AttachMoney,
+                    contentDescription = null,
+                    tint = AppColors.Emerald600,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Confirmar Recebimento",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Deseja confirmar o recebimento de ${formatCurrency(recebimentoParaConfirmar?.recebimento?.valor ?: 0.0)} referente ao equipamento \"${recebimentoParaConfirmar?.equipamento?.nome}\" do cliente \"${recebimentoParaConfirmar?.cliente?.nomeRazao}\"?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        recebimentoParaConfirmar?.let {
+                            viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(it.recebimento.id))
+                        }
+                        showConfirmDialog = false
+                        recebimentoParaConfirmar = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Emerald600)
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        recebimentoParaConfirmar = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -193,7 +249,10 @@ fun RecebimentosScreen(
                                 RecebimentoCard(
                                     recebimento = recebimento,
                                     onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectRecebimento(recebimento.recebimento)) },
-                                    onMarcarRecebido = { viewModel.dispatch(RecebimentosContract.Action.MarcarRecebido(recebimento.recebimento.id)) }
+                                    onMarcarRecebido = {
+                                        recebimentoParaConfirmar = recebimento
+                                        showConfirmDialog = true
+                                    }
                                 )
                             } else {
                                 RecebimentoPagoCard(
@@ -708,5 +767,13 @@ private fun formatDateFull(timestamp: Long): String {
 private fun formatCurrency(value: Double): String {
     val intPart = value.toLong()
     val decPart = ((value - intPart) * 100).toInt()
-    return "R$ $intPart,${decPart.toString().padStart(2, '0')}"
+
+    // Formatar parte inteira com separador de milhares
+    val intPartFormatted = intPart.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+
+    return "R$ $intPartFormatted,${decPart.toString().padStart(2, '0')}"
 }

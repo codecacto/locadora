@@ -8,6 +8,51 @@ import kotlin.test.assertEquals
  */
 class CurrencyUtilTest {
 
+    // ==================== TESTES DE FORMATACAO COM SEPARADOR DE MILHARES ====================
+
+    @Test
+    fun `formatAsCurrency - valor inteiro deve formatar com separador de milhares`() {
+        assertEquals("R$ 1.000,00", 1000.0.formatAsCurrency())
+        assertEquals("R$ 10.000,00", 10000.0.formatAsCurrency())
+        assertEquals("R$ 100.000,00", 100000.0.formatAsCurrency())
+        assertEquals("R$ 1.000.000,00", 1000000.0.formatAsCurrency())
+    }
+
+    @Test
+    fun `formatAsCurrency - valor com centavos deve formatar corretamente`() {
+        assertEquals("R$ 1.234,56", 1234.56.formatAsCurrency())
+        assertEquals("R$ 99,99", 99.99.formatAsCurrency())
+        assertEquals("R$ 1.500,50", 1500.50.formatAsCurrency())
+    }
+
+    @Test
+    fun `formatAsCurrency - valor pequeno sem separador de milhares`() {
+        assertEquals("R$ 100,00", 100.0.formatAsCurrency())
+        assertEquals("R$ 999,00", 999.0.formatAsCurrency())
+        assertEquals("R$ 0,00", 0.0.formatAsCurrency())
+    }
+
+    @Test
+    fun `formatAsCurrency - valor negativo deve mostrar sinal de menos`() {
+        assertEquals("-R$ 1.000,00", (-1000.0).formatAsCurrency())
+        assertEquals("-R$ 500,00", (-500.0).formatAsCurrency())
+        assertEquals("-R$ 1.234,56", (-1234.56).formatAsCurrency())
+    }
+
+    @Test
+    fun `formatAsCurrency - valores grandes devem formatar corretamente`() {
+        assertEquals("R$ 999.999,99", 999999.99.formatAsCurrency())
+        assertEquals("R$ 1.234.567,89", 1234567.89.formatAsCurrency())
+        assertEquals("R$ 10.000.000,00", 10000000.0.formatAsCurrency())
+    }
+
+    @Test
+    fun `formatAsCurrency - centavos devem ter dois digitos`() {
+        assertEquals("R$ 100,00", 100.0.formatAsCurrency())
+        assertEquals("R$ 100,01", 100.01.formatAsCurrency())
+        assertEquals("R$ 100,10", 100.10.formatAsCurrency())
+    }
+
     // ==================== TESTES DE CONVERSAO CURRENCY TO DOUBLE ====================
 
     @Test

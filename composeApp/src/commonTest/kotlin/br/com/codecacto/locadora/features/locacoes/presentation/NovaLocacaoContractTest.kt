@@ -417,4 +417,169 @@ class NovaLocacaoContractTest {
         assertFalse(state.isSaving)
         assertEquals("Equipamento já está locado", state.error)
     }
+
+    // ==================== TESTES DE CALCULO DE VALOR ====================
+
+    @Test
+    fun `State com incluiSabado e incluiDomingo`() {
+        val state = NovaLocacaoContract.State(
+            incluiSabado = true,
+            incluiDomingo = false
+        )
+
+        assertTrue(state.incluiSabado)
+        assertFalse(state.incluiDomingo)
+    }
+
+    @Test
+    fun `State com diasCalculados`() {
+        val state = NovaLocacaoContract.State(
+            diasCalculados = 5
+        )
+
+        assertEquals(5, state.diasCalculados)
+    }
+
+    @Test
+    fun `Action SetIncluiSabado deve conter valor correto`() {
+        val actionTrue = NovaLocacaoContract.Action.SetIncluiSabado(true)
+        val actionFalse = NovaLocacaoContract.Action.SetIncluiSabado(false)
+
+        assertTrue(actionTrue.inclui)
+        assertFalse(actionFalse.inclui)
+    }
+
+    @Test
+    fun `Action SetIncluiDomingo deve conter valor correto`() {
+        val actionTrue = NovaLocacaoContract.Action.SetIncluiDomingo(true)
+        val actionFalse = NovaLocacaoContract.Action.SetIncluiDomingo(false)
+
+        assertTrue(actionTrue.inclui)
+        assertFalse(actionFalse.inclui)
+    }
+
+    @Test
+    fun `Cenario - locacao diaria com sabado e domingo`() {
+        val equipamento = Equipamento(
+            id = "eq-1",
+            nome = "Betoneira",
+            precoDiario = 100.0
+        )
+
+        var state = NovaLocacaoContract.State(
+            equipamentoSelecionado = equipamento,
+            periodoSelecionado = PeriodoLocacao.DIARIO,
+            incluiSabado = true,
+            incluiDomingo = true,
+            diasCalculados = 7
+        )
+
+        // Valor deve ser dias * preco diario
+        assertEquals(PeriodoLocacao.DIARIO, state.periodoSelecionado)
+        assertTrue(state.incluiSabado)
+        assertTrue(state.incluiDomingo)
+        assertEquals(7, state.diasCalculados)
+    }
+
+    @Test
+    fun `Cenario - locacao diaria sem sabado e domingo`() {
+        val equipamento = Equipamento(
+            id = "eq-1",
+            nome = "Betoneira",
+            precoDiario = 100.0
+        )
+
+        var state = NovaLocacaoContract.State(
+            equipamentoSelecionado = equipamento,
+            periodoSelecionado = PeriodoLocacao.DIARIO,
+            incluiSabado = false,
+            incluiDomingo = false,
+            diasCalculados = 5 // Segunda a sexta
+        )
+
+        assertEquals(PeriodoLocacao.DIARIO, state.periodoSelecionado)
+        assertFalse(state.incluiSabado)
+        assertFalse(state.incluiDomingo)
+        assertEquals(5, state.diasCalculados)
+    }
+
+    @Test
+    fun `Cenario - selecao de equipamento com multiplos precos`() {
+        val equipamento = Equipamento(
+            id = "eq-1",
+            nome = "Betoneira",
+            precoDiario = 100.0,
+            precoSemanal = 500.0,
+            precoQuinzenal = 900.0,
+            precoMensal = 1500.0
+        )
+
+        // Verifica que equipamento tem todos os periodos
+        val periodos = equipamento.getPeriodosDisponiveis()
+        assertEquals(4, periodos.size)
+        assertTrue(periodos.contains(PeriodoLocacao.DIARIO))
+        assertTrue(periodos.contains(PeriodoLocacao.SEMANAL))
+        assertTrue(periodos.contains(PeriodoLocacao.QUINZENAL))
+        assertTrue(periodos.contains(PeriodoLocacao.MENSAL))
+
+        // Verifica precos
+        assertEquals(100.0, equipamento.getPreco(PeriodoLocacao.DIARIO))
+        assertEquals(500.0, equipamento.getPreco(PeriodoLocacao.SEMANAL))
+        assertEquals(900.0, equipamento.getPreco(PeriodoLocacao.QUINZENAL))
+        assertEquals(1500.0, equipamento.getPreco(PeriodoLocacao.MENSAL))
+    }
+
+    @Test
+    fun `Cenario - mudanca de periodo deve recalcular valor`() {
+        val equipamento = Equipamento(
+            id = "eq-1",
+            nome = "Betoneira",
+            precoDiario = 100.0,
+            precoSemanal = 500.0,
+            precoMensal = 1500.0
+        )
+
+        // Estado inicial com periodo diario
+        var state = NovaLocacaoContract.State(
+            equipamentoSelecionado = equipamento,
+            periodoSelecionado = PeriodoLocacao.DIARIO,
+            valorLocacao = "10000" // R$ 100,00 em centavos
+        )
+
+        assertEquals(PeriodoLocacao.DIARIO, state.periodoSelecionado)
+
+        // Muda para mensal - valor deve mudar para preco mensal
+        state = state.copy(
+            periodoSelecionado = PeriodoLocacao.MENSAL,
+            valorLocacao = "150000" // R$ 1.500,00 em centavos
+        )
+
+        assertEquals(PeriodoLocacao.MENSAL, state.periodoSelecionado)
+        assertEquals("150000", state.valorLocacao)
+    }
+
+    @Test
+    fun `Cenario - periodos disponiveis baseados em precos do equipamento`() {
+        // Equipamento com apenas alguns precos
+        val equipamentoSomenteDiario = Equipamento(
+            id = "eq-1",
+            nome = "Ferramenta Simples",
+            precoDiario = 50.0
+        )
+
+        val periodos = equipamentoSomenteDiario.getPeriodosDisponiveis()
+        assertEquals(1, periodos.size)
+        assertTrue(periodos.contains(PeriodoLocacao.DIARIO))
+        assertFalse(periodos.contains(PeriodoLocacao.SEMANAL))
+        assertFalse(periodos.contains(PeriodoLocacao.MENSAL))
+    }
+
+    @Test
+    fun `State inicial de incluiSabado e incluiDomingo deve ser false`() {
+        val state = NovaLocacaoContract.State()
+
+        assertFalse(state.incluiSabado)
+        assertFalse(state.incluiDomingo)
+        assertEquals(0, state.diasCalculados)
+    }
 }

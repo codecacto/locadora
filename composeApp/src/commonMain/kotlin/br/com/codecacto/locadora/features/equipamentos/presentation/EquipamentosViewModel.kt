@@ -7,6 +7,7 @@ import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
+import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 class EquipamentosViewModel(
     private val equipamentoRepository: EquipamentoRepository,
     private val locacaoRepository: LocacaoRepository,
+    private val categoriaRepository: CategoriaEquipamentoRepository,
     errorHandler: ErrorHandler
 ) : BaseViewModel<EquipamentosContract.State, EquipamentosContract.Effect, EquipamentosContract.Action>(errorHandler) {
 
@@ -26,7 +28,19 @@ class EquipamentosViewModel(
     override val state: StateFlow<EquipamentosContract.State> = _state.asStateFlow()
 
     init {
+        loadCategorias()
         loadEquipamentos()
+    }
+
+    private fun loadCategorias() {
+        viewModelScope.launch {
+            categoriaRepository.initializeDefaultCategorias()
+            categoriaRepository.getCategorias()
+                .catch { /* ignore errors */ }
+                .collect { categorias ->
+                    _state.value = _state.value.copy(categorias = categorias)
+                }
+        }
     }
 
     override fun onAction(action: EquipamentosContract.Action) {

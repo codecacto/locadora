@@ -26,6 +26,9 @@ object NovaLocacaoContract {
         val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,
         val dataEntregaPrevista: Long? = null,
         val emitirNota: Boolean = false,
+        val incluiSabado: Boolean = false,
+        val incluiDomingo: Boolean = false,
+        val diasCalculados: Int = 0,
         val error: String? = null
     ) : UiState
 
@@ -40,6 +43,8 @@ object NovaLocacaoContract {
         data class SetStatusEntrega(val status: StatusEntrega) : Action()
         data class SetDataEntregaPrevista(val data: Long) : Action()
         data class SetEmitirNota(val emitir: Boolean) : Action()
+        data class SetIncluiSabado(val inclui: Boolean) : Action()
+        data class SetIncluiDomingo(val inclui: Boolean) : Action()
         data object CriarLocacao : Action()
         data object ReloadData : Action()
         data object ClearForm : Action()

@@ -30,6 +30,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun EquipamentosScreen(
     onBack: () -> Unit,
     onNavigateToForm: (String?) -> Unit,
+    onNavigateToFaturamento: (String) -> Unit,
     viewModel: EquipamentosViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -121,7 +122,7 @@ fun EquipamentosScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${state.equipamentos.size} equipamentos cadastrados",
+                            text = Strings.equipamentosCadastrados(state.equipamentos.size),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
@@ -197,7 +198,8 @@ fun EquipamentosScreen(
                             EquipamentoCard(
                                 equipamentoComStatus = equipamentoComStatus,
                                 onEdit = { onNavigateToForm(equipamentoComStatus.equipamento.id) },
-                                onDelete = { equipamentoToDelete = equipamentoComStatus.equipamento }
+                                onDelete = { equipamentoToDelete = equipamentoComStatus.equipamento },
+                                onFaturamento = { onNavigateToFaturamento(equipamentoComStatus.equipamento.id) }
                             )
                         }
                         item {
@@ -215,7 +217,8 @@ fun EquipamentosScreen(
 private fun EquipamentoCard(
     equipamentoComStatus: EquipamentoComStatus,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onFaturamento: () -> Unit
 ) {
     val equipamento = equipamentoComStatus.equipamento
     val isAlugado = equipamentoComStatus.isAlugado
@@ -333,6 +336,19 @@ private fun EquipamentoCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedButton(
+                    onClick = onFaturamento,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = AppColors.Emerald600
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AttachMoney,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                OutlinedButton(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
@@ -423,5 +439,13 @@ private fun EmptyEquipamentosState(
 private fun formatCurrency(value: Double): String {
     val intPart = value.toLong()
     val decPart = ((value - intPart) * 100).toInt()
-    return "R$ $intPart,${decPart.toString().padStart(2, '0')}"
+
+    // Formatar parte inteira com separador de milhares
+    val intPartFormatted = intPart.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+
+    return "R$ $intPartFormatted,${decPart.toString().padStart(2, '0')}"
 }

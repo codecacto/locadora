@@ -3,6 +3,7 @@ package br.com.codecacto.locadora.features.equipamentos.presentation
 import br.com.codecacto.locadora.core.base.UiAction
 import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
+import br.com.codecacto.locadora.core.model.CategoriaEquipamento
 import br.com.codecacto.locadora.core.model.Equipamento
 
 data class EquipamentoComStatus(
@@ -16,6 +17,7 @@ object EquipamentosContract {
         val isRefreshing: Boolean = false,
         val isSaving: Boolean = false,
         val equipamentos: List<EquipamentoComStatus> = emptyList(),
+        val categorias: List<CategoriaEquipamento> = emptyList(),
         val searchQuery: String = "",
         val showForm: Boolean = false,
         val editingEquipamento: Equipamento? = null,

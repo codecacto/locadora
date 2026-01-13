@@ -27,6 +27,8 @@ import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
 import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
+import br.com.codecacto.locadora.core.util.adjustDatePickerTimestamp
+import br.com.codecacto.locadora.core.util.toDatePickerMillis
 import kotlinx.datetime.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -220,6 +222,88 @@ fun NovaLocacaoScreen(
                     date = state.dataEntregaPrevista,
                     onClick = { showDataEntregaPicker = true }
                 )
+            }
+
+            // Seletores de Sábado/Domingo (apenas para período Diário)
+            if (state.periodoSelecionado == PeriodoLocacao.DIARIO) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Dias da semana inclusos",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = AppColors.Slate700
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Sábado
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (state.incluiSabado) AppColors.Violet100 else AppColors.Slate100)
+                            .clickable {
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetIncluiSabado(!state.incluiSabado))
+                            }
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Sábado",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (state.incluiSabado) AppColors.Violet600 else AppColors.Slate700
+                        )
+                        Switch(
+                            checked = state.incluiSabado,
+                            onCheckedChange = {
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetIncluiSabado(it))
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = AppColors.Violet600,
+                                checkedTrackColor = AppColors.Violet100
+                            )
+                        )
+                    }
+
+                    // Domingo
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (state.incluiDomingo) AppColors.Violet100 else AppColors.Slate100)
+                            .clickable {
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetIncluiDomingo(!state.incluiDomingo))
+                            }
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Domingo",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (state.incluiDomingo) AppColors.Violet600 else AppColors.Slate700
+                        )
+                        Switch(
+                            checked = state.incluiDomingo,
+                            onCheckedChange = {
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetIncluiDomingo(it))
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = AppColors.Violet600,
+                                checkedTrackColor = AppColors.Violet100
+                            )
+                        )
+                    }
+                }
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -480,7 +564,7 @@ private fun DatePickerDialog(
     initialSelectedDateMillis: Long?
 ) {
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialSelectedDateMillis
+        initialSelectedDateMillis = initialSelectedDateMillis?.let { toDatePickerMillis(it) }
     )
 
     DatePickerDialog(
@@ -488,7 +572,9 @@ private fun DatePickerDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    datePickerState.selectedDateMillis?.let { onConfirm(it) }
+                    datePickerState.selectedDateMillis?.let { utcMillis ->
+                        onConfirm(adjustDatePickerTimestamp(utcMillis))
+                    }
                 }
             ) {
                 Text(Strings.COMMON_CONFIRMAR)

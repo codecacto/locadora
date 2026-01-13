@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.di
 
+import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepository
+import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepositoryImpl
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.ClienteRepositoryImpl
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
@@ -21,6 +23,7 @@ val dataModule = module {
     single { Firebase.firestore }
 
     // Repositories
+    single<CategoriaEquipamentoRepository> { CategoriaEquipamentoRepositoryImpl(get()) }
     single<ClienteRepository> { ClienteRepositoryImpl(get(), get()) }
     single<EquipamentoRepository> { EquipamentoRepositoryImpl(get(), get()) }
     single<LocacaoRepository> { LocacaoRepositoryImpl(get(), get()) }

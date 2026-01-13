@@ -52,6 +52,7 @@ import br.com.codecacto.locadora.features.clientes.presentation.ClientesScreen
 import br.com.codecacto.locadora.features.clientes.presentation.ClienteFormScreen
 import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentosScreen
 import br.com.codecacto.locadora.features.equipamentos.presentation.EquipamentoFormScreen
+import br.com.codecacto.locadora.features.equipamentos.presentation.FaturamentoEquipamentoScreen
 import br.com.codecacto.locadora.features.settings.presentation.SettingsScreen
 import br.com.codecacto.locadora.features.settings.presentation.ChangePasswordScreen
 import br.com.codecacto.locadora.features.settings.presentation.ChangeEmailScreen
@@ -105,6 +106,7 @@ fun MainScreen(
     var currentMenuScreen by remember { mutableStateOf<String?>(null) }
     var editingClienteId by remember { mutableStateOf<String?>(null) }
     var editingEquipamentoId by remember { mutableStateOf<String?>(null) }
+    var faturamentoEquipamentoId by remember { mutableStateOf<String?>(null) }
 
     // ViewModel compartilhado para Nova Locacao
     val novaLocacaoViewModel: NovaLocacaoViewModel = koinViewModel()
@@ -286,12 +288,23 @@ fun MainScreen(
                         onNavigateToForm = { equipamentoId ->
                             editingEquipamentoId = equipamentoId
                             currentMenuScreen = "equipamento_form"
+                        },
+                        onNavigateToFaturamento = { equipamentoId ->
+                            faturamentoEquipamentoId = equipamentoId
+                            currentMenuScreen = "faturamento_equipamento"
                         }
                     )
                     "equipamento_form" -> EquipamentoFormScreen(
                         equipamentoId = editingEquipamentoId,
                         onBack = {
                             editingEquipamentoId = null
+                            currentMenuScreen = "equipamentos"
+                        }
+                    )
+                    "faturamento_equipamento" -> FaturamentoEquipamentoScreen(
+                        equipamentoId = faturamentoEquipamentoId ?: "",
+                        onBack = {
+                            faturamentoEquipamentoId = null
                             currentMenuScreen = "equipamentos"
                         }
                     )

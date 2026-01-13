@@ -39,6 +39,9 @@ fun EntregasScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var entregaParaConfirmar by remember { mutableStateOf<EntregaComDetalhes?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -51,6 +54,59 @@ fun EntregasScreen(
                 }
             }
         }
+    }
+
+    // Modal de Confirmação
+    if (showConfirmDialog && entregaParaConfirmar != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showConfirmDialog = false
+                entregaParaConfirmar = null
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.LocalShipping,
+                    contentDescription = null,
+                    tint = AppColors.Orange500,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Confirmar Entrega",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Deseja marcar como entregue o equipamento \"${entregaParaConfirmar?.equipamento?.nome}\" para o cliente \"${entregaParaConfirmar?.cliente?.nomeRazao}\"?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        entregaParaConfirmar?.let {
+                            viewModel.dispatch(EntregasContract.Action.MarcarEntregue(it.locacao.id))
+                        }
+                        showConfirmDialog = false
+                        entregaParaConfirmar = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Orange500)
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        entregaParaConfirmar = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -143,7 +199,10 @@ fun EntregasScreen(
                                     entrega = entrega,
                                     isAtrasada = true,
                                     onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                    onMarcarEntregue = {
+                                        entregaParaConfirmar = entrega
+                                        showConfirmDialog = true
+                                    }
                                 )
                             }
                         }
@@ -163,7 +222,10 @@ fun EntregasScreen(
                                     entrega = entrega,
                                     isAtrasada = false,
                                     onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                    onMarcarEntregue = {
+                                        entregaParaConfirmar = entrega
+                                        showConfirmDialog = true
+                                    }
                                 )
                             }
                         }
@@ -183,7 +245,10 @@ fun EntregasScreen(
                                     entrega = entrega,
                                     isAtrasada = false,
                                     onClick = { viewModel.dispatch(EntregasContract.Action.SelectLocacao(entrega.locacao)) },
-                                    onMarcarEntregue = { viewModel.dispatch(EntregasContract.Action.MarcarEntregue(entrega.locacao.id)) }
+                                    onMarcarEntregue = {
+                                        entregaParaConfirmar = entrega
+                                        showConfirmDialog = true
+                                    }
                                 )
                             }
                         }

@@ -61,7 +61,11 @@
       "Bash(xcrun simctl get_app_container:*)",
       "Bash(defaults read:*)",
       "Bash(xcrun simctl spawn:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(find:*)",
+      "Bash(set:*)",
+      "Bash(\"C:\\\\Program Files\\\\Android\\\\Android Studio2\\\\jbr\\\\bin\\\\java.exe\" -version)",
+      "Bash(JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio2\\\\jbr\" ./gradlew:*)"
     ]
   }
 }

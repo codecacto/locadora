@@ -377,5 +377,13 @@ private fun formatDateFull(timestamp: Long): String {
 private fun formatCurrency(value: Double): String {
     val intPart = value.toLong()
     val decPart = ((value - intPart) * 100).toInt()
-    return "R$ $intPart,${decPart.toString().padStart(2, '0')}"
+
+    // Formatar parte inteira com separador de milhares
+    val intPartFormatted = intPart.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+
+    return "R$ $intPartFormatted,${decPart.toString().padStart(2, '0')}"
 }

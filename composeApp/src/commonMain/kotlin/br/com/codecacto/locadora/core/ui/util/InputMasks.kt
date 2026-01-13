@@ -266,24 +266,3 @@ enum class TipoPessoa(val label: String) {
     FISICA("Pessoa Fisica"),
     JURIDICA("Pessoa Juridica")
 }
-
-/**
- * Predefined equipment categories
- */
-enum class CategoriaEquipamento(val label: String) {
-    ANDAIME("Andaime"),
-    BETONEIRA("Betoneira"),
-    COMPACTADOR("Compactador"),
-    COMPRESSOR("Compressor"),
-    ESCORA("Escora"),
-    FURADEIRA("Furadeira"),
-    GERADOR("Gerador"),
-    GUINCHO("Guincho"),
-    MARTELETE("Martelete"),
-    PLATAFORMA("Plataforma"),
-    ROMPEDOR("Rompedor"),
-    SERRA("Serra"),
-    SOLDADORA("Soldadora"),
-    VIBRADOR("Vibrador"),
-    OUTROS("Outros")
-}

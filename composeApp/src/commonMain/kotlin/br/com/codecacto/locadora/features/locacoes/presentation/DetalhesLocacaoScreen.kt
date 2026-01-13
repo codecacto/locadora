@@ -28,6 +28,8 @@ import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
 import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
+import br.com.codecacto.locadora.core.util.adjustDatePickerTimestamp
+import br.com.codecacto.locadora.core.util.toDatePickerMillis
 import br.com.codecacto.locadora.currentTimeMillis
 import kotlinx.datetime.Instant
 import org.koin.compose.koinInject
@@ -47,6 +49,9 @@ fun DetalhesLocacaoScreen(
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val receiptPdfGenerator: ReceiptPdfGenerator = koinInject()
+    var showConfirmarPagoDialog by remember { mutableStateOf(false) }
+    var showConfirmarEntregueDialog by remember { mutableStateOf(false) }
+    var showConfirmarColetadoDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -222,7 +227,7 @@ fun DetalhesLocacaoScreen(
                         date = locacao.dataPagamento?.let { formatDate(it) },
                         actionLabel = if (locacao.statusPagamento == StatusPagamento.PENDENTE) Strings.DETALHES_MARCAR_PAGO else null,
                         onAction = if (locacao.statusPagamento == StatusPagamento.PENDENTE) {
-                            { viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarPago) }
+                            { showConfirmarPagoDialog = true }
                         } else null
                     )
 
@@ -241,7 +246,7 @@ fun DetalhesLocacaoScreen(
                             ?: locacao.dataEntregaPrevista?.let { "Prevista: ${formatDate(it)}" },
                         actionLabel = if (locacao.statusEntrega != StatusEntrega.ENTREGUE) Strings.DETALHES_MARCAR_ENTREGUE else null,
                         onAction = if (locacao.statusEntrega != StatusEntrega.ENTREGUE) {
-                            { viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarEntregue) }
+                            { showConfirmarEntregueDialog = true }
                         } else null
                     )
 
@@ -255,7 +260,7 @@ fun DetalhesLocacaoScreen(
                         date = locacao.dataColeta?.let { formatDate(it) },
                         actionLabel = if (locacao.statusColeta == StatusColeta.NAO_COLETADO && locacao.statusEntrega == StatusEntrega.ENTREGUE) Strings.DETALHES_MARCAR_COLETADO else null,
                         onAction = if (locacao.statusColeta == StatusColeta.NAO_COLETADO && locacao.statusEntrega == StatusEntrega.ENTREGUE) {
-                            { viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarColetado) }
+                            { showConfirmarColetadoDialog = true }
                         } else null
                     )
 
@@ -387,6 +392,102 @@ fun DetalhesLocacaoScreen(
             },
             onConfirm = { novaDataFim, novoValor ->
                 viewModel.dispatch(DetalhesLocacaoContract.Action.Renovar(novaDataFim, novoValor))
+            }
+        )
+    }
+
+    // Modal de confirmação - Marcar como Pago
+    if (showConfirmarPagoDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmarPagoDialog = false },
+            title = {
+                Text(
+                    text = "Confirmar Pagamento",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text("Deseja confirmar o recebimento do pagamento desta locação?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarPago)
+                        showConfirmarPagoDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Green)
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showConfirmarPagoDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Modal de confirmação - Marcar como Entregue
+    if (showConfirmarEntregueDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmarEntregueDialog = false },
+            title = {
+                Text(
+                    text = "Confirmar Entrega",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text("Deseja confirmar que o equipamento foi entregue ao cliente?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarEntregue)
+                        showConfirmarEntregueDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Green)
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showConfirmarEntregueDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Modal de confirmação - Marcar como Coletado
+    if (showConfirmarColetadoDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmarColetadoDialog = false },
+            title = {
+                Text(
+                    text = "Confirmar Coleta",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text("Deseja confirmar que o equipamento foi coletado do cliente?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(DetalhesLocacaoContract.Action.MarcarColetado)
+                        showConfirmarColetadoDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Green)
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showConfirmarColetadoDialog = false }) {
+                    Text("Cancelar")
+                }
             }
         )
     }
@@ -705,7 +806,7 @@ private fun RenovarDialog(
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = novaDataFim
+            initialSelectedDateMillis = toDatePickerMillis(novaDataFim)
         )
 
         DatePickerDialog(
@@ -713,7 +814,9 @@ private fun RenovarDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { novaDataFim = it }
+                        datePickerState.selectedDateMillis?.let { utcMillis ->
+                            novaDataFim = adjustDatePickerTimestamp(utcMillis)
+                        }
                         showDatePicker = false
                     }
                 ) {
@@ -742,5 +845,13 @@ private fun formatDate(timestamp: Long): String {
 private fun formatCurrency(value: Double): String {
     val intPart = value.toLong()
     val decPart = ((value - intPart) * 100).toInt()
-    return "R$ $intPart,${decPart.toString().padStart(2, '0')}"
+
+    // Formatar parte inteira com separador de milhares
+    val intPartFormatted = intPart.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+
+    return "R$ $intPartFormatted,${decPart.toString().padStart(2, '0')}"
 }

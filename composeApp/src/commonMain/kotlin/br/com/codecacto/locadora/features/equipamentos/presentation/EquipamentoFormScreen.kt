@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import br.com.codecacto.locadora.core.ui.components.SuccessToast
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
-import br.com.codecacto.locadora.core.ui.util.CategoriaEquipamento
 import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
 import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
 import org.koin.compose.viewmodel.koinViewModel
@@ -151,14 +150,14 @@ fun EquipamentoFormScreen(
                         expanded = categoriaExpanded,
                         onDismissRequest = { categoriaExpanded = false }
                     ) {
-                        CategoriaEquipamento.entries.forEach { categoria ->
+                        state.categorias.forEach { categoria ->
                             DropdownMenuItem(
-                                text = { Text(categoria.label) },
+                                text = { Text(categoria.nome) },
                                 onClick = {
-                                    viewModel.dispatch(EquipamentosContract.Action.SetCategoria(categoria.label))
+                                    viewModel.dispatch(EquipamentosContract.Action.SetCategoria(categoria.nome))
                                     // Preenche o nome automaticamente se estiver vazio ou igual à categoria anterior
-                                    if (state.nome.isBlank() || CategoriaEquipamento.entries.any { it.label == state.nome }) {
-                                        viewModel.dispatch(EquipamentosContract.Action.SetNome(categoria.label))
+                                    if (state.nome.isBlank() || state.categorias.any { it.nome == state.nome }) {
+                                        viewModel.dispatch(EquipamentosContract.Action.SetNome(categoria.nome))
                                     }
                                     categoriaExpanded = false
                                 }

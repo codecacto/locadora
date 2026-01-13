@@ -11,6 +11,7 @@ import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.core.model.Recebimento
+import br.com.codecacto.locadora.core.util.calcularDiasLocacao
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.LocacaoRepository
@@ -48,8 +49,6 @@ class NovaLocacaoViewModel(
             is NovaLocacaoContract.Action.SelectEquipamento -> {
                 val periodosDisponiveis = action.equipamento.getPeriodosDisponiveis()
                 val primeiroPeriodo = periodosDisponiveis.firstOrNull()
-                val preco = primeiroPeriodo?.let { action.equipamento.getPreco(it) }
-                val priceInCents = preco?.let { (it * 100).toLong().toString() } ?: ""
                 val dataFim = primeiroPeriodo?.let {
                     calcularDataFim(_state.value.dataInicio, it)
                 }
@@ -57,22 +56,20 @@ class NovaLocacaoViewModel(
                     equipamentoSelecionado = action.equipamento,
                     periodosDisponiveis = periodosDisponiveis,
                     periodoSelecionado = primeiroPeriodo,
-                    valorLocacao = priceInCents,
                     dataFimPrevista = dataFim,
                     dataVencimentoPagamento = dataFim
                 )
+                recalcularValorLocacao()
             }
             is NovaLocacaoContract.Action.SetPeriodo -> {
                 val equipamento = _state.value.equipamentoSelecionado ?: return
-                val preco = equipamento.getPreco(action.periodo)
-                val priceInCents = preco?.let { (it * 100).toLong().toString() } ?: ""
                 val dataFim = calcularDataFim(_state.value.dataInicio, action.periodo)
                 _state.value = _state.value.copy(
                     periodoSelecionado = action.periodo,
-                    valorLocacao = priceInCents,
                     dataFimPrevista = dataFim,
                     dataVencimentoPagamento = dataFim
                 )
+                recalcularValorLocacao()
             }
             is NovaLocacaoContract.Action.SetValorLocacao -> {
                 _state.value = _state.value.copy(valorLocacao = action.valor)
@@ -85,9 +82,11 @@ class NovaLocacaoViewModel(
                     dataFimPrevista = dataFim ?: _state.value.dataFimPrevista,
                     dataVencimentoPagamento = dataFim ?: _state.value.dataVencimentoPagamento
                 )
+                recalcularValorLocacao()
             }
             is NovaLocacaoContract.Action.SetDataFimPrevista -> {
                 _state.value = _state.value.copy(dataFimPrevista = action.data)
+                recalcularValorLocacao()
             }
             is NovaLocacaoContract.Action.SetDataVencimentoPagamento -> {
                 _state.value = _state.value.copy(dataVencimentoPagamento = action.data)
@@ -100,6 +99,14 @@ class NovaLocacaoViewModel(
             }
             is NovaLocacaoContract.Action.SetEmitirNota -> {
                 _state.value = _state.value.copy(emitirNota = action.emitir)
+            }
+            is NovaLocacaoContract.Action.SetIncluiSabado -> {
+                _state.value = _state.value.copy(incluiSabado = action.inclui)
+                recalcularValorLocacao()
+            }
+            is NovaLocacaoContract.Action.SetIncluiDomingo -> {
+                _state.value = _state.value.copy(incluiDomingo = action.inclui)
+                recalcularValorLocacao()
             }
             is NovaLocacaoContract.Action.CriarLocacao -> {
                 criarLocacao()
@@ -126,6 +133,9 @@ class NovaLocacaoViewModel(
             statusEntrega = StatusEntrega.NAO_AGENDADA,
             dataEntregaPrevista = null,
             emitirNota = false,
+            incluiSabado = false,
+            incluiDomingo = false,
+            diasCalculados = 0,
             error = null
         )
     }
@@ -202,6 +212,8 @@ class NovaLocacaoViewModel(
                     periodo = currentState.periodoSelecionado,
                     dataInicio = currentState.dataInicio,
                     dataFimPrevista = currentState.dataFimPrevista,
+                    incluiSabado = currentState.incluiSabado,
+                    incluiDomingo = currentState.incluiDomingo,
                     statusEntrega = currentState.statusEntrega,
                     dataEntregaPrevista = if (currentState.statusEntrega == StatusEntrega.AGENDADA) {
                         currentState.dataEntregaPrevista
@@ -235,5 +247,36 @@ class NovaLocacaoViewModel(
     private fun calcularDataFim(dataInicio: Long, periodo: PeriodoLocacao): Long {
         val diasEmMillis = periodo.dias * 24L * 60L * 60L * 1000L
         return dataInicio + diasEmMillis
+    }
+
+    private fun recalcularValorLocacao() {
+        val currentState = _state.value
+        val equipamento = currentState.equipamentoSelecionado ?: return
+        val periodo = currentState.periodoSelecionado ?: return
+        val dataFim = currentState.dataFimPrevista ?: return
+        val precoUnitario = equipamento.getPreco(periodo) ?: return
+
+        if (periodo == PeriodoLocacao.DIARIO) {
+            // Para diária, calcula baseado no número de dias
+            val dias = calcularDiasLocacao(
+                dataInicioMillis = currentState.dataInicio,
+                dataFimMillis = dataFim,
+                incluiSabado = currentState.incluiSabado,
+                incluiDomingo = currentState.incluiDomingo
+            )
+            val valorTotal = precoUnitario * dias
+            val valorEmCentavos = (valorTotal * 100).toLong().toString()
+            _state.value = _state.value.copy(
+                valorLocacao = valorEmCentavos,
+                diasCalculados = dias
+            )
+        } else {
+            // Para outros períodos, usa o preço fixo do período
+            val valorEmCentavos = (precoUnitario * 100).toLong().toString()
+            _state.value = _state.value.copy(
+                valorLocacao = valorEmCentavos,
+                diasCalculados = periodo.dias
+            )
+        }
     }
 }

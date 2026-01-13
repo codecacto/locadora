@@ -44,6 +44,8 @@ data class Locacao(
     val momentoPagamento: MomentoPagamento = MomentoPagamento.NO_VENCIMENTO,
     val dataInicio: Long = currentTimeMillis(),
     val dataFimPrevista: Long = currentTimeMillis(),
+    val incluiSabado: Boolean = false,
+    val incluiDomingo: Boolean = false,
     val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,
     val dataEntregaPrevista: Long? = null,
     val dataEntregaReal: Long? = null,

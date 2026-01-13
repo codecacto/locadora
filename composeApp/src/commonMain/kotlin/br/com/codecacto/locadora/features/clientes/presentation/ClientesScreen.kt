@@ -122,7 +122,7 @@ fun ClientesScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "${state.clientes.size} clientes cadastrados",
+                            text = Strings.clientesCadastrados(state.clientes.size),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )

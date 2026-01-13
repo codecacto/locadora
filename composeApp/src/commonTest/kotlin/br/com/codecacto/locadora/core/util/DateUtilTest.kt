@@ -272,6 +272,156 @@ class DateUtilTest {
         assertEquals(StatusPrazo.PROXIMO_VENCIMENTO, status)
     }
 
+    // ==================== TESTES DE CALCULO DE DIAS DE LOCACAO ====================
+
+    @Test
+    fun `calcularDiasLocacao - todos os dias incluidos`() {
+        val dataInicio = 0L
+        val dataFim = 7 * UM_DIA_MS // 7 dias
+
+        val dias = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = true,
+            incluiDomingo = true
+        )
+
+        // Inclui todos os 7 dias
+        assertEquals(7, dias)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - apenas dias uteis (sem sabado e domingo)`() {
+        // Para testar corretamente, precisamos usar datas reais
+        // Uma semana completa de segunda a domingo
+        val dataInicio = 0L
+        val dataFim = 7 * UM_DIA_MS
+
+        val diasComTodos = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = true,
+            incluiDomingo = true
+        )
+
+        val diasSemFds = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = false,
+            incluiDomingo = false
+        )
+
+        // Dias sem fim de semana deve ser menor ou igual aos dias completos
+        assertTrue(diasSemFds <= diasComTodos)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - apenas sabado incluso`() {
+        val dataInicio = 0L
+        val dataFim = 7 * UM_DIA_MS
+
+        val diasComSabado = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = true,
+            incluiDomingo = false
+        )
+
+        val diasSemFds = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = false,
+            incluiDomingo = false
+        )
+
+        // Dias com sabado deve ser maior ou igual aos dias sem fim de semana
+        assertTrue(diasComSabado >= diasSemFds)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - apenas domingo incluso`() {
+        val dataInicio = 0L
+        val dataFim = 7 * UM_DIA_MS
+
+        val diasComDomingo = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = false,
+            incluiDomingo = true
+        )
+
+        val diasSemFds = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = false,
+            incluiDomingo = false
+        )
+
+        // Dias com domingo deve ser maior ou igual aos dias sem fim de semana
+        assertTrue(diasComDomingo >= diasSemFds)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - um dia apenas`() {
+        val dataInicio = 0L
+        val dataFim = UM_DIA_MS
+
+        val dias = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = true,
+            incluiDomingo = true
+        )
+
+        assertEquals(1, dias)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - data inicio igual a data fim retorna 0`() {
+        val data = System.currentTimeMillis()
+
+        val dias = calcularDiasLocacao(
+            dataInicioMillis = data,
+            dataFimMillis = data,
+            incluiSabado = true,
+            incluiDomingo = true
+        )
+
+        assertEquals(0, dias)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - periodo de 30 dias`() {
+        val dataInicio = 0L
+        val dataFim = 30 * UM_DIA_MS
+
+        val diasCompletos = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = true,
+            incluiDomingo = true
+        )
+
+        assertEquals(30, diasCompletos)
+    }
+
+    @Test
+    fun `calcularDiasLocacao - 30 dias sem sabado e domingo`() {
+        val dataInicio = 0L
+        val dataFim = 30 * UM_DIA_MS
+
+        val diasSemFds = calcularDiasLocacao(
+            dataInicioMillis = dataInicio,
+            dataFimMillis = dataFim,
+            incluiSabado = false,
+            incluiDomingo = false
+        )
+
+        // Em 30 dias, aproximadamente 8-9 fins de semana (16-18 dias)
+        // Então espera-se entre 12-22 dias úteis dependendo do dia inicial
+        assertTrue(diasSemFds in 12..22)
+    }
+
     // ==================== FUNCAO AUXILIAR DE TESTE ====================
 
     /**

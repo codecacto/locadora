@@ -94,3 +94,25 @@ fun String.currencyToDouble(): Double {
 fun filterCurrencyInput(input: String): String {
     return input.filter { it.isDigit() }
 }
+
+/**
+ * Formats a Double value to Brazilian currency format with thousand separators
+ * Example: 1234.56 -> "R$ 1.234,56"
+ */
+fun Double.formatAsCurrency(): String {
+    val isNegative = this < 0
+    val absValue = kotlin.math.abs(this)
+    val intPart = absValue.toLong()
+    // Use rounding to avoid floating-point precision issues
+    val decPart = kotlin.math.round((absValue - intPart) * 100).toInt()
+
+    // Format integer part with thousand separators
+    val intPartFormatted = intPart.toString()
+        .reversed()
+        .chunked(3)
+        .joinToString(".")
+        .reversed()
+
+    val formatted = "R$ $intPartFormatted,${decPart.toString().padStart(2, '0')}"
+    return if (isNegative) "-$formatted" else formatted
+}
