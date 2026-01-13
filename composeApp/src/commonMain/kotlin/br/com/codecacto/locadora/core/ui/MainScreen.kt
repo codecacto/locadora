@@ -32,7 +32,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import androidx.navigation.toRoute
 import br.com.codecacto.locadora.core.navigation.*
+import kotlinx.serialization.Serializable
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.features.locacoes.presentation.LocacoesScreen
@@ -63,6 +65,13 @@ import br.com.codecacto.locadora.core.ui.components.NotificationBadge
 import br.com.codecacto.locadora.data.repository.NotificacaoRepository
 import br.com.codecacto.locadora.getAppVersion
 import org.koin.compose.koinInject
+
+// Type-safe navigation routes
+@Serializable
+data class DetalhesLocacaoRoute(val locacaoId: String)
+
+@Serializable
+data class RecebimentosLocacaoRoute(val locacaoId: String)
 
 sealed class BottomNavItem(
     val route: String,
@@ -210,7 +219,7 @@ fun MainScreen(
             composable(BottomNavItem.Locacoes.route) {
                 LocacoesScreen(
                     onNavigateToDetalhes = { locacaoId ->
-                        navController.navigate("detalhes_locacao/$locacaoId")
+                        navController.navigate(DetalhesLocacaoRoute(locacaoId))
                     },
                     onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
@@ -219,7 +228,7 @@ fun MainScreen(
             composable(BottomNavItem.Entregas.route) {
                 EntregasScreen(
                     onNavigateToDetalhes = { locacaoId ->
-                        navController.navigate("detalhes_locacao/$locacaoId")
+                        navController.navigate(DetalhesLocacaoRoute(locacaoId))
                     },
                     onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
@@ -228,22 +237,19 @@ fun MainScreen(
             composable(BottomNavItem.Recebimentos.route) {
                 RecebimentosScreen(
                     onNavigateToDetalhes = { locacaoId ->
-                        navController.navigate("detalhes_locacao/$locacaoId")
+                        navController.navigate(DetalhesLocacaoRoute(locacaoId))
                     },
                     onNavigateToNotifications = { navController.navigate("notifications") },
                     unreadNotifications = unreadNotifications
                 )
             }
-            composable(
-                route = "detalhes_locacao/{locacaoId}",
-                arguments = listOf(navArgument("locacaoId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val locacaoId = backStackEntry.arguments?.getString("locacaoId") ?: return@composable
+            composable<DetalhesLocacaoRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<DetalhesLocacaoRoute>()
                 DetalhesLocacaoScreen(
-                    locacaoId = locacaoId,
+                    locacaoId = route.locacaoId,
                     onBack = { navController.popBackStack() },
                     onNavigateToRecebimentos = { locId ->
-                        navController.navigate("recebimentos_locacao/$locId")
+                        navController.navigate(RecebimentosLocacaoRoute(locId))
                     }
                 )
             }
@@ -252,13 +258,10 @@ fun MainScreen(
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(
-                route = "recebimentos_locacao/{locacaoId}",
-                arguments = listOf(navArgument("locacaoId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val locacaoId = backStackEntry.arguments?.getString("locacaoId") ?: return@composable
+            composable<RecebimentosLocacaoRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<RecebimentosLocacaoRoute>()
                 RecebimentosLocacaoScreen(
-                    locacaoId = locacaoId,
+                    locacaoId = route.locacaoId,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -375,8 +378,7 @@ fun MainScreen(
                 novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
             },
             properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
+                usePlatformDefaultWidth = false
             )
         ) {
             Surface(

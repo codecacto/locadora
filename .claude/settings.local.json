@@ -45,7 +45,22 @@
       "Bash(cmd.exe /c \"cd /d E:\\\\CodeCacto\\\\locadora && gradlew.bat compileDebugKotlinAndroid --console=plain 2>&1\")",
       "Bash(powershell.exe -Command \"cd ''E:\\\\CodeCacto\\\\locadora''; .\\\\gradlew.bat compileDebugKotlinAndroid --console=plain\")",
       "Bash(powershell.exe -Command \"cd ''E:\\\\CodeCacto\\\\locadora''; .\\\\gradlew.bat compileDebugKotlinAndroid --console=plain 2>&1\")",
-      "Bash(powershell.exe:*)"
+      "Bash(powershell.exe:*)",
+      "Bash(chmod:*)",
+      "Bash(/Users/weback/Documents/locadora/gradlew:*)",
+      "Bash(/usr/libexec/java_home:*)",
+      "Bash(export JAVA_HOME=/opt/homebrew/opt/openjdk@17:*)",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "WebFetch(domain:www.jetbrains.com)",
+      "Bash(open:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(pod install)",
+      "Bash(xcrun simctl boot:*)",
+      "Bash(xcrun simctl install:*)",
+      "Bash(xcrun simctl launch:*)",
+      "Bash(xcrun simctl get_app_container:*)",
+      "Bash(defaults read:*)",
+      "Bash(xcrun simctl spawn:*)"
     ]
   }
 }

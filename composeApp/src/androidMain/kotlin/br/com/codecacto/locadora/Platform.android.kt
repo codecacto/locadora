@@ -17,3 +17,5 @@ actual fun openUrl(url: String) {
     }
     context.startActivity(intent)
 }
+
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()

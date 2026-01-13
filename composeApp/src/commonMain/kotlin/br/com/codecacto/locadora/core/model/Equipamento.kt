@@ -1,5 +1,6 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,8 +15,8 @@ data class Equipamento(
     val precoQuinzenal: Double? = null,
     val precoMensal: Double? = null,
     val observacoes: String? = null,
-    val criadoEm: Long = System.currentTimeMillis(),
-    val atualizadoEm: Long = System.currentTimeMillis()
+    val criadoEm: Long = currentTimeMillis(),
+    val atualizadoEm: Long = currentTimeMillis()
 ) {
     fun getPeriodosDisponiveis(): List<PeriodoLocacao> {
         return buildList {

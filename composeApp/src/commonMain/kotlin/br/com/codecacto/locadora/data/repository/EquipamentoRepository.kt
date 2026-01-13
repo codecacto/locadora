@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface EquipamentoRepository {
     fun getEquipamentos(): Flow<List<Equipamento>>
@@ -54,8 +55,8 @@ class EquipamentoRepositoryImpl(
             ?: throw Exception("Usuario nao autenticado")
 
         val docRef = collection.add(equipamento.copy(
-            criadoEm = System.currentTimeMillis(),
-            atualizadoEm = System.currentTimeMillis()
+            criadoEm = currentTimeMillis(),
+            atualizadoEm = currentTimeMillis()
         ))
         return docRef.id
     }
@@ -65,7 +66,7 @@ class EquipamentoRepositoryImpl(
             ?: throw Exception("Usuario nao autenticado")
 
         collection.document(equipamento.id).set(
-            equipamento.copy(atualizadoEm = System.currentTimeMillis())
+            equipamento.copy(atualizadoEm = currentTimeMillis())
         )
     }
 

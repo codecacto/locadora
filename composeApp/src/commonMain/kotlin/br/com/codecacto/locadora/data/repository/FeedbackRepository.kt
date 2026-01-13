@@ -3,6 +3,7 @@ package br.com.codecacto.locadora.data.repository
 import br.com.codecacto.locadora.core.model.Feedback
 import br.com.codecacto.locadora.features.auth.data.repository.AuthRepository
 import dev.gitlive.firebase.firestore.FirebaseFirestore
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface FeedbackRepository {
     suspend fun sendFeedback(motivo: String, mensagem: String): Result<Unit>
@@ -25,7 +26,7 @@ class FeedbackRepositoryImpl(
                 usuarioEmail = user.email,
                 motivo = motivo,
                 mensagem = mensagem,
-                criadoEm = System.currentTimeMillis()
+                criadoEm = currentTimeMillis()
             )
 
             collection.add(feedback)

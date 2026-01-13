@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface RecebimentoRepository {
     fun getRecebimentos(): Flow<List<Recebimento>>
@@ -90,7 +91,7 @@ class RecebimentoRepositoryImpl(
             ?: throw Exception("Usuario nao autenticado")
 
         val docRef = collection.add(recebimento.copy(
-            criadoEm = System.currentTimeMillis()
+            criadoEm = currentTimeMillis()
         ))
         return docRef.id
     }
@@ -103,7 +104,7 @@ class RecebimentoRepositoryImpl(
             collection.document(recebimentoId).set(
                 recebimento.copy(
                     status = StatusPagamento.PAGO,
-                    dataPagamento = System.currentTimeMillis()
+                    dataPagamento = currentTimeMillis()
                 )
             )
         }

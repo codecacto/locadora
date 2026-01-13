@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface LocacaoRepository {
     fun getLocacoes(): Flow<List<Locacao>>
@@ -94,7 +95,7 @@ class LocacaoRepositoryImpl(
         val collection = getUserCollection()
             ?: throw Exception("Usuario nao autenticado")
 
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val docRef = collection.add(locacao.copy(
             statusLocacao = StatusLocacao.ATIVA,
             qtdRenovacoes = 0,
@@ -108,7 +109,7 @@ class LocacaoRepositoryImpl(
         val collection = getUserCollection()
             ?: throw Exception("Usuario nao autenticado")
 
-        var updatedLocacao = locacao.copy(atualizadoEm = System.currentTimeMillis())
+        var updatedLocacao = locacao.copy(atualizadoEm = currentTimeMillis())
 
         // Auto-finalizar se pagamento e coleta estiverem concluídos
         if (updatedLocacao.statusPagamento == StatusPagamento.PAGO &&
@@ -129,7 +130,7 @@ class LocacaoRepositoryImpl(
     override suspend fun marcarPago(id: String) {
         val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         var updatedLocacao = locacao.copy(
             statusPagamento = StatusPagamento.PAGO,
             dataPagamento = now,
@@ -147,7 +148,7 @@ class LocacaoRepositoryImpl(
     override suspend fun marcarEntregue(id: String) {
         val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         collection.document(id).set(
             locacao.copy(
                 statusEntrega = StatusEntrega.ENTREGUE,
@@ -160,7 +161,7 @@ class LocacaoRepositoryImpl(
     override suspend fun marcarColetado(id: String) {
         val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         var updatedLocacao = locacao.copy(
             statusColeta = StatusColeta.COLETADO,
             dataColeta = now,
@@ -181,7 +182,7 @@ class LocacaoRepositoryImpl(
         collection.document(id).set(
             locacao.copy(
                 notaEmitida = true,
-                atualizadoEm = System.currentTimeMillis()
+                atualizadoEm = currentTimeMillis()
             )
         )
     }
@@ -189,7 +190,7 @@ class LocacaoRepositoryImpl(
     override suspend fun renovarLocacao(id: String, novaDataFim: Long, novoValor: Double?) {
         val collection = getUserCollection() ?: return
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         collection.document(id).set(
             locacao.copy(
                 dataFimPrevista = novaDataFim,

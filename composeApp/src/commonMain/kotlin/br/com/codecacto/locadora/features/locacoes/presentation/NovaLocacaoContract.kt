@@ -7,6 +7,7 @@ import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
+import br.com.codecacto.locadora.currentTimeMillis
 
 object NovaLocacaoContract {
     data class State(
@@ -19,7 +20,7 @@ object NovaLocacaoContract {
         val periodosDisponiveis: List<PeriodoLocacao> = emptyList(),
         val periodoSelecionado: PeriodoLocacao? = null,
         val valorLocacao: String = "",
-        val dataInicio: Long = System.currentTimeMillis(),
+        val dataInicio: Long = currentTimeMillis(),
         val dataFimPrevista: Long? = null,
         val dataVencimentoPagamento: Long? = null,
         val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,

@@ -28,6 +28,7 @@ import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.CurrencyVisualTransformation
 import br.com.codecacto.locadora.core.ui.util.filterCurrencyInput
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
+import br.com.codecacto.locadora.currentTimeMillis
 import kotlinx.datetime.Instant
 import org.koin.compose.koinInject
 import kotlinx.datetime.TimeZone
@@ -379,7 +380,7 @@ fun DetalhesLocacaoScreen(
     // Renovar Dialog
     if (state.showRenovarDialog) {
         RenovarDialog(
-            currentDataFim = state.locacao?.dataFimPrevista ?: System.currentTimeMillis(),
+            currentDataFim = state.locacao?.dataFimPrevista ?: currentTimeMillis(),
             currentValor = state.locacao?.valorLocacao ?: 0.0,
             onDismiss = {
                 viewModel.dispatch(DetalhesLocacaoContract.Action.HideRenovarDialog)

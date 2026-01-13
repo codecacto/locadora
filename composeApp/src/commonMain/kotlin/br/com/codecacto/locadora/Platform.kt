@@ -7,3 +7,5 @@ interface Platform {
 expect fun getPlatform(): Platform
 
 expect fun openUrl(url: String)
+
+expect fun currentTimeMillis(): Long

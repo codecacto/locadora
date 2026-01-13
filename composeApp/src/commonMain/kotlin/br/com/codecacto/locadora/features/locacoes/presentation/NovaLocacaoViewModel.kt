@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import br.com.codecacto.locadora.currentTimeMillis
 
 class NovaLocacaoViewModel(
     private val locacaoRepository: LocacaoRepository,
@@ -119,7 +120,7 @@ class NovaLocacaoViewModel(
             periodosDisponiveis = emptyList(),
             periodoSelecionado = null,
             valorLocacao = "",
-            dataInicio = System.currentTimeMillis(),
+            dataInicio = currentTimeMillis(),
             dataFimPrevista = null,
             dataVencimentoPagamento = null,
             statusEntrega = StatusEntrega.NAO_AGENDADA,

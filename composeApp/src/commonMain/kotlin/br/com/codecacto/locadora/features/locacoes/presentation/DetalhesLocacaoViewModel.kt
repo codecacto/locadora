@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import br.com.codecacto.locadora.currentTimeMillis
 
 class DetalhesLocacaoViewModel(
     private val locacaoId: String,
@@ -180,7 +181,7 @@ class DetalhesLocacaoViewModel(
             return StatusPrazo.NORMAL
         }
 
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = locacao.dataFimPrevista
         val diffDays = ((dataFim - hoje) / (1000 * 60 * 60 * 24)).toInt()
 

@@ -1,5 +1,6 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,8 +12,8 @@ data class Cliente(
     val email: String? = null,
     val endereco: String? = null,
     val precisaNotaFiscalPadrao: Boolean = false,
-    val criadoEm: Long = System.currentTimeMillis(),
-    val atualizadoEm: Long = System.currentTimeMillis()
+    val criadoEm: Long = currentTimeMillis(),
+    val atualizadoEm: Long = currentTimeMillis()
 ) {
     companion object {
         const val COLLECTION_NAME = "clientes"

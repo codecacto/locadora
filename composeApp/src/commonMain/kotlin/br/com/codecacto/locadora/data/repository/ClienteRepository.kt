@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface ClienteRepository {
     fun getClientes(): Flow<List<Cliente>>
@@ -54,8 +55,8 @@ class ClienteRepositoryImpl(
             ?: throw Exception("Usuario nao autenticado")
 
         val docRef = collection.add(cliente.copy(
-            criadoEm = System.currentTimeMillis(),
-            atualizadoEm = System.currentTimeMillis()
+            criadoEm = currentTimeMillis(),
+            atualizadoEm = currentTimeMillis()
         ))
         return docRef.id
     }
@@ -65,7 +66,7 @@ class ClienteRepositoryImpl(
             ?: throw Exception("Usuario nao autenticado")
 
         collection.document(cliente.id).set(
-            cliente.copy(atualizadoEm = System.currentTimeMillis())
+            cliente.copy(atualizadoEm = currentTimeMillis())
         )
     }
 

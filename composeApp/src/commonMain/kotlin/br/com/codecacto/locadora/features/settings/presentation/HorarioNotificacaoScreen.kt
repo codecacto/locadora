@@ -262,7 +262,7 @@ fun HorarioNotificacaoScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val novoHorario = String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        val novoHorario = "${timePickerState.hour.toString().padStart(2, '0')}:${timePickerState.minute.toString().padStart(2, '0')}"
                         viewModel.dispatch(HorarioNotificacaoContract.Action.SetHorario(novoHorario))
                         showTimePicker = false
                     }

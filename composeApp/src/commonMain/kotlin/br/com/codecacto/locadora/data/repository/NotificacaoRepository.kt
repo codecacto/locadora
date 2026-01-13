@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
+import br.com.codecacto.locadora.currentTimeMillis
 
 interface NotificacaoRepository {
     fun getNotificacoes(): Flow<List<Notificacao>>
@@ -58,7 +59,7 @@ class NotificacaoRepositoryImpl(
                 ?: return Result.failure(Exception("Usuario nao autenticado"))
 
             val docRef = collection.add(notificacao.copy(
-                criadoEm = System.currentTimeMillis()
+                criadoEm = currentTimeMillis()
             ))
             Result.success(docRef.id)
         } catch (e: Exception) {

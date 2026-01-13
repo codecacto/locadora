@@ -1,5 +1,6 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -41,8 +42,8 @@ data class Locacao(
     val valorLocacao: Double = 0.0,
     val periodo: PeriodoLocacao = PeriodoLocacao.DIARIO,
     val momentoPagamento: MomentoPagamento = MomentoPagamento.NO_VENCIMENTO,
-    val dataInicio: Long = System.currentTimeMillis(),
-    val dataFimPrevista: Long = System.currentTimeMillis(),
+    val dataInicio: Long = currentTimeMillis(),
+    val dataFimPrevista: Long = currentTimeMillis(),
     val statusEntrega: StatusEntrega = StatusEntrega.NAO_AGENDADA,
     val dataEntregaPrevista: Long? = null,
     val dataEntregaReal: Long? = null,
@@ -55,8 +56,8 @@ data class Locacao(
     val statusLocacao: StatusLocacao = StatusLocacao.ATIVA,
     val qtdRenovacoes: Int = 0,
     val ultimaRenovacaoEm: Long? = null,
-    val criadoEm: Long = System.currentTimeMillis(),
-    val atualizadoEm: Long = System.currentTimeMillis()
+    val criadoEm: Long = currentTimeMillis(),
+    val atualizadoEm: Long = currentTimeMillis()
 ) {
     companion object {
         const val COLLECTION_NAME = "locacoes"

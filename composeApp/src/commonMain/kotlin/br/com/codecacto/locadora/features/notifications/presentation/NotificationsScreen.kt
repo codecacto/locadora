@@ -26,6 +26,7 @@ import br.com.codecacto.locadora.core.model.Notificacao
 import br.com.codecacto.locadora.core.model.NotificacaoTipo
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
+import br.com.codecacto.locadora.currentTimeMillis
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -393,7 +394,7 @@ private fun getNotificacaoStyle(tipo: String): Triple<ImageVector, Color, Color>
 }
 
 private fun formatTimeAgo(timestamp: Long): String {
-    val now = System.currentTimeMillis()
+    val now = currentTimeMillis()
     val diff = now - timestamp
 
     val seconds = diff / 1000
