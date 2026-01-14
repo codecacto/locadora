@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.data.repository
 
+import br.com.codecacto.locadora.core.model.DisponibilidadeEquipamento
+import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.StatusLocacao
 import br.com.codecacto.locadora.core.model.StatusPagamento
@@ -28,6 +30,8 @@ interface LocacaoRepository {
     suspend fun marcarNotaEmitida(id: String)
     suspend fun renovarLocacao(id: String, novaDataFim: Long, novoValor: Double?)
     suspend fun isEquipamentoAlugado(equipamentoId: String): Boolean
+    suspend fun getDisponibilidadeEquipamento(equipamento: Equipamento): DisponibilidadeEquipamento
+    suspend fun getLocacoesAtivasList(): List<Locacao>
 }
 
 class LocacaoRepositoryImpl(
@@ -208,10 +212,59 @@ class LocacaoRepositoryImpl(
     override suspend fun isEquipamentoAlugado(equipamentoId: String): Boolean {
         val collection = getUserCollection() ?: return false
 
-        val snapshot = collection
+        // Verifica no novo campo (equipamentoIds - lista)
+        val snapshotNovo = collection
+            .where { "equipamentoIds" contains equipamentoId }
+            .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
+            .get()
+
+        if (snapshotNovo.documents.isNotEmpty()) {
+            return true
+        }
+
+        // Fallback: verifica no campo antigo (equipamentoId - string) para dados legados
+        val snapshotAntigo = collection
             .where { "equipamentoId" equalTo equipamentoId }
             .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
             .get()
-        return snapshot.documents.isNotEmpty()
+
+        return snapshotAntigo.documents.isNotEmpty()
+    }
+
+    override suspend fun getLocacoesAtivasList(): List<Locacao> {
+        val collection = getUserCollection() ?: return emptyList()
+
+        val snapshot = collection
+            .where { "statusLocacao" equalTo StatusLocacao.ATIVA.name }
+            .get()
+
+        return snapshot.documents.map { doc ->
+            doc.data<Locacao>().copy(id = doc.id)
+        }
+    }
+
+    override suspend fun getDisponibilidadeEquipamento(equipamento: Equipamento): DisponibilidadeEquipamento {
+        val locacoesAtivas = getLocacoesAtivasList()
+
+        // Calcula quantidade alugada e patrimônios alugados
+        var quantidadeAlugada = 0
+        val patrimoniosAlugadosIds = mutableSetOf<String>()
+
+        for (locacao in locacoesAtivas) {
+            val itens = locacao.getItensList()
+            for (item in itens) {
+                if (item.equipamentoId == equipamento.id) {
+                    quantidadeAlugada += item.quantidade
+                    patrimoniosAlugadosIds.addAll(item.patrimonioIds)
+                }
+            }
+        }
+
+        return DisponibilidadeEquipamento(
+            equipamento = equipamento,
+            quantidadeTotal = equipamento.quantidade,
+            quantidadeAlugada = quantidadeAlugada,
+            patrimoniosAlugadosIds = patrimoniosAlugadosIds
+        )
     }
 }

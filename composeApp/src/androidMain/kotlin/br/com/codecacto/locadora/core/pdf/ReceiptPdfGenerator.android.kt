@@ -175,18 +175,29 @@ actual class ReceiptPdfGenerator {
         yPosition += lineHeight * 1.5f
 
         // Equipment Section
-        canvas.drawText("EQUIPAMENTO", margin, yPosition, headerPaint)
+        val equipmentLabel = if (data.equipamentos.size > 1) "EQUIPAMENTOS" else "EQUIPAMENTO"
+        canvas.drawText(equipmentLabel, margin, yPosition, headerPaint)
         yPosition += lineHeight
 
-        canvas.drawText(data.equipamento.nome, margin, yPosition, normalPaint)
-        yPosition += lineHeight
-
-        canvas.drawText("Categoria: ${data.equipamento.categoria}", margin, yPosition, normalPaint)
-        yPosition += lineHeight
-
-        if (!data.equipamento.identificacao.isNullOrBlank()) {
-            canvas.drawText("Identificacao: ${data.equipamento.identificacao}", margin, yPosition, normalPaint)
+        data.equipamentos.forEachIndexed { index, equipamento ->
+            if (data.equipamentos.size > 1) {
+                canvas.drawText("${index + 1}. ${equipamento.nome}", margin, yPosition, normalPaint)
+            } else {
+                canvas.drawText(equipamento.nome, margin, yPosition, normalPaint)
+            }
             yPosition += lineHeight
+
+            canvas.drawText("   Categoria: ${equipamento.categoria}", margin, yPosition, normalPaint)
+            yPosition += lineHeight
+
+            if (!equipamento.identificacao.isNullOrBlank()) {
+                canvas.drawText("   Identificacao: ${equipamento.identificacao}", margin, yPosition, normalPaint)
+                yPosition += lineHeight
+            }
+
+            if (index < data.equipamentos.size - 1) {
+                yPosition += lineHeight * 0.3f
+            }
         }
 
         yPosition += lineHeight * 0.5f

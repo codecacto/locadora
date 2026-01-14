@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.data.repository
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Recebimento
 import br.com.codecacto.locadora.core.model.StatusPagamento
 import br.com.codecacto.locadora.testutil.FakeRecebimentoRepository
@@ -310,6 +312,77 @@ class FakeRecebimentoRepositoryTest {
         assertEquals(1, resultado.size)
     }
 
+    // ==================== TESTES DE deleteRecebimento ====================
+
+    @Test
+    fun `deleteRecebimento - remove recebimento pelo id`() = runTest {
+        val recebimentos = listOf(
+            Recebimento(id = "rec-1", locacaoId = "loc-123", valor = 500.0),
+            Recebimento(id = "rec-2", locacaoId = "loc-123", valor = 300.0),
+            Recebimento(id = "rec-3", locacaoId = "loc-456", valor = 700.0)
+        )
+        repository.setRecebimentos(recebimentos)
+
+        repository.deleteRecebimento("rec-2")
+
+        val resultado = repository.getRecebimentos().first()
+        assertEquals(2, resultado.size)
+        assertFalse(resultado.any { it.id == "rec-2" })
+    }
+
+    @Test
+    fun `deleteRecebimento - nao afeta outros recebimentos`() = runTest {
+        val recebimentos = listOf(
+            Recebimento(id = "rec-1", valor = 500.0),
+            Recebimento(id = "rec-2", valor = 300.0)
+        )
+        repository.setRecebimentos(recebimentos)
+
+        repository.deleteRecebimento("rec-1")
+
+        val resultado = repository.getRecebimentos().first()
+        assertEquals(1, resultado.size)
+        assertEquals("rec-2", resultado[0].id)
+        assertEquals(300.0, resultado[0].valor)
+    }
+
+    @Test
+    fun `deleteRecebimento - nao falha para id inexistente`() = runTest {
+        val recebimentos = listOf(
+            Recebimento(id = "rec-1", locacaoId = "loc-123")
+        )
+        repository.setRecebimentos(recebimentos)
+
+        repository.deleteRecebimento("rec-inexistente")
+
+        val resultado = repository.getRecebimentos().first()
+        assertEquals(1, resultado.size)
+    }
+
+    @Test
+    fun `deleteRecebimento - lista vazia apos excluir ultimo`() = runTest {
+        val recebimentos = listOf(
+            Recebimento(id = "rec-1", locacaoId = "loc-123")
+        )
+        repository.setRecebimentos(recebimentos)
+
+        repository.deleteRecebimento("rec-1")
+
+        val resultado = repository.getRecebimentos().first()
+        assertTrue(resultado.isEmpty())
+    }
+
+    @Test
+    fun `deleteRecebimento - lanca erro quando configurado`() = runTest {
+        repository.setRecebimentos(listOf(Recebimento(id = "rec-1")))
+        repository.shouldThrowError = true
+        repository.errorMessage = "Erro ao excluir recebimento"
+
+        assertFailsWith<Exception> {
+            repository.deleteRecebimento("rec-1")
+        }
+    }
+
     // ==================== TESTES DE CENARIOS DE NEGOCIO ====================
 
     @Test
@@ -319,7 +392,7 @@ class FakeRecebimentoRepositoryTest {
             clienteId = "cli-123",
             equipamentoId = "eq-456",
             valor = 1500.0,
-            dataVencimento = System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L),
+            dataVencimento = currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L),
             status = StatusPagamento.PENDENTE,
             numeroRenovacao = 0
         )
@@ -401,5 +474,50 @@ class FakeRecebimentoRepositoryTest {
         todos = repository.getRecebimentos().first()
         assertEquals(1, todos.size)
         assertEquals("loc-manter", todos[0].locacaoId)
+    }
+
+    @Test
+    fun `Cenario - excluir recebimento especifico`() = runTest {
+        // Adiciona vários recebimentos
+        repository.addRecebimento(
+            Recebimento(
+                locacaoId = "loc-123",
+                valor = 1000.0,
+                status = StatusPagamento.PENDENTE
+            )
+        )
+        repository.addRecebimento(
+            Recebimento(
+                locacaoId = "loc-123",
+                valor = 500.0,
+                status = StatusPagamento.PAGO
+            )
+        )
+        repository.addRecebimento(
+            Recebimento(
+                locacaoId = "loc-456",
+                valor = 750.0,
+                status = StatusPagamento.PENDENTE
+            )
+        )
+
+        var todos = repository.getRecebimentos().first()
+        assertEquals(3, todos.size)
+
+        // Encontra e exclui o recebimento de 500
+        val recebimento500 = todos.find { it.valor == 500.0 }
+        assertNotNull(recebimento500)
+        repository.deleteRecebimento(recebimento500.id)
+
+        // Verifica que apenas 2 restam
+        todos = repository.getRecebimentos().first()
+        assertEquals(2, todos.size)
+        assertFalse(todos.any { it.valor == 500.0 })
+
+        // Verifica totais por status
+        val pendentes = repository.getRecebimentosPendentes().first()
+        val pagos = repository.getRecebimentosPagos().first()
+        assertEquals(2, pendentes.size)
+        assertTrue(pagos.isEmpty())
     }
 }

@@ -75,13 +75,29 @@ class DetalhesLocacaoViewModel(
                 }
 
                 val cliente = clienteRepository.getClienteById(locacao.clienteId)
-                val equipamento = equipamentoRepository.getEquipamentoById(locacao.equipamentoId)
+
+                // Carrega todos os itens da locação (usando método de migração)
+                val itens = locacao.getItensList()
+
+                // Carrega equipamentos e associa com os itens
+                val equipamentosComItens = itens.mapNotNull { item ->
+                    equipamentoRepository.getEquipamentoById(item.equipamentoId)?.let { equipamento ->
+                        DetalhesLocacaoContract.EquipamentoComItem(
+                            equipamento = equipamento,
+                            item = item
+                        )
+                    }
+                }
+
+                // Mantém lista de equipamentos para compatibilidade
+                val equipamentos = equipamentosComItens.map { it.equipamento }
 
                 _state.value = _state.value.copy(
                     isLoading = false,
                     locacao = locacao,
                     cliente = cliente,
-                    equipamento = equipamento,
+                    equipamentos = equipamentos,
+                    equipamentosComItens = equipamentosComItens,
                     statusPrazo = calcularStatusPrazo(locacao)
                 )
             } catch (e: Exception) {
@@ -159,7 +175,7 @@ class DetalhesLocacaoViewModel(
                 val recebimento = Recebimento(
                     locacaoId = locacaoId,
                     clienteId = currentLocacao.clienteId,
-                    equipamentoId = currentLocacao.equipamentoId,
+                    equipamentoIds = currentLocacao.getEquipamentoIdsList(),
                     valor = valorRecebimento,
                     dataVencimento = novaDataFim,
                     numeroRenovacao = currentLocacao.qtdRenovacoes + 1
@@ -196,9 +212,9 @@ class DetalhesLocacaoViewModel(
         val currentState = _state.value
         val locacao = currentState.locacao
         val cliente = currentState.cliente
-        val equipamento = currentState.equipamento
+        val equipamentos = currentState.equipamentos
 
-        if (locacao == null || cliente == null || equipamento == null) {
+        if (locacao == null || cliente == null || equipamentos.isEmpty()) {
             emitEffect(DetalhesLocacaoContract.Effect.ShowError("Dados incompletos para gerar recibo"))
             return
         }
@@ -212,7 +228,7 @@ class DetalhesLocacaoViewModel(
                 val receiptData = ReceiptData(
                     locacao = locacao,
                     cliente = cliente,
-                    equipamento = equipamento,
+                    equipamentos = equipamentos,
                     dadosEmpresa = dadosEmpresa
                 )
 

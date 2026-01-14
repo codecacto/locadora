@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.features.notifications.presentation
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Notificacao
 import br.com.codecacto.locadora.core.model.NotificacaoTipo
 import kotlin.test.Test
@@ -191,7 +193,7 @@ class NotificationsContractTest {
 
     @Test
     fun `Notificacao com dados customizados`() {
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val notificacao = Notificacao(
             id = "not-123",
             titulo = "Locação vencendo",

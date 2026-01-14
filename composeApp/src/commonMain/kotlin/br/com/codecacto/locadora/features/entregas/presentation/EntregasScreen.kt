@@ -78,8 +78,16 @@ fun EntregasScreen(
                 )
             },
             text = {
+                val equipamentoNomes = entregaParaConfirmar?.equipamentos
+                    ?.joinToString(", ") { it.nome }
+                    ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                val equipamentoLabel = if ((entregaParaConfirmar?.equipamentos?.size ?: 0) > 1) {
+                    "os equipamentos \"$equipamentoNomes\""
+                } else {
+                    "o equipamento \"$equipamentoNomes\""
+                }
                 Text(
-                    text = "Deseja marcar como entregue o equipamento \"${entregaParaConfirmar?.equipamento?.nome}\" para o cliente \"${entregaParaConfirmar?.cliente?.nomeRazao}\"?"
+                    text = "Deseja marcar como entregue $equipamentoLabel para o cliente \"${entregaParaConfirmar?.cliente?.nomeRazao}\"?"
                 )
             },
             confirmButton = {
@@ -322,8 +330,13 @@ private fun EntregaCard(
                         fontSize = 16.sp,
                         color = AppColors.Slate900
                     )
+                    val equipamentoNomes = if (entrega.equipamentos.isNotEmpty()) {
+                        entrega.equipamentos.joinToString(", ") { it.nome }
+                    } else {
+                        Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                    }
                     Text(
-                        text = entrega.equipamento?.nome ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO,
+                        text = equipamentoNomes,
                         fontSize = 14.sp,
                         color = AppColors.Slate600
                     )

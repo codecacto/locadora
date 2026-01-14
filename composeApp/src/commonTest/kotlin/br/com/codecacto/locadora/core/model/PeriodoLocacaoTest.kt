@@ -2,6 +2,7 @@ package br.com.codecacto.locadora.core.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Testes unitários para o enum PeriodoLocacao.
@@ -50,9 +51,10 @@ class PeriodoLocacaoTest {
     fun `PeriodoLocacao dias devem ser crescentes`() {
         val entries = PeriodoLocacao.entries
         for (i in 0 until entries.size - 1) {
-            assert(entries[i].dias < entries[i + 1].dias) {
+            assertTrue(
+                entries[i].dias < entries[i + 1].dias,
                 "${entries[i].name} deveria ter menos dias que ${entries[i + 1].name}"
-            }
+            )
         }
     }
 }

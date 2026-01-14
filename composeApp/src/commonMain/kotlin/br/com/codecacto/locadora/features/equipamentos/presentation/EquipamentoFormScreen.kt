@@ -188,24 +188,196 @@ fun EquipamentoFormScreen(
                     singleLine = true
                 )
 
-                // Identificação
-                OutlinedTextField(
-                    value = state.identificacao,
-                    onValueChange = { viewModel.dispatch(EquipamentosContract.Action.SetIdentificacao(it)) },
-                    enabled = equipamentoSelecionado,
-                    label = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO) },
-                    placeholder = { Text(Strings.EQUIPAMENTO_FORM_IDENTIFICACAO_PLACEHOLDER) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Tag,
-                            contentDescription = null,
-                            tint = if (equipamentoSelecionado) AppColors.Slate500 else AppColors.Slate300
-                        )
-                    },
+                // Seção de Quantidade e Patrimônio
+                Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                    colors = CardDefaults.cardColors(containerColor = AppColors.Violet100.copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Estoque e Identificação",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = AppColors.Violet600
+                        )
+
+                        // Switch para usar patrimônio
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Usar patrimônio/identificação",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    color = AppColors.Slate800
+                                )
+                                Text(
+                                    text = "Marque se precisa rastrear cada unidade individualmente",
+                                    fontSize = 12.sp,
+                                    color = AppColors.Slate500
+                                )
+                            }
+                            Switch(
+                                checked = state.usaPatrimonio,
+                                onCheckedChange = {
+                                    viewModel.dispatch(EquipamentosContract.Action.SetUsaPatrimonio(it))
+                                },
+                                enabled = equipamentoSelecionado,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = AppColors.Violet600,
+                                    checkedTrackColor = AppColors.Violet200
+                                )
+                            )
+                        }
+
+                        if (state.usaPatrimonio) {
+                            // Lista de patrimônios
+                            HorizontalDivider(color = AppColors.Violet200)
+
+                            Text(
+                                text = "Patrimônios cadastrados: ${state.patrimonios.size}",
+                                fontSize = 12.sp,
+                                color = AppColors.Slate600
+                            )
+
+                            state.patrimonios.forEachIndexed { index, patrimonio ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            OutlinedTextField(
+                                                value = patrimonio.codigo,
+                                                onValueChange = {
+                                                    viewModel.dispatch(EquipamentosContract.Action.UpdatePatrimonioCodigo(index, it))
+                                                },
+                                                label = { Text("Código *") },
+                                                placeholder = { Text("Ex: PAT-001") },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(8.dp),
+                                                singleLine = true
+                                            )
+                                            OutlinedTextField(
+                                                value = patrimonio.descricao ?: "",
+                                                onValueChange = {
+                                                    viewModel.dispatch(EquipamentosContract.Action.UpdatePatrimonioDescricao(index, it))
+                                                },
+                                                label = { Text("Descrição") },
+                                                placeholder = { Text("Ex: Cor amarela") },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(8.dp),
+                                                singleLine = true
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                viewModel.dispatch(EquipamentosContract.Action.RemovePatrimonio(index))
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Remover",
+                                                tint = AppColors.Red
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Botão para adicionar patrimônio
+                            OutlinedButton(
+                                onClick = {
+                                    viewModel.dispatch(EquipamentosContract.Action.AddPatrimonio)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = AppColors.Violet600
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Adicionar patrimônio")
+                            }
+                        } else {
+                            // Campo de quantidade (se não usa patrimônio)
+                            HorizontalDivider(color = AppColors.Violet200)
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Quantidade em estoque",
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 14.sp,
+                                        color = AppColors.Slate800
+                                    )
+                                    Text(
+                                        text = "Total de unidades disponíveis",
+                                        fontSize = 12.sp,
+                                        color = AppColors.Slate500
+                                    )
+                                }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.dispatch(EquipamentosContract.Action.SetQuantidade(state.quantidade - 1))
+                                        },
+                                        enabled = state.quantidade > 1
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Remove,
+                                            contentDescription = "Diminuir",
+                                            tint = if (state.quantidade > 1) AppColors.Violet600 else AppColors.Slate300
+                                        )
+                                    }
+                                    Text(
+                                        text = state.quantidade.toString(),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = AppColors.Violet600
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.dispatch(EquipamentosContract.Action.SetQuantidade(state.quantidade + 1))
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "Aumentar",
+                                            tint = AppColors.Violet600
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Valor de Compra
                 OutlinedTextField(

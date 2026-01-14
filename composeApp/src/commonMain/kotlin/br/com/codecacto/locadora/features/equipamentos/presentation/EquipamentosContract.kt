@@ -5,6 +5,7 @@ import br.com.codecacto.locadora.core.base.UiEffect
 import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.CategoriaEquipamento
 import br.com.codecacto.locadora.core.model.Equipamento
+import br.com.codecacto.locadora.core.model.Patrimonio
 
 data class EquipamentoComStatus(
     val equipamento: Equipamento,
@@ -31,6 +32,10 @@ object EquipamentosContract {
         val precoMensal: String = "",
         val valorCompra: String = "",
         val observacoes: String = "",
+        // Novos campos para quantidade e patrimônios
+        val quantidade: Int = 1,
+        val usaPatrimonio: Boolean = false,
+        val patrimonios: List<Patrimonio> = emptyList(),
         val error: String? = null
     ) : UiState {
         val filteredEquipamentos: List<EquipamentoComStatus>
@@ -60,6 +65,13 @@ object EquipamentosContract {
         data class SetPrecoMensal(val value: String) : Action()
         data class SetValorCompra(val value: String) : Action()
         data class SetObservacoes(val value: String) : Action()
+        // Novas actions para quantidade e patrimônios
+        data class SetQuantidade(val value: Int) : Action()
+        data class SetUsaPatrimonio(val value: Boolean) : Action()
+        data object AddPatrimonio : Action()
+        data class RemovePatrimonio(val index: Int) : Action()
+        data class UpdatePatrimonioCodigo(val index: Int, val codigo: String) : Action()
+        data class UpdatePatrimonioDescricao(val index: Int, val descricao: String) : Action()
         data object SaveEquipamento : Action()
         data object Refresh : Action()
         data object ClearForm : Action()

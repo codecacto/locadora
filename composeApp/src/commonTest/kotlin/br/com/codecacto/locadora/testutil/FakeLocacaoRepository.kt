@@ -1,5 +1,9 @@
 package br.com.codecacto.locadora.testutil
 
+import br.com.codecacto.locadora.currentTimeMillis
+
+import br.com.codecacto.locadora.core.model.DisponibilidadeEquipamento
+import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.StatusColeta
 import br.com.codecacto.locadora.core.model.StatusEntrega
@@ -49,7 +53,7 @@ class FakeLocacaoRepository : LocacaoRepository {
     override suspend fun updateLocacao(locacao: Locacao) {
         if (shouldThrowOnUpdate) throw exceptionToThrow
 
-        var updatedLocacao = locacao.copy(atualizadoEm = System.currentTimeMillis())
+        var updatedLocacao = locacao.copy(atualizadoEm = currentTimeMillis())
 
         // Auto-finalizar se pagamento e coleta estiverem concluídos
         if (updatedLocacao.statusPagamento == StatusPagamento.PAGO &&
@@ -70,7 +74,7 @@ class FakeLocacaoRepository : LocacaoRepository {
 
     override suspend fun marcarPago(id: String) {
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         var updatedLocacao = locacao.copy(
             statusPagamento = StatusPagamento.PAGO,
             dataPagamento = now,
@@ -88,7 +92,7 @@ class FakeLocacaoRepository : LocacaoRepository {
 
     override suspend fun marcarEntregue(id: String) {
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val updatedLocacao = locacao.copy(
             statusEntrega = StatusEntrega.ENTREGUE,
             dataEntregaReal = now,
@@ -102,7 +106,7 @@ class FakeLocacaoRepository : LocacaoRepository {
 
     override suspend fun marcarColetado(id: String) {
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         var updatedLocacao = locacao.copy(
             statusColeta = StatusColeta.COLETADO,
             dataColeta = now,
@@ -122,7 +126,7 @@ class FakeLocacaoRepository : LocacaoRepository {
         val locacao = getLocacaoById(id) ?: return
         val updatedLocacao = locacao.copy(
             notaEmitida = true,
-            atualizadoEm = System.currentTimeMillis()
+            atualizadoEm = currentTimeMillis()
         )
 
         locacoesFlow.value = locacoesFlow.value.map {
@@ -132,7 +136,7 @@ class FakeLocacaoRepository : LocacaoRepository {
 
     override suspend fun renovarLocacao(id: String, novaDataFim: Long, novoValor: Double?) {
         val locacao = getLocacaoById(id) ?: return
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val updatedLocacao = locacao.copy(
             dataFimPrevista = novaDataFim,
             valorLocacao = novoValor ?: locacao.valorLocacao,
@@ -149,9 +153,38 @@ class FakeLocacaoRepository : LocacaoRepository {
     }
 
     override suspend fun isEquipamentoAlugado(equipamentoId: String): Boolean {
-        return locacoesFlow.value.any {
-            it.equipamentoId == equipamentoId && it.statusLocacao == StatusLocacao.ATIVA
+        return locacoesFlow.value.any { locacao ->
+            locacao.statusLocacao == StatusLocacao.ATIVA &&
+            locacao.getEquipamentoIdsList().contains(equipamentoId)
         }
+    }
+
+    override suspend fun getLocacoesAtivasList(): List<Locacao> {
+        return locacoesFlow.value.filter { it.statusLocacao == StatusLocacao.ATIVA }
+    }
+
+    override suspend fun getDisponibilidadeEquipamento(equipamento: Equipamento): DisponibilidadeEquipamento {
+        val locacoesAtivas = getLocacoesAtivasList()
+
+        var quantidadeAlugada = 0
+        val patrimoniosAlugadosIds = mutableSetOf<String>()
+
+        for (locacao in locacoesAtivas) {
+            val itens = locacao.getItensList()
+            for (item in itens) {
+                if (item.equipamentoId == equipamento.id) {
+                    quantidadeAlugada += item.quantidade
+                    patrimoniosAlugadosIds.addAll(item.patrimonioIds)
+                }
+            }
+        }
+
+        return DisponibilidadeEquipamento(
+            equipamento = equipamento,
+            quantidadeTotal = equipamento.quantidade,
+            quantidadeAlugada = quantidadeAlugada,
+            patrimoniosAlugadosIds = patrimoniosAlugadosIds
+        )
     }
 
     // Helpers para testes

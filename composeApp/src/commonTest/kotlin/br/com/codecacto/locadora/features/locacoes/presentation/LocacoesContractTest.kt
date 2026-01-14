@@ -35,13 +35,14 @@ class LocacoesContractTest {
         val comDetalhes = LocacaoComDetalhes(
             locacao = locacao,
             cliente = cliente,
-            equipamento = equipamento,
+            equipamentos = listOf(equipamento),
             statusPrazo = StatusPrazo.NORMAL
         )
 
         assertEquals(locacao, comDetalhes.locacao)
         assertEquals(cliente, comDetalhes.cliente)
-        assertEquals(equipamento, comDetalhes.equipamento)
+        assertEquals(1, comDetalhes.equipamentos.size)
+        assertEquals(equipamento, comDetalhes.equipamentos.first())
         assertEquals(StatusPrazo.NORMAL, comDetalhes.statusPrazo)
     }
 
@@ -52,12 +53,12 @@ class LocacoesContractTest {
         val comDetalhes = LocacaoComDetalhes(
             locacao = locacao,
             cliente = null,
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.NORMAL
         )
 
         assertNull(comDetalhes.cliente)
-        assertNull(comDetalhes.equipamento)
+        assertTrue(comDetalhes.equipamentos.isEmpty())
     }
 
     @Test
@@ -67,7 +68,7 @@ class LocacoesContractTest {
         val comDetalhes = LocacaoComDetalhes(
             locacao = locacao,
             cliente = null,
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.VENCIDO
         )
 
@@ -81,11 +82,33 @@ class LocacoesContractTest {
         val comDetalhes = LocacaoComDetalhes(
             locacao = locacao,
             cliente = null,
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.PROXIMO_VENCIMENTO
         )
 
         assertEquals(StatusPrazo.PROXIMO_VENCIMENTO, comDetalhes.statusPrazo)
+    }
+
+    @Test
+    fun `LocacaoComDetalhes com multiplos equipamentos`() {
+        val locacao = Locacao(
+            id = "loc-1",
+            clienteId = "cli-1",
+            equipamentoIds = listOf("equip-1", "equip-2")
+        )
+        val equipamento1 = Equipamento(id = "equip-1", nome = "Betoneira", categoria = "Betoneira")
+        val equipamento2 = Equipamento(id = "equip-2", nome = "Compactador", categoria = "Compactador")
+
+        val comDetalhes = LocacaoComDetalhes(
+            locacao = locacao,
+            cliente = null,
+            equipamentos = listOf(equipamento1, equipamento2),
+            statusPrazo = StatusPrazo.NORMAL
+        )
+
+        assertEquals(2, comDetalhes.equipamentos.size)
+        assertEquals("Betoneira", comDetalhes.equipamentos[0].nome)
+        assertEquals("Compactador", comDetalhes.equipamentos[1].nome)
     }
 
     // ==================== TESTES DE STATE - Valores Padrao ====================
@@ -124,7 +147,7 @@ class LocacoesContractTest {
         val locacaoAtiva = LocacaoComDetalhes(
             locacao = Locacao(id = "1", statusLocacao = StatusLocacao.ATIVA),
             cliente = null,
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.NORMAL
         )
 
@@ -147,13 +170,13 @@ class LocacoesContractTest {
         val ativa = LocacaoComDetalhes(
             locacao = Locacao(id = "1", statusLocacao = StatusLocacao.ATIVA),
             cliente = Cliente(id = "cli-1", nomeRazao = "Cliente 1", telefoneWhatsapp = "11999998888"),
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.NORMAL
         )
         val finalizada = LocacaoComDetalhes(
             locacao = Locacao(id = "2", statusLocacao = StatusLocacao.FINALIZADA),
             cliente = Cliente(id = "cli-2", nomeRazao = "Cliente 2", telefoneWhatsapp = "11888887777"),
-            equipamento = null,
+            equipamentos = emptyList(),
             statusPrazo = StatusPrazo.NORMAL
         )
 

@@ -6,12 +6,23 @@ import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.model.LocacaoItem
 import br.com.codecacto.locadora.core.model.StatusPrazo
+
+/**
+ * Equipamento com informações do item da locação (quantidade e patrimônios)
+ */
+data class EquipamentoComQuantidade(
+    val equipamento: Equipamento,
+    val item: LocacaoItem
+)
 
 data class LocacaoComDetalhes(
     val locacao: Locacao,
     val cliente: Cliente?,
-    val equipamento: Equipamento?,
+    val equipamentos: List<Equipamento> = emptyList(),
+    // Novo: equipamentos com quantidade
+    val equipamentosComItens: List<EquipamentoComQuantidade> = emptyList(),
     val statusPrazo: StatusPrazo
 )
 

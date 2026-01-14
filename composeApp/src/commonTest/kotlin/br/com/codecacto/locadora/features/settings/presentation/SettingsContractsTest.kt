@@ -12,6 +12,100 @@ import kotlin.test.assertNull
  */
 class SettingsContractsTest {
 
+    // ==================== TESTES DE SettingsContract (Main) ====================
+
+    @Test
+    fun `Settings State inicial deve ter valores padrao`() {
+        val state = SettingsContract.State()
+
+        assertFalse(state.isLoading)
+        assertFalse(state.isDeletingAllData)
+        assertEquals("", state.currentEmail)
+    }
+
+    @Test
+    fun `Settings State com email preenchido`() {
+        val state = SettingsContract.State(
+            currentEmail = "usuario@exemplo.com"
+        )
+
+        assertEquals("usuario@exemplo.com", state.currentEmail)
+    }
+
+    @Test
+    fun `Settings State durante exclusao de dados`() {
+        val state = SettingsContract.State(
+            isDeletingAllData = true
+        )
+
+        assertTrue(state.isDeletingAllData)
+    }
+
+    @Test
+    fun `Settings Action DeleteAllData deve existir`() {
+        assertTrue(SettingsContract.Action.DeleteAllData is SettingsContract.Action)
+    }
+
+    @Test
+    fun `Settings Effect ShowSuccess deve conter mensagem correta`() {
+        val effect = SettingsContract.Effect.ShowSuccess("Todos os dados foram apagados com sucesso!")
+        assertEquals("Todos os dados foram apagados com sucesso!", effect.message)
+    }
+
+    @Test
+    fun `Settings Effect ShowError deve conter mensagem correta`() {
+        val effect = SettingsContract.Effect.ShowError("Erro ao apagar dados")
+        assertEquals("Erro ao apagar dados", effect.message)
+    }
+
+    // ==================== CENARIOS DE NEGOCIO - Apagar Todos os Dados ====================
+
+    @Test
+    fun `Cenario - fluxo de apagar todos os dados`() {
+        var state = SettingsContract.State(
+            currentEmail = "usuario@email.com"
+        )
+
+        // Estado inicial
+        assertFalse(state.isDeletingAllData)
+        assertEquals("usuario@email.com", state.currentEmail)
+
+        // Inicia exclusão
+        state = state.copy(isDeletingAllData = true)
+        assertTrue(state.isDeletingAllData)
+
+        // Finaliza exclusão com sucesso
+        state = state.copy(isDeletingAllData = false)
+        assertFalse(state.isDeletingAllData)
+    }
+
+    @Test
+    fun `Cenario - erro durante exclusao de dados`() {
+        var state = SettingsContract.State()
+
+        // Inicia exclusão
+        state = state.copy(isDeletingAllData = true)
+        assertTrue(state.isDeletingAllData)
+
+        // Simula erro - volta para estado não deletando
+        state = state.copy(isDeletingAllData = false)
+        assertFalse(state.isDeletingAllData)
+    }
+
+    @Test
+    fun `State copy deve manter isDeletingAllData independente de outros campos`() {
+        val initial = SettingsContract.State(
+            isLoading = false,
+            isDeletingAllData = true,
+            currentEmail = "test@test.com"
+        )
+
+        val updated = initial.copy(currentEmail = "novo@email.com")
+
+        assertTrue(updated.isDeletingAllData)
+        assertEquals("novo@email.com", updated.currentEmail)
+    }
+
     // ==================== TESTES DE ChangePasswordContract ====================
 
     @Test

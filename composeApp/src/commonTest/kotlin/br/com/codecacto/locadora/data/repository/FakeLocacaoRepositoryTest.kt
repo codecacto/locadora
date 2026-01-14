@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.data.repository
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusColeta
@@ -209,7 +211,7 @@ class FakeLocacaoRepositoryTest {
     @Test
     fun `renovarLocacao deve incrementar contador e atualizar data`() = runTest {
         repository.clear()
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val novaDataFim = now + (30 * 24 * 60 * 60 * 1000L) // +30 dias
         repository.addLocacaoDirectly(
             Locacao(
@@ -236,7 +238,7 @@ class FakeLocacaoRepositoryTest {
     @Test
     fun `renovarLocacao sem novo valor deve manter valor anterior`() = runTest {
         repository.clear()
-        val novaDataFim = System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
+        val novaDataFim = currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
         repository.addLocacaoDirectly(
             Locacao(id = "loc-1", valorLocacao = 500.0, qtdRenovacoes = 0)
         )
@@ -291,6 +293,48 @@ class FakeLocacaoRepositoryTest {
         assertFalse(isAlugado)
     }
 
+    @Test
+    fun `isEquipamentoAlugado com multiplos equipamentos deve retornar true para qualquer equipamento da lista`() = runTest {
+        repository.clear()
+        repository.addLocacaoDirectly(
+            Locacao(
+                id = "loc-1",
+                equipamentoIds = listOf("equip-1", "equip-2", "equip-3"),
+                statusLocacao = StatusLocacao.ATIVA
+            )
+        )
+
+        assertTrue(repository.isEquipamentoAlugado("equip-1"))
+        assertTrue(repository.isEquipamentoAlugado("equip-2"))
+        assertTrue(repository.isEquipamentoAlugado("equip-3"))
+        assertFalse(repository.isEquipamentoAlugado("equip-4"))
+    }
+
+    @Test
+    fun `isEquipamentoAlugado deve verificar campo antigo e novo para compatibilidade`() = runTest {
+        repository.clear()
+        // Locação com campo antigo (equipamentoId)
+        repository.addLocacaoDirectly(
+            Locacao(
+                id = "loc-1",
+                equipamentoId = "equip-antigo",
+                statusLocacao = StatusLocacao.ATIVA
+            )
+        )
+        // Locação com campo novo (equipamentoIds)
+        repository.addLocacaoDirectly(
+            Locacao(
+                id = "loc-2",
+                equipamentoIds = listOf("equip-novo-1", "equip-novo-2"),
+                statusLocacao = StatusLocacao.ATIVA
+            )
+        )
+
+        assertTrue(repository.isEquipamentoAlugado("equip-antigo"))
+        assertTrue(repository.isEquipamentoAlugado("equip-novo-1"))
+        assertTrue(repository.isEquipamentoAlugado("equip-novo-2"))
+    }
+
     // ==================== TESTES DE marcarNotaEmitida ====================
 
     @Test
@@ -325,7 +369,7 @@ class FakeLocacaoRepositoryTest {
     // ==================== TESTES DE FLUXO COMPLETO ====================
 
     @Test
-    fun `fluxo completo de locacao - criar, entregar, pagar, coletar, finalizar`() = runTest {
+    fun `fluxo completo de locacao - criar entregar pagar coletar finalizar`() = runTest {
         repository.clear()
 
         // 1. Criar locação

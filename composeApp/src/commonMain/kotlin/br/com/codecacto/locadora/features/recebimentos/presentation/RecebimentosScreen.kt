@@ -42,6 +42,8 @@ fun RecebimentosScreen(
 
     var showConfirmDialog by remember { mutableStateOf(false) }
     var recebimentoParaConfirmar by remember { mutableStateOf<RecebimentoComDetalhes?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var recebimentoParaExcluir by remember { mutableStateOf<RecebimentoComDetalhes?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -79,8 +81,16 @@ fun RecebimentosScreen(
                 )
             },
             text = {
+                val equipamentoNomes = recebimentoParaConfirmar?.equipamentos
+                    ?.joinToString(", ") { it.nome }
+                    ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                val equipamentoLabel = if ((recebimentoParaConfirmar?.equipamentos?.size ?: 0) > 1) {
+                    "aos equipamentos \"$equipamentoNomes\""
+                } else {
+                    "ao equipamento \"$equipamentoNomes\""
+                }
                 Text(
-                    text = "Deseja confirmar o recebimento de ${formatCurrency(recebimentoParaConfirmar?.recebimento?.valor ?: 0.0)} referente ao equipamento \"${recebimentoParaConfirmar?.equipamento?.nome}\" do cliente \"${recebimentoParaConfirmar?.cliente?.nomeRazao}\"?"
+                    text = "Deseja confirmar o recebimento de ${formatCurrency(recebimentoParaConfirmar?.recebimento?.valor ?: 0.0)} referente $equipamentoLabel do cliente \"${recebimentoParaConfirmar?.cliente?.nomeRazao}\"?"
                 )
             },
             confirmButton = {
@@ -102,6 +112,59 @@ fun RecebimentosScreen(
                     onClick = {
                         showConfirmDialog = false
                         recebimentoParaConfirmar = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Modal de Exclusão
+    if (showDeleteDialog && recebimentoParaExcluir != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                recebimentoParaExcluir = null
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = null,
+                    tint = AppColors.Red,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Excluir Recebimento",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Deseja excluir o recebimento de ${formatCurrency(recebimentoParaExcluir?.recebimento?.valor ?: 0.0)} do cliente \"${recebimentoParaExcluir?.cliente?.nomeRazao}\"? Esta ação não pode ser desfeita."
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        recebimentoParaExcluir?.let {
+                            viewModel.dispatch(RecebimentosContract.Action.DeleteRecebimento(it.recebimento.id))
+                        }
+                        showDeleteDialog = false
+                        recebimentoParaExcluir = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Red)
+                ) {
+                    Text("Excluir")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        recebimentoParaExcluir = null
                     }
                 ) {
                     Text("Cancelar")
@@ -252,12 +315,20 @@ fun RecebimentosScreen(
                                     onMarcarRecebido = {
                                         recebimentoParaConfirmar = recebimento
                                         showConfirmDialog = true
+                                    },
+                                    onDelete = {
+                                        recebimentoParaExcluir = recebimento
+                                        showDeleteDialog = true
                                     }
                                 )
                             } else {
                                 RecebimentoPagoCard(
                                     recebimento = recebimento,
-                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectRecebimento(recebimento.recebimento)) }
+                                    onClick = { viewModel.dispatch(RecebimentosContract.Action.SelectRecebimento(recebimento.recebimento)) },
+                                    onDelete = {
+                                        recebimentoParaExcluir = recebimento
+                                        showDeleteDialog = true
+                                    }
                                 )
                             }
                         }
@@ -417,8 +488,11 @@ private fun TabButton(
 private fun RecebimentoCard(
     recebimento: RecebimentoComDetalhes,
     onClick: () -> Unit,
-    onMarcarRecebido: () -> Unit
+    onMarcarRecebido: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -440,24 +514,66 @@ private fun RecebimentoCard(
                         fontSize = 16.sp,
                         color = AppColors.Slate900
                     )
+                    val equipamentoNomes = if (recebimento.equipamentos.isNotEmpty()) {
+                        recebimento.equipamentos.joinToString(", ") { it.nome }
+                    } else {
+                        Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                    }
                     Text(
-                        text = recebimento.equipamento?.nome ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO,
+                        text = equipamentoNomes,
                         fontSize = 14.sp,
                         color = AppColors.Slate600
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.YellowLight)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = Strings.STATUS_PAGAMENTO_PENDENTE,
-                        color = AppColors.Amber500,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(AppColors.YellowLight)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = Strings.STATUS_PAGAMENTO_PENDENTE,
+                            color = AppColors.Amber500,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Menu",
+                                tint = AppColors.Slate500,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Excluir", color = AppColors.Red) },
+                                onClick = {
+                                    showMenu = false
+                                    onDelete()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = AppColors.Red
+                                    )
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -589,8 +705,11 @@ private fun InfoBox(
 @Composable
 private fun RecebimentoPagoCard(
     recebimento: RecebimentoComDetalhes,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -612,24 +731,66 @@ private fun RecebimentoPagoCard(
                         fontSize = 16.sp,
                         color = AppColors.Slate900
                     )
+                    val equipamentoNomes = if (recebimento.equipamentos.isNotEmpty()) {
+                        recebimento.equipamentos.joinToString(", ") { it.nome }
+                    } else {
+                        Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                    }
                     Text(
-                        text = recebimento.equipamento?.nome ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO,
+                        text = equipamentoNomes,
                         fontSize = 14.sp,
                         color = AppColors.Slate600
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.GreenLight)
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = Strings.STATUS_PAGAMENTO_PAGO,
-                        color = AppColors.Green,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(AppColors.GreenLight)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = Strings.STATUS_PAGAMENTO_PAGO,
+                            color = AppColors.Green,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Menu",
+                                tint = AppColors.Slate500,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Excluir", color = AppColors.Red) },
+                                onClick = {
+                                    showMenu = false
+                                    onDelete()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = AppColors.Red
+                                    )
+                                }
+                            )
+                        }
+                    }
                 }
             }
 

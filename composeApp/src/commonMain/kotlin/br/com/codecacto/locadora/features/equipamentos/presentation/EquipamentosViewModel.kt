@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.Equipamento
+import br.com.codecacto.locadora.core.model.Patrimonio
 import br.com.codecacto.locadora.core.model.StatusLocacao
+import br.com.codecacto.locadora.currentTimeMillis
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepository
@@ -61,6 +63,9 @@ class EquipamentosViewModel(
                     precoMensal = "",
                     valorCompra = "",
                     observacoes = "",
+                    quantidade = 1,
+                    usaPatrimonio = false,
+                    patrimonios = emptyList(),
                     isSaving = false
                 )
             }
@@ -86,6 +91,9 @@ class EquipamentosViewModel(
                     precoMensal = precoMensalInCents,
                     valorCompra = valorCompraInCents,
                     observacoes = action.equipamento.observacoes ?: "",
+                    quantidade = action.equipamento.quantidade,
+                    usaPatrimonio = action.equipamento.usaPatrimonio,
+                    patrimonios = action.equipamento.patrimonios,
                     isSaving = false
                 )
             }
@@ -117,6 +125,46 @@ class EquipamentosViewModel(
             is EquipamentosContract.Action.SetObservacoes -> {
                 _state.value = _state.value.copy(observacoes = action.value)
             }
+            is EquipamentosContract.Action.SetQuantidade -> {
+                _state.value = _state.value.copy(quantidade = action.value.coerceAtLeast(1))
+            }
+            is EquipamentosContract.Action.SetUsaPatrimonio -> {
+                _state.value = _state.value.copy(
+                    usaPatrimonio = action.value,
+                    patrimonios = if (action.value) _state.value.patrimonios else emptyList()
+                )
+            }
+            is EquipamentosContract.Action.AddPatrimonio -> {
+                val novoPatrimonio = Patrimonio(
+                    id = currentTimeMillis().toString(),
+                    codigo = "",
+                    descricao = null
+                )
+                _state.value = _state.value.copy(
+                    patrimonios = _state.value.patrimonios + novoPatrimonio
+                )
+            }
+            is EquipamentosContract.Action.RemovePatrimonio -> {
+                val novaLista = _state.value.patrimonios.toMutableList()
+                if (action.index in novaLista.indices) {
+                    novaLista.removeAt(action.index)
+                }
+                _state.value = _state.value.copy(patrimonios = novaLista)
+            }
+            is EquipamentosContract.Action.UpdatePatrimonioCodigo -> {
+                val novaLista = _state.value.patrimonios.toMutableList()
+                if (action.index in novaLista.indices) {
+                    novaLista[action.index] = novaLista[action.index].copy(codigo = action.codigo)
+                }
+                _state.value = _state.value.copy(patrimonios = novaLista)
+            }
+            is EquipamentosContract.Action.UpdatePatrimonioDescricao -> {
+                val novaLista = _state.value.patrimonios.toMutableList()
+                if (action.index in novaLista.indices) {
+                    novaLista[action.index] = novaLista[action.index].copy(descricao = action.descricao.ifBlank { null })
+                }
+                _state.value = _state.value.copy(patrimonios = novaLista)
+            }
             is EquipamentosContract.Action.SaveEquipamento -> saveEquipamento()
             is EquipamentosContract.Action.Refresh -> refreshEquipamentos()
             is EquipamentosContract.Action.ClearForm -> {
@@ -130,7 +178,10 @@ class EquipamentosViewModel(
                     precoQuinzenal = "",
                     precoMensal = "",
                     valorCompra = "",
-                    observacoes = ""
+                    observacoes = "",
+                    quantidade = 1,
+                    usaPatrimonio = false,
+                    patrimonios = emptyList()
                 )
             }
         }
@@ -146,7 +197,7 @@ class EquipamentosViewModel(
             ) { equipamentos, locacoesAtivas ->
                 val equipamentosAlugadosIds = locacoesAtivas
                     .filter { it.statusLocacao == StatusLocacao.ATIVA }
-                    .map { it.equipamentoId }
+                    .flatMap { it.getEquipamentoIdsList() }
                     .toSet()
 
                 equipamentos.map { equipamento ->
@@ -212,6 +263,21 @@ class EquipamentosViewModel(
             try {
                 _state.value = _state.value.copy(isSaving = true)
 
+                // Validar patrimônios se usa patrimônio
+                if (currentState.usaPatrimonio) {
+                    val patrimoniosComCodigo = currentState.patrimonios.filter { it.codigo.isNotBlank() }
+                    if (patrimoniosComCodigo.isEmpty()) {
+                        emitEffect(EquipamentosContract.Effect.ShowError("Adicione pelo menos um patrimônio com código"))
+                        _state.value = _state.value.copy(isSaving = false)
+                        return@launch
+                    }
+                }
+                val patrimoniosValidos = if (currentState.usaPatrimonio) {
+                    currentState.patrimonios.filter { it.codigo.isNotBlank() }
+                } else {
+                    emptyList()
+                }
+
                 val equipamento = Equipamento(
                     id = currentState.editingEquipamento?.id ?: "",
                     nome = currentState.nome,
@@ -222,7 +288,10 @@ class EquipamentosViewModel(
                     precoQuinzenal = precoQuinzenal,
                     precoMensal = precoMensal,
                     valorCompra = valorCompra,
-                    observacoes = currentState.observacoes.ifBlank { null }
+                    observacoes = currentState.observacoes.ifBlank { null },
+                    quantidade = if (currentState.usaPatrimonio) patrimoniosValidos.size else currentState.quantidade,
+                    usaPatrimonio = currentState.usaPatrimonio,
+                    patrimonios = patrimoniosValidos
                 )
 
                 if (currentState.editingEquipamento != null) {

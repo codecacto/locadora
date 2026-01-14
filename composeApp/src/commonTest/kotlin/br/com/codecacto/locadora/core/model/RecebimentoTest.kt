@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -35,7 +37,7 @@ class RecebimentoTest {
 
     @Test
     fun `Recebimento criado com dados deve manter valores`() {
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val vencimento = now + (7 * 24 * 60 * 60 * 1000L) // 7 dias
 
         val recebimento = Recebimento(
@@ -78,7 +80,7 @@ class RecebimentoTest {
         val pendente = Recebimento(status = StatusPagamento.PENDENTE)
         val pago = pendente.copy(
             status = StatusPagamento.PAGO,
-            dataPagamento = System.currentTimeMillis()
+            dataPagamento = currentTimeMillis()
         )
 
         assertEquals(StatusPagamento.PENDENTE, pendente.status)
@@ -138,7 +140,7 @@ class RecebimentoTest {
 
         val atualizado = original.copy(
             status = StatusPagamento.PAGO,
-            dataPagamento = System.currentTimeMillis()
+            dataPagamento = currentTimeMillis()
         )
 
         // Original deve permanecer inalterado

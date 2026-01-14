@@ -10,7 +10,7 @@ import br.com.codecacto.locadora.core.model.Recebimento
 data class RecebimentoComDetalhes(
     val recebimento: Recebimento,
     val cliente: Cliente?,
-    val equipamento: Equipamento?
+    val equipamentos: List<Equipamento> = emptyList()
 )
 
 data class MesAno(
@@ -39,6 +39,7 @@ object RecebimentosContract {
     sealed class Action : UiAction {
         data class SelectTab(val tab: Int) : Action()
         data class MarcarRecebido(val recebimentoId: String) : Action()
+        data class DeleteRecebimento(val recebimentoId: String) : Action()
         data class SelectRecebimento(val recebimento: Recebimento) : Action()
         data class SelectMes(val mesAno: MesAno?) : Action()
         data object Refresh : Action()

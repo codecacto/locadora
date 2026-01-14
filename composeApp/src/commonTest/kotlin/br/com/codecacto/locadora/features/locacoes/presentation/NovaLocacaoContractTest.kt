@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.features.locacoes.presentation
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
@@ -16,6 +18,10 @@ import kotlin.test.assertNotNull
  */
 class NovaLocacaoContractTest {
 
+    // Helper para criar ItemSelecionado
+    private fun itemSelecionado(equipamento: Equipamento, quantidade: Int = 1) =
+        NovaLocacaoContract.ItemSelecionado(equipamento = equipamento, quantidade = quantidade)
+
     // ==================== TESTES DE STATE - Valores Padrao ====================
 
     @Test
@@ -27,7 +33,8 @@ class NovaLocacaoContractTest {
         assertTrue(state.clientes.isEmpty())
         assertTrue(state.equipamentosDisponiveis.isEmpty())
         assertNull(state.clienteSelecionado)
-        assertNull(state.equipamentoSelecionado)
+        assertTrue(state.equipamentosSelecionados.isEmpty())
+        assertTrue(state.itensSelecionados.isEmpty())
         assertTrue(state.periodosDisponiveis.isEmpty())
         assertNull(state.periodoSelecionado)
         assertEquals("", state.valorLocacao)
@@ -98,11 +105,13 @@ class NovaLocacaoContractTest {
             precoDiario = 100.0,
             precoSemanal = 500.0
         )
-        val state = NovaLocacaoContract.State(equipamentoSelecionado = equipamento)
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(itemSelecionado(equipamento))
+        )
 
-        assertNotNull(state.equipamentoSelecionado)
-        assertEquals("eq-1", state.equipamentoSelecionado!!.id)
-        assertEquals(100.0, state.equipamentoSelecionado!!.precoDiario)
+        assertEquals(1, state.equipamentosSelecionados.size)
+        assertEquals("eq-1", state.equipamentosSelecionados.firstOrNull()?.id)
+        assertEquals(100.0, state.equipamentosSelecionados.firstOrNull()?.precoDiario)
     }
 
     @Test
@@ -125,7 +134,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `State com datas definidas`() {
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val futuro = now + (30 * 24 * 60 * 60 * 1000L) // 30 dias
 
         val state = NovaLocacaoContract.State(
@@ -150,7 +159,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `State com status entrega AGENDADA e data prevista`() {
-        val dataEntrega = System.currentTimeMillis() + (2 * 24 * 60 * 60 * 1000L) // 2 dias
+        val dataEntrega = currentTimeMillis() + (2 * 24 * 60 * 60 * 1000L) // 2 dias
 
         val state = NovaLocacaoContract.State(
             statusEntrega = StatusEntrega.AGENDADA,
@@ -199,12 +208,35 @@ class NovaLocacaoContractTest {
     }
 
     @Test
-    fun `Action SelectEquipamento deve conter equipamento correto`() {
+    fun `Action AddEquipamento deve conter equipamento correto`() {
         val equipamento = Equipamento(id = "eq-1", nome = "Betoneira")
-        val action = NovaLocacaoContract.Action.SelectEquipamento(equipamento)
+        val action = NovaLocacaoContract.Action.AddEquipamento(equipamento)
 
         assertEquals("eq-1", action.equipamento.id)
         assertEquals("Betoneira", action.equipamento.nome)
+    }
+
+    @Test
+    fun `Action RemoveEquipamento deve conter equipamentoId correto`() {
+        val action = NovaLocacaoContract.Action.RemoveEquipamento("eq-1")
+
+        assertEquals("eq-1", action.equipamentoId)
+    }
+
+    @Test
+    fun `Action SetQuantidadeItem deve conter valores corretos`() {
+        val action = NovaLocacaoContract.Action.SetQuantidadeItem("eq-1", 5)
+
+        assertEquals("eq-1", action.equipamentoId)
+        assertEquals(5, action.quantidade)
+    }
+
+    @Test
+    fun `Action TogglePatrimonio deve conter valores corretos`() {
+        val action = NovaLocacaoContract.Action.TogglePatrimonio("eq-1", "pat-1")
+
+        assertEquals("eq-1", action.equipamentoId)
+        assertEquals("pat-1", action.patrimonioId)
     }
 
     @Test
@@ -224,7 +256,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Action SetDataInicio deve conter data correta`() {
-        val data = System.currentTimeMillis()
+        val data = currentTimeMillis()
         val action = NovaLocacaoContract.Action.SetDataInicio(data)
 
         assertEquals(data, action.data)
@@ -232,7 +264,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Action SetDataFimPrevista deve conter data correta`() {
-        val data = System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
+        val data = currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
         val action = NovaLocacaoContract.Action.SetDataFimPrevista(data)
 
         assertEquals(data, action.data)
@@ -240,7 +272,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Action SetDataVencimentoPagamento deve conter data correta`() {
-        val data = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+        val data = currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
         val action = NovaLocacaoContract.Action.SetDataVencimentoPagamento(data)
 
         assertEquals(data, action.data)
@@ -255,7 +287,7 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Action SetDataEntregaPrevista deve conter data correta`() {
-        val data = System.currentTimeMillis() + (24 * 60 * 60 * 1000L)
+        val data = currentTimeMillis() + (24 * 60 * 60 * 1000L)
         val action = NovaLocacaoContract.Action.SetDataEntregaPrevista(data)
 
         assertEquals(data, action.data)
@@ -286,6 +318,130 @@ class NovaLocacaoContractTest {
     fun `Action ClearForm deve existir`() {
         val action = NovaLocacaoContract.Action.ClearForm
         assertTrue(action is NovaLocacaoContract.Action)
+    }
+
+    // ==================== TESTES DE STATE - Multiplos Equipamentos ====================
+
+    @Test
+    fun `State com multiplos equipamentos selecionados`() {
+        val equipamento1 = Equipamento(id = "eq-1", nome = "Betoneira 400L", precoDiario = 100.0)
+        val equipamento2 = Equipamento(id = "eq-2", nome = "Andaime 1.5m", precoDiario = 50.0)
+        val equipamento3 = Equipamento(id = "eq-3", nome = "Compactador", precoDiario = 80.0)
+
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(
+                itemSelecionado(equipamento1),
+                itemSelecionado(equipamento2),
+                itemSelecionado(equipamento3)
+            )
+        )
+
+        assertEquals(3, state.equipamentosSelecionados.size)
+        assertEquals("eq-1", state.equipamentosSelecionados[0].id)
+        assertEquals("eq-2", state.equipamentosSelecionados[1].id)
+        assertEquals("eq-3", state.equipamentosSelecionados[2].id)
+    }
+
+    @Test
+    fun `State equipamentosSelecionados lista vazia por padrao`() {
+        val state = NovaLocacaoContract.State()
+
+        assertTrue(state.equipamentosSelecionados.isEmpty())
+        assertEquals(0, state.equipamentosSelecionados.size)
+    }
+
+    @Test
+    fun `Cenario - adicionar equipamento a lista`() {
+        val equipamento1 = Equipamento(id = "eq-1", nome = "Betoneira", precoDiario = 100.0)
+        val equipamento2 = Equipamento(id = "eq-2", nome = "Andaime", precoDiario = 50.0)
+
+        // Estado inicial sem equipamentos
+        var state = NovaLocacaoContract.State()
+        assertTrue(state.equipamentosSelecionados.isEmpty())
+
+        // Adiciona primeiro equipamento
+        state = state.copy(itensSelecionados = listOf(itemSelecionado(equipamento1)))
+        assertEquals(1, state.equipamentosSelecionados.size)
+        assertEquals("eq-1", state.equipamentosSelecionados[0].id)
+
+        // Adiciona segundo equipamento
+        state = state.copy(
+            itensSelecionados = state.itensSelecionados + itemSelecionado(equipamento2)
+        )
+        assertEquals(2, state.equipamentosSelecionados.size)
+        assertEquals("eq-1", state.equipamentosSelecionados[0].id)
+        assertEquals("eq-2", state.equipamentosSelecionados[1].id)
+    }
+
+    @Test
+    fun `Cenario - remover equipamento da lista`() {
+        val equipamento1 = Equipamento(id = "eq-1", nome = "Betoneira", precoDiario = 100.0)
+        val equipamento2 = Equipamento(id = "eq-2", nome = "Andaime", precoDiario = 50.0)
+        val equipamento3 = Equipamento(id = "eq-3", nome = "Compactador", precoDiario = 80.0)
+
+        // Estado inicial com 3 equipamentos
+        var state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(
+                itemSelecionado(equipamento1),
+                itemSelecionado(equipamento2),
+                itemSelecionado(equipamento3)
+            )
+        )
+        assertEquals(3, state.equipamentosSelecionados.size)
+
+        // Remove equipamento do meio (eq-2)
+        state = state.copy(
+            itensSelecionados = state.itensSelecionados.filter { it.equipamento.id != "eq-2" }
+        )
+        assertEquals(2, state.equipamentosSelecionados.size)
+        assertEquals("eq-1", state.equipamentosSelecionados[0].id)
+        assertEquals("eq-3", state.equipamentosSelecionados[1].id)
+
+        // Remove primeiro equipamento
+        state = state.copy(
+            itensSelecionados = state.itensSelecionados.filter { it.equipamento.id != "eq-1" }
+        )
+        assertEquals(1, state.equipamentosSelecionados.size)
+        assertEquals("eq-3", state.equipamentosSelecionados[0].id)
+
+        // Remove ultimo equipamento
+        state = state.copy(
+            itensSelecionados = state.itensSelecionados.filter { it.equipamento.id != "eq-3" }
+        )
+        assertTrue(state.equipamentosSelecionados.isEmpty())
+    }
+
+    @Test
+    fun `State com item com quantidade maior que 1`() {
+        val equipamento = Equipamento(id = "eq-1", nome = "Escora", precoDiario = 10.0)
+
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(itemSelecionado(equipamento, quantidade = 50))
+        )
+
+        assertEquals(1, state.itensSelecionados.size)
+        assertEquals(50, state.itensSelecionados[0].quantidade)
+    }
+
+    @Test
+    fun `State com item com patrimonios selecionados`() {
+        val equipamento = Equipamento(id = "eq-1", nome = "Betoneira", precoDiario = 100.0)
+
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(
+                NovaLocacaoContract.ItemSelecionado(
+                    equipamento = equipamento,
+                    quantidade = 2,
+                    patrimonioIds = listOf("pat-1", "pat-2")
+                )
+            )
+        )
+
+        assertEquals(1, state.itensSelecionados.size)
+        assertEquals(2, state.itensSelecionados[0].quantidade)
+        assertEquals(2, state.itensSelecionados[0].patrimonioIds.size)
+        assertTrue(state.itensSelecionados[0].patrimonioIds.contains("pat-1"))
+        assertTrue(state.itensSelecionados[0].patrimonioIds.contains("pat-2"))
     }
 
     // ==================== TESTES DE Effects ====================
@@ -337,14 +493,14 @@ class NovaLocacaoContractTest {
 
         // Seleciona equipamento
         state = state.copy(
-            equipamentoSelecionado = equipamentos[0],
+            itensSelecionados = listOf(itemSelecionado(equipamentos[0])),
             periodosDisponiveis = listOf(
                 PeriodoLocacao.DIARIO,
                 PeriodoLocacao.SEMANAL,
                 PeriodoLocacao.MENSAL
             )
         )
-        assertNotNull(state.equipamentoSelecionado)
+        assertEquals(1, state.equipamentosSelecionados.size)
         assertEquals(3, state.periodosDisponiveis.size)
 
         // Seleciona periodo
@@ -356,7 +512,7 @@ class NovaLocacaoContractTest {
         assertEquals("1500.00", state.valorLocacao)
 
         // Define datas
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         state = state.copy(
             dataInicio = now,
             dataFimPrevista = now + (30 * 24 * 60 * 60 * 1000L)
@@ -382,7 +538,9 @@ class NovaLocacaoContractTest {
     fun `Cenario - limpar formulario`() {
         val state = NovaLocacaoContract.State(
             clienteSelecionado = Cliente(id = "cli-1", nomeRazao = "João"),
-            equipamentoSelecionado = Equipamento(id = "eq-1", nome = "Betoneira"),
+            itensSelecionados = listOf(
+                itemSelecionado(Equipamento(id = "eq-1", nome = "Betoneira"))
+            ),
             periodoSelecionado = PeriodoLocacao.MENSAL,
             valorLocacao = "1500.00",
             statusEntrega = StatusEntrega.AGENDADA
@@ -392,7 +550,7 @@ class NovaLocacaoContractTest {
         val stateLimpo = NovaLocacaoContract.State()
 
         assertNull(stateLimpo.clienteSelecionado)
-        assertNull(stateLimpo.equipamentoSelecionado)
+        assertTrue(stateLimpo.equipamentosSelecionados.isEmpty())
         assertNull(stateLimpo.periodoSelecionado)
         assertEquals("", stateLimpo.valorLocacao)
         assertEquals(StatusEntrega.NAO_AGENDADA, stateLimpo.statusEntrega)
@@ -402,7 +560,9 @@ class NovaLocacaoContractTest {
     fun `Cenario - erro ao criar locacao`() {
         var state = NovaLocacaoContract.State(
             clienteSelecionado = Cliente(id = "cli-1", nomeRazao = "João"),
-            equipamentoSelecionado = Equipamento(id = "eq-1", nome = "Betoneira"),
+            itensSelecionados = listOf(
+                itemSelecionado(Equipamento(id = "eq-1", nome = "Betoneira"))
+            ),
             periodoSelecionado = PeriodoLocacao.MENSAL,
             valorLocacao = "1500.00",
             isSaving = true
@@ -460,14 +620,10 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Cenario - locacao diaria com sabado e domingo`() {
-        val equipamento = Equipamento(
-            id = "eq-1",
-            nome = "Betoneira",
-            precoDiario = 100.0
-        )
+        val equipamento = Equipamento(id = "eq-1", nome = "Betoneira", precoDiario = 100.0)
 
-        var state = NovaLocacaoContract.State(
-            equipamentoSelecionado = equipamento,
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(itemSelecionado(equipamento)),
             periodoSelecionado = PeriodoLocacao.DIARIO,
             incluiSabado = true,
             incluiDomingo = true,
@@ -483,14 +639,10 @@ class NovaLocacaoContractTest {
 
     @Test
     fun `Cenario - locacao diaria sem sabado e domingo`() {
-        val equipamento = Equipamento(
-            id = "eq-1",
-            nome = "Betoneira",
-            precoDiario = 100.0
-        )
+        val equipamento = Equipamento(id = "eq-1", nome = "Betoneira", precoDiario = 100.0)
 
-        var state = NovaLocacaoContract.State(
-            equipamentoSelecionado = equipamento,
+        val state = NovaLocacaoContract.State(
+            itensSelecionados = listOf(itemSelecionado(equipamento)),
             periodoSelecionado = PeriodoLocacao.DIARIO,
             incluiSabado = false,
             incluiDomingo = false,
@@ -541,7 +693,7 @@ class NovaLocacaoContractTest {
 
         // Estado inicial com periodo diario
         var state = NovaLocacaoContract.State(
-            equipamentoSelecionado = equipamento,
+            itensSelecionados = listOf(itemSelecionado(equipamento)),
             periodoSelecionado = PeriodoLocacao.DIARIO,
             valorLocacao = "10000" // R$ 100,00 em centavos
         )

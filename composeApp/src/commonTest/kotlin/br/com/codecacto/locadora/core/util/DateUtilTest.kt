@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.core.util
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Locacao
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusLocacao
@@ -71,7 +73,7 @@ class DateUtilTest {
 
     @Test
     fun `calcularDataFim - com data real`() {
-        val dataInicio = System.currentTimeMillis()
+        val dataInicio = currentTimeMillis()
         val periodo = PeriodoLocacao.SEMANAL
         val diasEmMillis = periodo.dias * UM_DIA_MS
         val dataFim = dataInicio + diasEmMillis
@@ -84,7 +86,7 @@ class DateUtilTest {
 
     @Test
     fun `calcularDiasRestantes - 10 dias no futuro`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + (10 * UM_DIA_MS)
         val diffDays = ((dataFim - hoje) / UM_DIA_MS).toInt()
 
@@ -92,8 +94,8 @@ class DateUtilTest {
     }
 
     @Test
-    fun `calcularDiasRestantes - hoje (0 dias)`() {
-        val hoje = System.currentTimeMillis()
+    fun `calcularDiasRestantes - hoje com 0 dias`() {
+        val hoje = currentTimeMillis()
         val dataFim = hoje
         val diffDays = ((dataFim - hoje) / UM_DIA_MS).toInt()
 
@@ -101,8 +103,8 @@ class DateUtilTest {
     }
 
     @Test
-    fun `calcularDiasRestantes - 5 dias atrasado (negativo)`() {
-        val hoje = System.currentTimeMillis()
+    fun `calcularDiasRestantes - 5 dias atrasado e negativo`() {
+        val hoje = currentTimeMillis()
         val dataFim = hoje - (5 * UM_DIA_MS)
         val diffDays = ((dataFim - hoje) / UM_DIA_MS).toInt()
 
@@ -115,7 +117,7 @@ class DateUtilTest {
     fun `statusPrazo - locacao FINALIZADA sempre retorna NORMAL`() {
         val locacao = Locacao(
             statusLocacao = StatusLocacao.FINALIZADA,
-            dataFimPrevista = System.currentTimeMillis() - (10 * UM_DIA_MS) // 10 dias atrasado
+            dataFimPrevista = currentTimeMillis() - (10 * UM_DIA_MS) // 10 dias atrasado
         )
 
         // Lógica: se FINALIZADA, retorna NORMAL independente da data
@@ -130,7 +132,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao vencida retorna VENCIDO`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje - UM_DIA_MS // Ontem
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -140,7 +142,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao vencendo amanha retorna PROXIMO_VENCIMENTO`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + UM_DIA_MS // Amanhã (1 dia)
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -151,7 +153,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao vencendo em 2 dias retorna PROXIMO_VENCIMENTO`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + (2 * UM_DIA_MS) // 2 dias
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -162,7 +164,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao vencendo em 3 dias retorna NORMAL`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + (3 * UM_DIA_MS) // 3 dias
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -173,7 +175,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao vencendo em 30 dias retorna NORMAL`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + (30 * UM_DIA_MS) // 30 dias
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -183,7 +185,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - locacao venceu hoje retorna PROXIMO_VENCIMENTO`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje // Hoje mesmo
 
         val status = calcularStatusPrazoPorData(dataFim)
@@ -201,7 +203,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - exatamente no limite de alerta`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + (DIAS_ALERTA * UM_DIA_MS)
         val diffDays = ((dataFim - hoje) / UM_DIA_MS).toInt()
 
@@ -213,7 +215,7 @@ class DateUtilTest {
 
     @Test
     fun `statusPrazo - um dia apos limite de alerta`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + ((DIAS_ALERTA + 1) * UM_DIA_MS)
         val diffDays = ((dataFim - hoje) / UM_DIA_MS).toInt()
 
@@ -227,7 +229,7 @@ class DateUtilTest {
 
     @Test
     fun `Cenario - locacao nova com periodo mensal`() {
-        val dataInicio = System.currentTimeMillis()
+        val dataInicio = currentTimeMillis()
         val periodo = PeriodoLocacao.MENSAL
         val dataFim = dataInicio + (periodo.dias * UM_DIA_MS)
 
@@ -243,7 +245,7 @@ class DateUtilTest {
 
     @Test
     fun `Cenario - locacao renovada ainda dentro do prazo`() {
-        val dataInicio = System.currentTimeMillis()
+        val dataInicio = currentTimeMillis()
         val periodo = PeriodoLocacao.SEMANAL
         val dataFim = dataInicio + (periodo.dias * UM_DIA_MS) // 7 dias
 
@@ -260,7 +262,7 @@ class DateUtilTest {
 
     @Test
     fun `Cenario - locacao prestes a vencer precisa alerta`() {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val dataFim = hoje + UM_DIA_MS // Amanhã
 
         val locacao = Locacao(
@@ -291,7 +293,7 @@ class DateUtilTest {
     }
 
     @Test
-    fun `calcularDiasLocacao - apenas dias uteis (sem sabado e domingo)`() {
+    fun `calcularDiasLocacao - apenas dias uteis sem sabado e domingo`() {
         // Para testar corretamente, precisamos usar datas reais
         // Uma semana completa de segunda a domingo
         val dataInicio = 0L
@@ -378,7 +380,7 @@ class DateUtilTest {
 
     @Test
     fun `calcularDiasLocacao - data inicio igual a data fim retorna 0`() {
-        val data = System.currentTimeMillis()
+        val data = currentTimeMillis()
 
         val dias = calcularDiasLocacao(
             dataInicioMillis = data,
@@ -429,7 +431,7 @@ class DateUtilTest {
      * Esta função replica a lógica do ViewModel para permitir testes unitários.
      */
     private fun calcularStatusPrazoPorData(dataFimPrevista: Long): StatusPrazo {
-        val hoje = System.currentTimeMillis()
+        val hoje = currentTimeMillis()
         val diffDays = ((dataFimPrevista - hoje) / UM_DIA_MS).toInt()
 
         return when {

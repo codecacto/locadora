@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -117,7 +119,7 @@ class LocacaoTest {
 
     @Test
     fun `Locacao criada com dados deve manter valores`() {
-        val now = System.currentTimeMillis()
+        val now = currentTimeMillis()
         val locacao = Locacao(
             id = "loc-123",
             clienteId = "cli-456",
@@ -158,7 +160,7 @@ class LocacaoTest {
 
         val atualizada = original.copy(
             statusPagamento = StatusPagamento.PAGO,
-            dataPagamento = System.currentTimeMillis()
+            dataPagamento = currentTimeMillis()
         )
 
         // Original deve permanecer inalterada
@@ -181,7 +183,7 @@ class LocacaoTest {
         val locacao = Locacao(statusEntrega = StatusEntrega.NAO_AGENDADA)
         val agendada = locacao.copy(
             statusEntrega = StatusEntrega.AGENDADA,
-            dataEntregaPrevista = System.currentTimeMillis()
+            dataEntregaPrevista = currentTimeMillis()
         )
 
         assertEquals(StatusEntrega.AGENDADA, agendada.statusEntrega)
@@ -192,11 +194,11 @@ class LocacaoTest {
     fun `Locacao transicao de entrega - AGENDADA para ENTREGUE`() {
         val locacao = Locacao(
             statusEntrega = StatusEntrega.AGENDADA,
-            dataEntregaPrevista = System.currentTimeMillis()
+            dataEntregaPrevista = currentTimeMillis()
         )
         val entregue = locacao.copy(
             statusEntrega = StatusEntrega.ENTREGUE,
-            dataEntregaReal = System.currentTimeMillis()
+            dataEntregaReal = currentTimeMillis()
         )
 
         assertEquals(StatusEntrega.ENTREGUE, entregue.statusEntrega)
@@ -208,7 +210,7 @@ class LocacaoTest {
         val locacao = Locacao(statusPagamento = StatusPagamento.PENDENTE)
         val paga = locacao.copy(
             statusPagamento = StatusPagamento.PAGO,
-            dataPagamento = System.currentTimeMillis()
+            dataPagamento = currentTimeMillis()
         )
 
         assertEquals(StatusPagamento.PAGO, paga.statusPagamento)
@@ -220,7 +222,7 @@ class LocacaoTest {
         val locacao = Locacao(statusColeta = StatusColeta.NAO_COLETADO)
         val coletada = locacao.copy(
             statusColeta = StatusColeta.COLETADO,
-            dataColeta = System.currentTimeMillis()
+            dataColeta = currentTimeMillis()
         )
 
         assertEquals(StatusColeta.COLETADO, coletada.statusColeta)
@@ -246,7 +248,7 @@ class LocacaoTest {
         val locacao = Locacao(qtdRenovacoes = 0)
         val renovada = locacao.copy(
             qtdRenovacoes = locacao.qtdRenovacoes + 1,
-            ultimaRenovacaoEm = System.currentTimeMillis()
+            ultimaRenovacaoEm = currentTimeMillis()
         )
 
         assertEquals(1, renovada.qtdRenovacoes)
@@ -260,7 +262,7 @@ class LocacaoTest {
         for (i in 1..5) {
             locacao = locacao.copy(
                 qtdRenovacoes = locacao.qtdRenovacoes + 1,
-                ultimaRenovacaoEm = System.currentTimeMillis()
+                ultimaRenovacaoEm = currentTimeMillis()
             )
         }
 

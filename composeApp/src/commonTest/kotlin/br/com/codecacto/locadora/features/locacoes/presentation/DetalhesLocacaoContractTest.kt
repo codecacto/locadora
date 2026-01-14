@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.features.locacoes.presentation
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
@@ -31,7 +33,7 @@ class DetalhesLocacaoContractTest {
         assertFalse(state.isGeneratingReceipt)
         assertNull(state.locacao)
         assertNull(state.cliente)
-        assertNull(state.equipamento)
+        assertTrue(state.equipamentos.isEmpty())
         assertEquals(StatusPrazo.NORMAL, state.statusPrazo)
         assertFalse(state.showRenovarDialog)
         assertNull(state.error)
@@ -73,13 +75,13 @@ class DetalhesLocacaoContractTest {
             isLoading = false,
             locacao = locacao,
             cliente = cliente,
-            equipamento = equipamento
+            equipamentos = listOf(equipamento)
         )
 
         assertNotNull(state.cliente)
-        assertNotNull(state.equipamento)
+        assertTrue(state.equipamentos.isNotEmpty())
         assertEquals("João Silva", state.cliente!!.nomeRazao)
-        assertEquals("Betoneira 400L", state.equipamento!!.nome)
+        assertEquals("Betoneira 400L", state.equipamentos.firstOrNull()?.nome)
     }
 
     // ==================== TESTES DE STATE - Status Prazo ====================
@@ -168,7 +170,7 @@ class DetalhesLocacaoContractTest {
 
     @Test
     fun `Action Renovar deve conter dados corretos`() {
-        val novaDataFim = System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
+        val novaDataFim = currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
         val action = DetalhesLocacaoContract.Action.Renovar(
             novaDataFim = novaDataFim,
             novoValor = 1800.0
@@ -180,7 +182,7 @@ class DetalhesLocacaoContractTest {
 
     @Test
     fun `Action Renovar com novo valor nulo`() {
-        val novaDataFim = System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
+        val novaDataFim = currentTimeMillis() + (30 * 24 * 60 * 60 * 1000L)
         val action = DetalhesLocacaoContract.Action.Renovar(
             novaDataFim = novaDataFim,
             novoValor = null
@@ -258,14 +260,14 @@ class DetalhesLocacaoContractTest {
             isLoading = false,
             locacao = locacao,
             cliente = cliente,
-            equipamento = equipamento,
+            equipamentos = listOf(equipamento),
             statusPrazo = StatusPrazo.NORMAL
         )
 
         assertFalse(state.isLoading)
         assertNotNull(state.locacao)
         assertNotNull(state.cliente)
-        assertNotNull(state.equipamento)
+        assertTrue(state.equipamentos.isNotEmpty())
         assertEquals(StatusPrazo.NORMAL, state.statusPrazo)
     }
 
@@ -286,7 +288,7 @@ class DetalhesLocacaoContractTest {
         // Atualiza para pago
         val locacaoPaga = locacaoPendente.copy(
             statusPagamento = StatusPagamento.PAGO,
-            dataPagamento = System.currentTimeMillis()
+            dataPagamento = currentTimeMillis()
         )
         state = state.copy(locacao = locacaoPaga)
 
@@ -311,7 +313,7 @@ class DetalhesLocacaoContractTest {
         // Atualiza para entregue
         val locacaoEntregue = locacao.copy(
             statusEntrega = StatusEntrega.ENTREGUE,
-            dataEntregaReal = System.currentTimeMillis()
+            dataEntregaReal = currentTimeMillis()
         )
         state = state.copy(locacao = locacaoEntregue)
 
@@ -336,7 +338,7 @@ class DetalhesLocacaoContractTest {
         // Atualiza para coletado
         val locacaoColetada = locacao.copy(
             statusColeta = StatusColeta.COLETADO,
-            dataColeta = System.currentTimeMillis()
+            dataColeta = currentTimeMillis()
         )
         state = state.copy(locacao = locacaoColetada)
 
@@ -365,7 +367,7 @@ class DetalhesLocacaoContractTest {
         val locacaoRenovada = locacao.copy(
             qtdRenovacoes = 1,
             valorLocacao = 1600.0,
-            ultimaRenovacaoEm = System.currentTimeMillis()
+            ultimaRenovacaoEm = currentTimeMillis()
         )
         state = state.copy(
             showRenovarDialog = false,
@@ -400,7 +402,7 @@ class DetalhesLocacaoContractTest {
             isLoading = false,
             locacao = Locacao(
                 id = "loc-123",
-                dataFimPrevista = System.currentTimeMillis() - (24 * 60 * 60 * 1000L) // Ontem
+                dataFimPrevista = currentTimeMillis() - (24 * 60 * 60 * 1000L) // Ontem
             ),
             statusPrazo = StatusPrazo.VENCIDO
         )
@@ -414,7 +416,7 @@ class DetalhesLocacaoContractTest {
             isLoading = false,
             locacao = Locacao(
                 id = "loc-123",
-                dataFimPrevista = System.currentTimeMillis() + (24 * 60 * 60 * 1000L) // Amanha
+                dataFimPrevista = currentTimeMillis() + (24 * 60 * 60 * 1000L) // Amanha
             ),
             statusPrazo = StatusPrazo.PROXIMO_VENCIMENTO
         )
@@ -441,5 +443,98 @@ class DetalhesLocacaoContractTest {
         state = state.copy(locacao = locacaoFinalizada)
 
         assertEquals(StatusLocacao.FINALIZADA, state.locacao!!.statusLocacao)
+    }
+
+    // ==================== TESTES DE STATE - Multiplos Equipamentos ====================
+
+    @Test
+    fun `State com multiplos equipamentos carregados`() {
+        val equipamento1 = Equipamento(id = "eq-001", nome = "Betoneira 400L")
+        val equipamento2 = Equipamento(id = "eq-002", nome = "Compactador de Solo")
+        val equipamento3 = Equipamento(id = "eq-003", nome = "Serra Circular")
+        val locacao = Locacao(id = "loc-123", clienteId = "cli-456", equipamentoId = "eq-001")
+
+        val state = DetalhesLocacaoContract.State(
+            isLoading = false,
+            locacao = locacao,
+            equipamentos = listOf(equipamento1, equipamento2, equipamento3)
+        )
+
+        assertEquals(3, state.equipamentos.size)
+        assertEquals("Betoneira 400L", state.equipamentos[0].nome)
+        assertEquals("Compactador de Solo", state.equipamentos[1].nome)
+        assertEquals("Serra Circular", state.equipamentos[2].nome)
+    }
+
+    @Test
+    fun `State com equipamentos vazios deve funcionar corretamente`() {
+        val locacao = Locacao(id = "loc-123", clienteId = "cli-456", equipamentoId = "eq-789")
+        val cliente = Cliente(id = "cli-456", nomeRazao = "Maria Santos")
+
+        val state = DetalhesLocacaoContract.State(
+            isLoading = false,
+            locacao = locacao,
+            cliente = cliente,
+            equipamentos = emptyList()
+        )
+
+        assertTrue(state.equipamentos.isEmpty())
+        assertNull(state.equipamentos.firstOrNull())
+        assertNotNull(state.cliente)
+        assertNotNull(state.locacao)
+    }
+
+    @Test
+    fun `Cenario - carregar locacao com dois equipamentos`() {
+        var state = DetalhesLocacaoContract.State()
+
+        // Inicia loading
+        assertTrue(state.isLoading)
+        assertTrue(state.equipamentos.isEmpty())
+
+        // Dados carregados com dois equipamentos
+        val locacao = Locacao(
+            id = "loc-456",
+            clienteId = "cli-789",
+            equipamentoId = "eq-001",
+            valorLocacao = 2500.0,
+            statusLocacao = StatusLocacao.ATIVA
+        )
+        val cliente = Cliente(id = "cli-789", nomeRazao = "Construtora ABC")
+        val equipamento1 = Equipamento(id = "eq-001", nome = "Escavadeira")
+        val equipamento2 = Equipamento(id = "eq-002", nome = "Retroescavadeira")
+
+        state = state.copy(
+            isLoading = false,
+            locacao = locacao,
+            cliente = cliente,
+            equipamentos = listOf(equipamento1, equipamento2)
+        )
+
+        assertFalse(state.isLoading)
+        assertEquals(2, state.equipamentos.size)
+        assertEquals("Escavadeira", state.equipamentos.firstOrNull()?.nome)
+        assertEquals("Retroescavadeira", state.equipamentos.lastOrNull()?.nome)
+    }
+
+    @Test
+    fun `State equipamentos devem manter ordem de insercao`() {
+        val equipamentos = listOf(
+            Equipamento(id = "eq-a", nome = "A - Primeiro"),
+            Equipamento(id = "eq-b", nome = "B - Segundo"),
+            Equipamento(id = "eq-c", nome = "C - Terceiro"),
+            Equipamento(id = "eq-d", nome = "D - Quarto")
+        )
+
+        val state = DetalhesLocacaoContract.State(
+            isLoading = false,
+            equipamentos = equipamentos
+        )
+
+        assertEquals(4, state.equipamentos.size)
+        assertEquals("A - Primeiro", state.equipamentos[0].nome)
+        assertEquals("B - Segundo", state.equipamentos[1].nome)
+        assertEquals("C - Terceiro", state.equipamentos[2].nome)
+        assertEquals("D - Quarto", state.equipamentos[3].nome)
     }
 }

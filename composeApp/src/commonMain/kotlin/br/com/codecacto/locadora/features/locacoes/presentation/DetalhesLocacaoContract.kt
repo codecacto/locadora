@@ -6,15 +6,27 @@ import br.com.codecacto.locadora.core.base.UiState
 import br.com.codecacto.locadora.core.model.Cliente
 import br.com.codecacto.locadora.core.model.Equipamento
 import br.com.codecacto.locadora.core.model.Locacao
+import br.com.codecacto.locadora.core.model.LocacaoItem
 import br.com.codecacto.locadora.core.model.StatusPrazo
 
 object DetalhesLocacaoContract {
+
+    /**
+     * Representa um equipamento com seus detalhes de item (quantidade e patrimônios)
+     */
+    data class EquipamentoComItem(
+        val equipamento: Equipamento,
+        val item: LocacaoItem
+    )
+
     data class State(
         val isLoading: Boolean = true,
         val isGeneratingReceipt: Boolean = false,
         val locacao: Locacao? = null,
         val cliente: Cliente? = null,
-        val equipamento: Equipamento? = null,
+        val equipamentos: List<Equipamento> = emptyList(),
+        // Novo: equipamentos com detalhes do item (quantidade e patrimônios)
+        val equipamentosComItens: List<EquipamentoComItem> = emptyList(),
         val statusPrazo: StatusPrazo = StatusPrazo.NORMAL,
         val showRenovarDialog: Boolean = false,
         val error: String? = null

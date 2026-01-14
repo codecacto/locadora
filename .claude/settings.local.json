@@ -65,7 +65,14 @@
       "Bash(find:*)",
       "Bash(set:*)",
       "Bash(\"C:\\\\Program Files\\\\Android\\\\Android Studio2\\\\jbr\\\\bin\\\\java.exe\" -version)",
-      "Bash(JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio2\\\\jbr\" ./gradlew:*)"
+      "Bash(JAVA_HOME=\"C:\\\\Program Files\\\\Android\\\\Android Studio2\\\\jbr\" ./gradlew:*)",
+      "Bash(git rm:*)",
+      "Bash(.\\\\gradlew.bat compileDebugKotlinAndroid:*)",
+      "Bash(gradlew.bat compileDebugKotlinAndroid:*)",
+      "Bash(cmd.exe /c \"gradlew.bat compileDebugKotlinAndroid --no-daemon\")",
+      "Bash(cmd /c \"cd /d E:\\\\CodeCacto\\\\locadora && gradlew.bat compileDebugKotlinAndroid --no-daemon\")",
+      "Bash(python3:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

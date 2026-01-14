@@ -132,7 +132,7 @@ android {
         applicationId = "br.com.codecacto.locadora"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 2
+        versionCode = 3
         versionName = "1.0.0"
     }
     // Signing configurations for debug and release builds

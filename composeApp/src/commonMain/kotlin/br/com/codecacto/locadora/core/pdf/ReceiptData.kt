@@ -8,6 +8,6 @@ import br.com.codecacto.locadora.core.model.Locacao
 data class ReceiptData(
     val locacao: Locacao,
     val cliente: Cliente,
-    val equipamento: Equipamento,
+    val equipamentos: List<Equipamento>,
     val dadosEmpresa: DadosEmpresa
 )

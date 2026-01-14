@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.testutil
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import br.com.codecacto.locadora.core.model.Recebimento
 import br.com.codecacto.locadora.core.model.StatusPagamento
 import br.com.codecacto.locadora.data.repository.RecebimentoRepository
@@ -69,7 +71,7 @@ class FakeRecebimentoRepository : RecebimentoRepository {
         val newId = "rec-${++idCounter}"
         val novoRecebimento = recebimento.copy(
             id = newId,
-            criadoEm = System.currentTimeMillis()
+            criadoEm = currentTimeMillis()
         )
 
         _recebimentos.value = _recebimentos.value + novoRecebimento
@@ -85,7 +87,7 @@ class FakeRecebimentoRepository : RecebimentoRepository {
             if (recebimento.id == recebimentoId) {
                 recebimento.copy(
                     status = StatusPagamento.PAGO,
-                    dataPagamento = System.currentTimeMillis()
+                    dataPagamento = currentTimeMillis()
                 )
             } else {
                 recebimento
@@ -99,5 +101,13 @@ class FakeRecebimentoRepository : RecebimentoRepository {
         }
 
         _recebimentos.value = _recebimentos.value.filter { it.locacaoId != locacaoId }
+    }
+
+    override suspend fun deleteRecebimento(recebimentoId: String) {
+        if (shouldThrowError) {
+            throw Exception(errorMessage)
+        }
+
+        _recebimentos.value = _recebimentos.value.filter { it.id != recebimentoId }
     }
 }

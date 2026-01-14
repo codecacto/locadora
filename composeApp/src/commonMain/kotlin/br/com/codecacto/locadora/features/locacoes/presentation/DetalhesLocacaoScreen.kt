@@ -174,28 +174,94 @@ fun DetalhesLocacaoScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Equipamento Info
-                    state.equipamento?.let { equipamento ->
+                    // Equipamentos Info
+                    if (state.equipamentosComItens.isNotEmpty()) {
+                        val equipamentoLabel = if (state.equipamentosComItens.size > 1) {
+                            "Equipamentos (${state.equipamentosComItens.size})"
+                        } else {
+                            Strings.DETALHES_EQUIPAMENTO
+                        }
                         InfoCard(
-                            title = Strings.DETALHES_EQUIPAMENTO,
+                            title = equipamentoLabel,
                             icon = Icons.Default.Inventory2
                         ) {
-                            Text(
-                                text = equipamento.nome,
-                                fontWeight = FontWeight.SemiBold,
-                                color = AppColors.Slate900
-                            )
-                            Text(
-                                text = equipamento.categoria,
-                                color = AppColors.Slate600,
-                                fontSize = 14.sp
-                            )
-                            equipamento.identificacao?.let { id ->
-                                Text(
-                                    text = "ID: $id",
-                                    color = AppColors.Slate500,
-                                    fontSize = 12.sp
-                                )
+                            state.equipamentosComItens.forEachIndexed { index, equipamentoComItem ->
+                                val equipamento = equipamentoComItem.equipamento
+                                val item = equipamentoComItem.item
+
+                                if (index > 0) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        color = AppColors.Slate200
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = equipamento.nome,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = AppColors.Slate900
+                                        )
+                                        Text(
+                                            text = equipamento.categoria,
+                                            color = AppColors.Slate600,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                    // Mostra quantidade se > 1
+                                    if (item.quantidade > 1) {
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(AppColors.Violet100)
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Qtd: ${item.quantidade}",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = AppColors.Violet600
+                                            )
+                                        }
+                                    }
+                                }
+                                // Mostra patrimônios selecionados
+                                if (item.patrimonioIds.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Label,
+                                            contentDescription = null,
+                                            tint = AppColors.Slate500,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        // Encontra os patrimônios selecionados
+                                        val patrimoniosSelecionados = equipamento.patrimonios
+                                            .filter { it.id in item.patrimonioIds }
+                                        Text(
+                                            text = patrimoniosSelecionados.joinToString(", ") { it.codigo },
+                                            color = AppColors.Slate500,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                                // Campo antigo de identificação (retrocompatibilidade)
+                                if (item.patrimonioIds.isEmpty()) {
+                                    equipamento.identificacao?.let { id ->
+                                        Text(
+                                            text = "ID: $id",
+                                            color = AppColors.Slate500,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

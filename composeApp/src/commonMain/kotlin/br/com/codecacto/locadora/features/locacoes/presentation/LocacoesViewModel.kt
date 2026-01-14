@@ -75,10 +75,23 @@ class LocacoesViewModel(
                 val equipamentosMap = equipamentos.associateBy { it.id }
 
                 locacoes.map { locacao ->
+                    // Carrega itens com quantidade e patrimônios
+                    val itens = locacao.getItensList()
+                    val equipamentosComItens = itens.mapNotNull { item ->
+                        equipamentosMap[item.equipamentoId]?.let { equipamento ->
+                            EquipamentoComQuantidade(
+                                equipamento = equipamento,
+                                item = item
+                            )
+                        }
+                    }
+                    // Mantém lista de equipamentos para compatibilidade
+                    val equipamentosDaLocacao = equipamentosComItens.map { it.equipamento }
                     LocacaoComDetalhes(
                         locacao = locacao,
                         cliente = clientesMap[locacao.clienteId],
-                        equipamento = equipamentosMap[locacao.equipamentoId],
+                        equipamentos = equipamentosDaLocacao,
+                        equipamentosComItens = equipamentosComItens,
                         statusPrazo = calcularStatusPrazo(locacao)
                     )
                 }

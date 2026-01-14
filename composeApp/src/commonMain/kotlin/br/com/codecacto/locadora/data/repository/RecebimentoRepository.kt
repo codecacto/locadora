@@ -18,6 +18,7 @@ interface RecebimentoRepository {
     fun getRecebimentosByLocacao(locacaoId: String): Flow<List<Recebimento>>
     suspend fun addRecebimento(recebimento: Recebimento): String
     suspend fun marcarPago(recebimentoId: String)
+    suspend fun deleteRecebimento(recebimentoId: String)
     suspend fun deleteRecebimentosByLocacao(locacaoId: String)
 }
 
@@ -108,6 +109,11 @@ class RecebimentoRepositoryImpl(
                 )
             )
         }
+    }
+
+    override suspend fun deleteRecebimento(recebimentoId: String) {
+        val collection = getUserCollection() ?: return
+        collection.document(recebimentoId).delete()
     }
 
     override suspend fun deleteRecebimentosByLocacao(locacaoId: String) {

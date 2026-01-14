@@ -8,13 +8,17 @@ data class Equipamento(
     val id: String = "",
     val nome: String = "",
     val categoria: String = "",
-    val identificacao: String? = null,
+    val identificacao: String? = null,  // Mantido para retrocompatibilidade
     val valorCompra: Double? = null,
     val precoDiario: Double? = null,
     val precoSemanal: Double? = null,
     val precoQuinzenal: Double? = null,
     val precoMensal: Double? = null,
     val observacoes: String? = null,
+    // Novos campos para controle de quantidade e patrimônios
+    val quantidade: Int = 1,  // Quantidade total deste equipamento
+    val usaPatrimonio: Boolean = false,  // Se true, rastreia unidades individualmente
+    val patrimonios: List<Patrimonio> = emptyList(),  // Lista de patrimônios (se usaPatrimonio = true)
     val criadoEm: Long = currentTimeMillis(),
     val atualizadoEm: Long = currentTimeMillis()
 ) {

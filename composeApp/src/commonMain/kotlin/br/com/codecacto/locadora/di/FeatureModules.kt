@@ -44,7 +44,7 @@ val equipamentosModule = module {
 }
 
 val settingsModule = module {
-    viewModel { SettingsViewModel(get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { ChangePasswordViewModel(get(), get()) }
     viewModel { ChangeEmailViewModel(get(), get()) }
     viewModel { ChangeProfileViewModel(get(), get()) }

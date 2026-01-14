@@ -313,8 +313,22 @@ private fun LocacaoCard(
                         fontSize = 16.sp,
                         color = AppColors.Slate900
                     )
+                    // Mostra equipamentos com quantidade quando > 1
+                    val equipamentoNomes = if (locacaoComDetalhes.equipamentosComItens.isNotEmpty()) {
+                        locacaoComDetalhes.equipamentosComItens.joinToString(", ") { eqItem ->
+                            if (eqItem.item.quantidade > 1) {
+                                "${eqItem.equipamento.nome} (${eqItem.item.quantidade})"
+                            } else {
+                                eqItem.equipamento.nome
+                            }
+                        }
+                    } else if (locacaoComDetalhes.equipamentos.isNotEmpty()) {
+                        locacaoComDetalhes.equipamentos.joinToString(", ") { it.nome }
+                    } else {
+                        Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO
+                    }
                     Text(
-                        text = locacaoComDetalhes.equipamento?.nome ?: Strings.COMMON_EQUIPAMENTO_NAO_ENCONTRADO,
+                        text = equipamentoNomes,
                         fontSize = 14.sp,
                         color = AppColors.Slate600
                     )

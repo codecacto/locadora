@@ -91,10 +91,12 @@ class EntregasViewModel(
                     val isAtrasada = dataEntrega?.let { it < hoje } ?: false
                     val isHoje = dataEntrega?.let { it == hoje } ?: false
 
+                    val equipamentosDaLocacao = locacao.getEquipamentoIdsList()
+                        .mapNotNull { equipamentosMap[it] }
                     EntregaComDetalhes(
                         locacao = locacao,
                         cliente = clientesMap[locacao.clienteId],
-                        equipamento = equipamentosMap[locacao.equipamentoId],
+                        equipamentos = equipamentosDaLocacao,
                         isAtrasada = isAtrasada,
                         isHoje = isHoje
                     )

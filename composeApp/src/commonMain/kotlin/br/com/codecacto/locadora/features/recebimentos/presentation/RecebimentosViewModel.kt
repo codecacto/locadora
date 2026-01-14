@@ -36,6 +36,7 @@ class RecebimentosViewModel(
                 _state.value = _state.value.copy(tabSelecionada = action.tab)
             }
             is RecebimentosContract.Action.MarcarRecebido -> marcarRecebido(action.recebimentoId)
+            is RecebimentosContract.Action.DeleteRecebimento -> deleteRecebimento(action.recebimentoId)
             is RecebimentosContract.Action.SelectRecebimento -> {
                 emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.recebimento.locacaoId))
             }
@@ -133,18 +134,22 @@ class RecebimentosViewModel(
                 val equipamentosMap = equipamentos.associateBy { it.id }
 
                 val recebimentosPendentes = pendentes.map { recebimento ->
+                    val equipamentosDoRecebimento = recebimento.getEquipamentoIdsList()
+                        .mapNotNull { equipamentosMap[it] }
                     RecebimentoComDetalhes(
                         recebimento = recebimento,
                         cliente = clientesMap[recebimento.clienteId],
-                        equipamento = equipamentosMap[recebimento.equipamentoId]
+                        equipamentos = equipamentosDoRecebimento
                     )
                 }
 
                 val recebimentosPagos = pagos.map { recebimento ->
+                    val equipamentosDoRecebimento = recebimento.getEquipamentoIdsList()
+                        .mapNotNull { equipamentosMap[it] }
                     RecebimentoComDetalhes(
                         recebimento = recebimento,
                         cliente = clientesMap[recebimento.clienteId],
-                        equipamento = equipamentosMap[recebimento.equipamentoId]
+                        equipamentos = equipamentosDoRecebimento
                     )
                 }
 
@@ -189,6 +194,18 @@ class RecebimentosViewModel(
             } catch (e: Exception) {
                 handleError(e)
                 emitEffect(RecebimentosContract.Effect.ShowError(e.message ?: "Erro ao confirmar recebimento"))
+            }
+        }
+    }
+
+    private fun deleteRecebimento(recebimentoId: String) {
+        viewModelScope.launch {
+            try {
+                recebimentoRepository.deleteRecebimento(recebimentoId)
+                emitEffect(RecebimentosContract.Effect.ShowSuccess("Recebimento excluído!"))
+            } catch (e: Exception) {
+                handleError(e)
+                emitEffect(RecebimentosContract.Effect.ShowError(e.message ?: "Erro ao excluir recebimento"))
             }
         }
     }

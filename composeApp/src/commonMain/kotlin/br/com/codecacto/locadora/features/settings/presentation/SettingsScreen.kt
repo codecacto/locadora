@@ -7,8 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +32,98 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
+    var deleteConfirmationText by remember { mutableStateOf("") }
+    val confirmationWord = "APAGAR"
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is SettingsContract.Effect.ShowSuccess -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is SettingsContract.Effect.ShowError -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
+        }
+    }
+
+    // Modal de Confirmação para Apagar Todos os Dados
+    if (showDeleteAllDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteAllDialog = false
+                deleteConfirmationText = ""
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = AppColors.Red,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Apagar Todos os Dados",
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.Red
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "ATENÇÃO: Esta ação irá excluir permanentemente TODOS os seus dados, incluindo clientes, equipamentos, locações e recebimentos. Esta ação NÃO pode ser desfeita!",
+                        color = AppColors.Slate700
+                    )
+                    Text(
+                        text = "Para confirmar, digite \"$confirmationWord\" abaixo:",
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppColors.Slate900
+                    )
+                    OutlinedTextField(
+                        value = deleteConfirmationText,
+                        onValueChange = { deleteConfirmationText = it.uppercase() },
+                        placeholder = { Text("Digite $confirmationWord") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AppColors.Red,
+                            cursorColor = AppColors.Red
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.dispatch(SettingsContract.Action.DeleteAllData)
+                        showDeleteAllDialog = false
+                        deleteConfirmationText = ""
+                    },
+                    enabled = deleteConfirmationText == confirmationWord,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppColors.Red,
+                        disabledContainerColor = AppColors.Slate300
+                    )
+                ) {
+                    Text("Apagar Tudo")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        showDeleteAllDialog = false
+                        deleteConfirmationText = ""
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -117,6 +211,33 @@ fun SettingsScreen(
                         onClick = onNavigateToChangeEmail
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Zona de Perigo Section
+            Text(
+                text = "Zona de Perigo",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.Red,
+                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                SettingsItem(
+                    icon = Icons.Default.DeleteForever,
+                    title = "Apagar Todos os Dados",
+                    subtitle = "Excluir permanentemente todos os dados",
+                    iconBackgroundColor = AppColors.Red.copy(alpha = 0.1f),
+                    iconColor = AppColors.Red,
+                    onClick = { showDeleteAllDialog = true }
+                )
             }
         }
     }

@@ -27,14 +27,14 @@ class EntregasContractTest {
         val entrega = EntregaComDetalhes(
             locacao = locacao,
             cliente = cliente,
-            equipamento = equipamento,
+            equipamentos = listOf(equipamento),
             isAtrasada = true,
             isHoje = false
         )
 
         assertEquals("loc-123", entrega.locacao.id)
         assertEquals("João Silva", entrega.cliente?.nomeRazao)
-        assertEquals("Betoneira 400L", entrega.equipamento?.nome)
+        assertEquals("Betoneira 400L", entrega.equipamentos.firstOrNull()?.nome)
         assertTrue(entrega.isAtrasada)
         assertFalse(entrega.isHoje)
     }
@@ -46,30 +46,31 @@ class EntregasContractTest {
         val entrega = EntregaComDetalhes(
             locacao = locacao,
             cliente = null,
-            equipamento = Equipamento(id = "eq-789", nome = "Andaime"),
+            equipamentos = listOf(Equipamento(id = "eq-789", nome = "Andaime")),
             isAtrasada = false,
             isHoje = true
         )
 
         assertNull(entrega.cliente)
-        assertNotNull(entrega.equipamento)
+        assertTrue(entrega.equipamentos.isNotEmpty())
         assertTrue(entrega.isHoje)
     }
 
     @Test
-    fun `EntregaComDetalhes com equipamento nulo`() {
+    fun `EntregaComDetalhes com equipamentos vazio`() {
         val locacao = Locacao(id = "loc-123")
 
         val entrega = EntregaComDetalhes(
             locacao = locacao,
             cliente = Cliente(id = "cli-456", nomeRazao = "João"),
-            equipamento = null,
+            equipamentos = emptyList(),
             isAtrasada = false,
             isHoje = false
         )
 
         assertNotNull(entrega.cliente)
-        assertNull(entrega.equipamento)
+        assertTrue(entrega.equipamentos.isEmpty())
+        assertNull(entrega.equipamentos.firstOrNull())
     }
 
     // ==================== TESTES DE STATE - Valores Padrao ====================
@@ -94,14 +95,14 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-1"),
                 cliente = Cliente(id = "cli-1", nomeRazao = "João"),
-                equipamento = Equipamento(id = "eq-1", nome = "Betoneira"),
+                equipamentos = listOf(Equipamento(id = "eq-1", nome = "Betoneira")),
                 isAtrasada = true,
                 isHoje = false
             ),
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-2"),
                 cliente = Cliente(id = "cli-2", nomeRazao = "Maria"),
-                equipamento = Equipamento(id = "eq-2", nome = "Andaime"),
+                equipamentos = listOf(Equipamento(id = "eq-2", nome = "Andaime")),
                 isAtrasada = true,
                 isHoje = false
             )
@@ -119,7 +120,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-1"),
                 cliente = Cliente(id = "cli-1", nomeRazao = "Pedro"),
-                equipamento = Equipamento(id = "eq-1", nome = "Furadeira"),
+                equipamentos = listOf(Equipamento(id = "eq-1", nome = "Furadeira")),
                 isAtrasada = false,
                 isHoje = true
             )
@@ -137,7 +138,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-1"),
                 cliente = Cliente(id = "cli-1", nomeRazao = "Ana"),
-                equipamento = Equipamento(id = "eq-1", nome = "Compressor"),
+                equipamentos = listOf(Equipamento(id = "eq-1", nome = "Compressor")),
                 isAtrasada = false,
                 isHoje = false
             )
@@ -244,7 +245,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-1"),
                 cliente = Cliente(id = "cli-1", nomeRazao = "João"),
-                equipamento = Equipamento(id = "eq-1", nome = "Betoneira"),
+                equipamentos = listOf(Equipamento(id = "eq-1", nome = "Betoneira")),
                 isAtrasada = true,
                 isHoje = false
             )
@@ -253,7 +254,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-2"),
                 cliente = Cliente(id = "cli-2", nomeRazao = "Maria"),
-                equipamento = Equipamento(id = "eq-2", nome = "Andaime"),
+                equipamentos = listOf(Equipamento(id = "eq-2", nome = "Andaime")),
                 isAtrasada = false,
                 isHoje = true
             )
@@ -262,7 +263,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-3"),
                 cliente = Cliente(id = "cli-3", nomeRazao = "Pedro"),
-                equipamento = Equipamento(id = "eq-3", nome = "Furadeira"),
+                equipamentos = listOf(Equipamento(id = "eq-3", nome = "Furadeira")),
                 isAtrasada = false,
                 isHoje = false
             )
@@ -287,7 +288,7 @@ class EntregasContractTest {
             EntregaComDetalhes(
                 locacao = Locacao(id = "loc-1"),
                 cliente = Cliente(id = "cli-1", nomeRazao = "João"),
-                equipamento = Equipamento(id = "eq-1", nome = "Betoneira"),
+                equipamentos = listOf(Equipamento(id = "eq-1", nome = "Betoneira")),
                 isAtrasada = true,
                 isHoje = false
             )
@@ -319,7 +320,7 @@ class EntregasContractTest {
         val entrega = EntregaComDetalhes(
             locacao = Locacao(id = "loc-1", statusEntrega = StatusEntrega.AGENDADA),
             cliente = Cliente(id = "cli-1", nomeRazao = "João"),
-            equipamento = Equipamento(id = "eq-1", nome = "Betoneira"),
+            equipamentos = listOf(Equipamento(id = "eq-1", nome = "Betoneira")),
             isAtrasada = false,
             isHoje = true
         )
@@ -335,5 +336,95 @@ class EntregasContractTest {
         state = state.copy(entregasHoje = emptyList())
 
         assertTrue(state.entregasHoje.isEmpty())
+    }
+
+    // ==================== TESTES DE MULTIPLOS EQUIPAMENTOS ====================
+
+    @Test
+    fun `EntregaComDetalhes com multiplos equipamentos`() {
+        val locacao = Locacao(id = "loc-123", clienteId = "cli-456")
+        val cliente = Cliente(id = "cli-456", nomeRazao = "João Silva")
+        val equipamento1 = Equipamento(id = "eq-1", nome = "Betoneira 400L")
+        val equipamento2 = Equipamento(id = "eq-2", nome = "Andaime Tubular")
+        val equipamento3 = Equipamento(id = "eq-3", nome = "Furadeira Industrial")
+
+        val entrega = EntregaComDetalhes(
+            locacao = locacao,
+            cliente = cliente,
+            equipamentos = listOf(equipamento1, equipamento2, equipamento3),
+            isAtrasada = false,
+            isHoje = true
+        )
+
+        assertEquals(3, entrega.equipamentos.size)
+        assertEquals("Betoneira 400L", entrega.equipamentos[0].nome)
+        assertEquals("Andaime Tubular", entrega.equipamentos[1].nome)
+        assertEquals("Furadeira Industrial", entrega.equipamentos[2].nome)
+        assertEquals("Betoneira 400L", entrega.equipamentos.firstOrNull()?.nome)
+        assertTrue(entrega.equipamentos.isNotEmpty())
+    }
+
+    @Test
+    fun `EntregaComDetalhes com dois equipamentos`() {
+        val locacao = Locacao(id = "loc-456")
+        val equipamento1 = Equipamento(id = "eq-1", nome = "Compactador")
+        val equipamento2 = Equipamento(id = "eq-2", nome = "Martelete")
+
+        val entrega = EntregaComDetalhes(
+            locacao = locacao,
+            cliente = Cliente(id = "cli-789", nomeRazao = "Maria Santos"),
+            equipamentos = listOf(equipamento1, equipamento2),
+            isAtrasada = true,
+            isHoje = false
+        )
+
+        assertEquals(2, entrega.equipamentos.size)
+        assertTrue(entrega.equipamentos.any { it.nome == "Compactador" })
+        assertTrue(entrega.equipamentos.any { it.nome == "Martelete" })
+    }
+
+    @Test
+    fun `EntregaComDetalhes equipamentos vazios funciona corretamente`() {
+        val entrega = EntregaComDetalhes(
+            locacao = Locacao(id = "loc-empty"),
+            cliente = Cliente(id = "cli-1", nomeRazao = "Cliente Teste"),
+            equipamentos = emptyList(),
+            isAtrasada = false,
+            isHoje = false
+        )
+
+        assertTrue(entrega.equipamentos.isEmpty())
+        assertEquals(0, entrega.equipamentos.size)
+        assertNull(entrega.equipamentos.firstOrNull())
+        assertFalse(entrega.equipamentos.isNotEmpty())
+    }
+
+    @Test
+    fun `State com entregas contendo multiplos equipamentos`() {
+        val entregas = listOf(
+            EntregaComDetalhes(
+                locacao = Locacao(id = "loc-1"),
+                cliente = Cliente(id = "cli-1", nomeRazao = "João"),
+                equipamentos = listOf(
+                    Equipamento(id = "eq-1", nome = "Betoneira"),
+                    Equipamento(id = "eq-2", nome = "Andaime")
+                ),
+                isAtrasada = false,
+                isHoje = true
+            ),
+            EntregaComDetalhes(
+                locacao = Locacao(id = "loc-2"),
+                cliente = Cliente(id = "cli-2", nomeRazao = "Maria"),
+                equipamentos = emptyList(),
+                isAtrasada = false,
+                isHoje = true
+            )
+        )
+
+        val state = EntregasContract.State(entregasHoje = entregas)
+
+        assertEquals(2, state.entregasHoje.size)
+        assertEquals(2, state.entregasHoje[0].equipamentos.size)
+        assertTrue(state.entregasHoje[1].equipamentos.isEmpty())
     }
 }

@@ -20,7 +20,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
+import br.com.codecacto.locadora.core.model.DisponibilidadeEquipamento
 import br.com.codecacto.locadora.core.model.Equipamento
+import br.com.codecacto.locadora.core.model.Patrimonio
 import br.com.codecacto.locadora.core.model.PeriodoLocacao
 import br.com.codecacto.locadora.core.model.StatusEntrega
 import br.com.codecacto.locadora.core.ui.strings.Strings
@@ -52,7 +54,7 @@ fun NovaLocacaoScreen(
 
     // Verifica se há dados preenchidos
     val hasData = state.clienteSelecionado != null ||
-                  state.equipamentoSelecionado != null ||
+                  state.itensSelecionados.isNotEmpty() ||
                   state.valorLocacao.isNotBlank()
 
     LaunchedEffect(Unit) {
@@ -119,23 +121,66 @@ fun NovaLocacaoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Equipamento Selector
+            // Equipamentos Selector (múltiplos)
             SectionTitle(Strings.NOVA_LOCACAO_EQUIPAMENTO)
-            SelectorCard(
-                label = state.equipamentoSelecionado?.let { "${it.nome} - ${it.categoria}" }
-                    ?: Strings.NOVA_LOCACAO_SELECIONAR_EQUIPAMENTO,
-                isSelected = state.equipamentoSelecionado != null,
-                onClick = onNavigateToSelecionarEquipamento
-            )
+
+            // Lista de equipamentos selecionados
+            if (state.itensSelecionados.isNotEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    state.itensSelecionados.forEach { item ->
+                        val disponibilidade = state.disponibilidades[item.equipamento.id]
+                        EquipamentoItemCard(
+                            item = item,
+                            disponibilidade = disponibilidade,
+                            onRemove = {
+                                viewModel.dispatch(NovaLocacaoContract.Action.RemoveEquipamento(item.equipamento.id))
+                            },
+                            onQuantidadeChange = { novaQtd ->
+                                viewModel.dispatch(NovaLocacaoContract.Action.SetQuantidadeItem(item.equipamento.id, novaQtd))
+                            },
+                            onTogglePatrimonio = { patrimonioId ->
+                                viewModel.dispatch(NovaLocacaoContract.Action.TogglePatrimonio(item.equipamento.id, patrimonioId))
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Botão para adicionar equipamento
+            OutlinedButton(
+                onClick = onNavigateToSelecionarEquipamento,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = AppColors.Violet600
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (state.itensSelecionados.isEmpty())
+                        Strings.NOVA_LOCACAO_SELECIONAR_EQUIPAMENTO
+                    else
+                        "Adicionar outro equipamento"
+                )
+            }
 
             // Período Selector (só aparece após selecionar equipamento)
             if (state.periodosDisponiveis.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 SectionTitle(Strings.NOVA_LOCACAO_PERIODO)
-                PeriodoSelector(
+                PeriodoSelectorMultiplo(
                     periodos = state.periodosDisponiveis,
                     periodoSelecionado = state.periodoSelecionado,
-                    equipamento = state.equipamentoSelecionado,
+                    itensSelecionados = state.itensSelecionados,
                     onPeriodoSelected = { periodo ->
                         viewModel.dispatch(NovaLocacaoContract.Action.SetPeriodo(periodo))
                     }
@@ -652,6 +697,310 @@ private fun PeriodoSelector(
                     preco?.let {
                         Text(
                             text = "${Strings.CURRENCY_SYMBOL} ${formatCurrencyValue(it)}",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) AppColors.Violet600 else AppColors.Slate500
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipamentoItemCard(
+    item: NovaLocacaoContract.ItemSelecionado,
+    disponibilidade: DisponibilidadeEquipamento?,
+    onRemove: () -> Unit,
+    onQuantidadeChange: (Int) -> Unit,
+    onTogglePatrimonio: (String) -> Unit
+) {
+    val equipamento = item.equipamento
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Violet100)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            // Header com nome e botão de remover
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AppColors.Violet200),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Construction,
+                            contentDescription = null,
+                            tint = AppColors.Violet600,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = equipamento.nome,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColors.Violet600,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = equipamento.categoria,
+                            fontSize = 12.sp,
+                            color = AppColors.Violet500
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = onRemove,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Remover equipamento",
+                        tint = AppColors.Violet600,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
+            // Quantidade ou Patrimônios
+            val quantidadeDisponivel = disponibilidade?.quantidadeDisponivel ?: equipamento.quantidade
+
+            if (equipamento.usaPatrimonio && equipamento.patrimonios.isNotEmpty()) {
+                // Equipamento usa patrimônio - mostra seletor de patrimônios
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Botão para expandir/recolher lista de patrimônios
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppColors.Violet200.copy(alpha = 0.5f))
+                        .clickable { expanded = !expanded }
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (item.patrimonioIds.isEmpty())
+                            "Selecionar patrimônios"
+                        else
+                            "${item.patrimonioIds.size} patrimônio(s) selecionado(s)",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppColors.Violet600
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = AppColors.Violet600
+                    )
+                }
+
+                // Lista de patrimônios (expandível)
+                if (expanded) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    val patrimoniosDisponiveis = disponibilidade?.getPatrimoniosDisponiveis()
+                        ?: equipamento.patrimonios
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        patrimoniosDisponiveis.forEach { patrimonio ->
+                            val isSelected = patrimonio.id in item.patrimonioIds
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) AppColors.Violet200 else Color.White)
+                                    .clickable { onTogglePatrimonio(patrimonio.id) }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = patrimonio.codigo,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isSelected) AppColors.Violet600 else AppColors.Slate700
+                                    )
+                                    patrimonio.descricao?.let { desc ->
+                                        Text(
+                                            text = desc,
+                                            fontSize = 11.sp,
+                                            color = if (isSelected) AppColors.Violet500 else AppColors.Slate500
+                                        )
+                                    }
+                                }
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { onTogglePatrimonio(patrimonio.id) },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = AppColors.Violet600,
+                                        uncheckedColor = AppColors.Slate400
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else if (quantidadeDisponivel > 1) {
+                // Equipamento sem patrimônio mas com quantidade > 1 - mostra seletor de quantidade
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppColors.Violet200.copy(alpha = 0.5f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Quantidade",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = AppColors.Violet600
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Botão diminuir
+                        IconButton(
+                            onClick = { onQuantidadeChange(item.quantidade - 1) },
+                            enabled = item.quantidade > 1,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (item.quantidade > 1) AppColors.Violet600 else AppColors.Slate300)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "Diminuir",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        // Valor atual
+                        Text(
+                            text = "${item.quantidade}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Violet600,
+                            modifier = Modifier.width(40.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+
+                        // Botão aumentar
+                        IconButton(
+                            onClick = { onQuantidadeChange(item.quantidade + 1) },
+                            enabled = item.quantidade < quantidadeDisponivel,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (item.quantidade < quantidadeDisponivel) AppColors.Violet600 else AppColors.Slate300)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Aumentar",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Info de disponibilidade
+                Text(
+                    text = "Disponível: $quantidadeDisponivel",
+                    fontSize = 11.sp,
+                    color = AppColors.Violet500,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                )
+            }
+            // Se quantidade = 1 e não usa patrimônio, não mostra controles adicionais
+        }
+    }
+}
+
+@Composable
+private fun PeriodoSelectorMultiplo(
+    periodos: List<PeriodoLocacao>,
+    periodoSelecionado: PeriodoLocacao?,
+    itensSelecionados: List<NovaLocacaoContract.ItemSelecionado>,
+    onPeriodoSelected: (PeriodoLocacao) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.Slate100)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        periodos.forEach { periodo ->
+            val isSelected = periodoSelecionado == periodo
+            // Soma os preços de todos os equipamentos para este período, considerando a quantidade
+            val precoTotal = itensSelecionados.sumOf { item ->
+                val precoUnitario = item.equipamento.getPreco(periodo) ?: 0.0
+                precoUnitario * item.quantidade
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isSelected) Color.White else Color.Transparent)
+                    .then(
+                        if (isSelected) Modifier.border(
+                            width = 1.dp,
+                            color = AppColors.Violet200,
+                            shape = RoundedCornerShape(10.dp)
+                        ) else Modifier
+                    )
+                    .clickable { onPeriodoSelected(periodo) }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = periodo.label,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (isSelected) AppColors.Violet600 else AppColors.Slate600
+                    )
+                    if (precoTotal > 0) {
+                        Text(
+                            text = "${Strings.CURRENCY_SYMBOL} ${formatCurrencyValue(precoTotal)}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isSelected) AppColors.Violet600 else AppColors.Slate500

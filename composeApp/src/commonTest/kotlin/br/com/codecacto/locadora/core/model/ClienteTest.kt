@@ -1,5 +1,7 @@
 package br.com.codecacto.locadora.core.model
 
+import br.com.codecacto.locadora.currentTimeMillis
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -189,9 +191,9 @@ class ClienteTest {
 
     @Test
     fun `Cliente deve ter timestamps de criacao e atualizacao`() {
-        val antes = System.currentTimeMillis()
+        val antes = currentTimeMillis()
         val cliente = Cliente(nomeRazao = "Teste")
-        val depois = System.currentTimeMillis()
+        val depois = currentTimeMillis()
 
         assertTrue(cliente.criadoEm >= antes)
         assertTrue(cliente.criadoEm <= depois)

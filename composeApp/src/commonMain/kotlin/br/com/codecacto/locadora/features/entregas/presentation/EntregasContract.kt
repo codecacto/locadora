@@ -10,7 +10,7 @@ import br.com.codecacto.locadora.core.model.Locacao
 data class EntregaComDetalhes(
     val locacao: Locacao,
     val cliente: Cliente?,
-    val equipamento: Equipamento?,
+    val equipamentos: List<Equipamento> = emptyList(),
     val isAtrasada: Boolean,
     val isHoje: Boolean
 )

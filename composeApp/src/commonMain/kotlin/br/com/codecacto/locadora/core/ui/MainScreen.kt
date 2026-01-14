@@ -415,10 +415,15 @@ fun MainScreen(
                         )
                     }
                     NovaLocacaoSubScreen.SELECIONAR_EQUIPAMENTO -> {
+                        // Filtra equipamentos já selecionados da lista disponível
+                        val equipamentosJaSelecionadosIds = novaLocacaoState.equipamentosSelecionados.map { it.id }.toSet()
+                        val equipamentosParaSelecionar = novaLocacaoState.equipamentosDisponiveis.filter {
+                            it.id !in equipamentosJaSelecionadosIds
+                        }
                         SelecionarEquipamentoScreen(
-                            equipamentos = novaLocacaoState.equipamentosDisponiveis,
+                            equipamentos = equipamentosParaSelecionar,
                             onSelect = { equipamento ->
-                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.SelectEquipamento(equipamento))
+                                novaLocacaoViewModel.dispatch(NovaLocacaoContract.Action.AddEquipamento(equipamento))
                                 novaLocacaoSubScreen = NovaLocacaoSubScreen.NONE
                             },
                             onAddNew = {
