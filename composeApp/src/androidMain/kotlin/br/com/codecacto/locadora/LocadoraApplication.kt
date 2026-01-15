@@ -1,6 +1,7 @@
 package br.com.codecacto.locadora
 
 import android.app.Application
+import br.com.codecacto.locadora.data.purchase.RevenueCatInitializer
 import br.com.codecacto.locadora.data.repository.UserPreferencesRepository
 import br.com.codecacto.locadora.di.appModules
 import br.com.codecacto.locadora.worker.NotificationScheduler
@@ -33,6 +34,9 @@ class LocadoraApplication : Application() {
             androidContext(this@LocadoraApplication)
             modules(appModules())
         }
+
+        // Initialize RevenueCat
+        RevenueCatInitializer.initialize()
 
         // Schedule daily notification check
         scheduleNotificationWorker()

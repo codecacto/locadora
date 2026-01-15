@@ -23,6 +23,7 @@ firebase-crashlytics-gradle = "3.0.6"
 androidx-credentials = "1.5.0"
 googleid = "1.1.1"
 androidx-work = "2.10.1"
+revenuecat = "2.2.13+17.23.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -76,6 +77,11 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 
 # WorkManager
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
+
+# RevenueCat
+revenuecat-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "revenuecat" }
+revenuecat-datetime = { module = "com.revenuecat.purchases:purchases-kmp-datetime", version.ref = "revenuecat" }
+revenuecat-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "revenuecat" }
 
 # Credentials (Google Sign-In)
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "androidx-credentials" }

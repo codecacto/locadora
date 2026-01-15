@@ -105,6 +105,11 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.compose.core)
             implementation(libs.coil.network.ktor)
+
+            // RevenueCat
+            implementation(libs.revenuecat.core)
+            implementation(libs.revenuecat.datetime)
+            implementation(libs.revenuecat.result)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

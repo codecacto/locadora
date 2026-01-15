@@ -15,6 +15,7 @@
 
 # Keep model classes
 -keep class br.com.codecacto.locadora.core.model.** { *; }
+-keep class br.com.codecacto.locadora.domain.model.** { *; }
 
 # Firebase
 -keep class com.google.firebase.** { *; }
@@ -30,3 +31,6 @@
 
 # Koin
 -keep class org.koin.** { *; }
+
+# RevenueCat
+-keep class com.revenuecat.** { *; }

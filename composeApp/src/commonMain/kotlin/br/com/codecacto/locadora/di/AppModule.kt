@@ -6,6 +6,7 @@ fun appModules(): List<Module> = listOf(
     coreModule,
     dataModule,
     authModule,
+    purchaseModule,
     locacoesModule,
     entregasModule,
     recebimentosModule,

@@ -1,6 +1,7 @@
 package br.com.codecacto.locadora
 
 import androidx.compose.ui.window.ComposeUIViewController
+import br.com.codecacto.locadora.data.purchase.RevenueCatInitializer
 import br.com.codecacto.locadora.di.appModules
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -12,6 +13,9 @@ fun initKoin() {
         startKoin {
             modules(appModules())
         }
+
+        // Initialize RevenueCat after Koin
+        RevenueCatInitializer.initialize()
     }
 }
 
