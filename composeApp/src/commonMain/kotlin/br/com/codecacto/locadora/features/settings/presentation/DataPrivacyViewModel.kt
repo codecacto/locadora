@@ -19,9 +19,8 @@ class DataPrivacyViewModel(
     override val state: StateFlow<DataPrivacyContract.State> = _state.asStateFlow()
 
     companion object {
-        // TODO: Substituir por URLs reais da empresa
-        private const val TERMS_OF_USE_URL = "https://www.google.com"
-        private const val PRIVACY_POLICY_URL = "https://www.google.com"
+        private const val TERMS_OF_USE_URL = "https://www.codecacto.com.br/locaki/terms"
+        private const val PRIVACY_POLICY_URL = "https://www.codecacto.com.br/locaki/privacy"
     }
 
     override fun onAction(action: DataPrivacyContract.Action) {
