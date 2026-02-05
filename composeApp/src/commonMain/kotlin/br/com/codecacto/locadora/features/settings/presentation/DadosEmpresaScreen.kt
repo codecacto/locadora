@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import br.com.codecacto.locadora.core.data.BrazilianStates
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import br.com.codecacto.locadora.core.ui.util.TipoPessoa
@@ -34,6 +35,7 @@ import br.com.codecacto.locadora.core.ui.util.filterCnpjInput
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DadosEmpresaScreen(
     onBack: () -> Unit,
@@ -279,7 +281,7 @@ fun DadosEmpresaScreen(
                         enabled = !state.isSaving
                     )
 
-                    // Endereco
+                    // Endereco (Rua, número e bairro)
                     OutlinedTextField(
                         value = state.endereco,
                         onValueChange = { viewModel.dispatch(DadosEmpresaContract.Action.SetEndereco(it)) },
@@ -296,12 +298,115 @@ fun DadosEmpresaScreen(
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Words,
-                            imeAction = ImeAction.Done
+                            imeAction = ImeAction.Next
                         ),
                         singleLine = false,
-                        maxLines = 3,
+                        maxLines = 2,
                         enabled = !state.isSaving
                     )
+
+                    // Estado (UF)
+                    var estadoExpanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = estadoExpanded,
+                        onExpandedChange = { if (!state.isSaving) estadoExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = state.estado.let { uf ->
+                                if (uf.isNotBlank()) {
+                                    BrazilianStates.findByAbbreviation(uf)?.let { "${it.name} ($uf)" } ?: uf
+                                } else ""
+                            },
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(Strings.DADOS_COMPROVANTE_ESTADO) },
+                            placeholder = { Text(Strings.DADOS_COMPROVANTE_ESTADO_PLACEHOLDER) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Map,
+                                    contentDescription = null,
+                                    tint = AppColors.Slate500
+                                )
+                            },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = estadoExpanded)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = !state.isSaving
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = estadoExpanded,
+                            onDismissRequest = { estadoExpanded = false }
+                        ) {
+                            BrazilianStates.all.forEach { estado ->
+                                DropdownMenuItem(
+                                    text = { Text("${estado.name} (${estado.abbreviation})") },
+                                    onClick = {
+                                        viewModel.dispatch(DadosEmpresaContract.Action.SetEstado(estado.abbreviation))
+                                        estadoExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Cidade
+                    var cidadeExpanded by remember { mutableStateOf(false) }
+                    ExposedDropdownMenuBox(
+                        expanded = cidadeExpanded,
+                        onExpandedChange = { if (!state.isSaving && state.estado.isNotBlank()) cidadeExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = state.cidade,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(Strings.DADOS_COMPROVANTE_CIDADE) },
+                            placeholder = {
+                                Text(
+                                    if (state.estado.isBlank()) Strings.DADOS_COMPROVANTE_CIDADE_SELECIONE_ESTADO
+                                    else Strings.DADOS_COMPROVANTE_CIDADE_PLACEHOLDER
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.LocationCity,
+                                    contentDescription = null,
+                                    tint = AppColors.Slate500
+                                )
+                            },
+                            trailingIcon = {
+                                if (state.estado.isNotBlank()) {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = cidadeExpanded)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = !state.isSaving && state.estado.isNotBlank()
+                        )
+
+                        if (state.cidades.isNotEmpty()) {
+                            ExposedDropdownMenu(
+                                expanded = cidadeExpanded,
+                                onDismissRequest = { cidadeExpanded = false }
+                            ) {
+                                state.cidades.forEach { cidade ->
+                                    DropdownMenuItem(
+                                        text = { Text(cidade) },
+                                        onClick = {
+                                            viewModel.dispatch(DadosEmpresaContract.Action.SetCidade(cidade))
+                                            cidadeExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 

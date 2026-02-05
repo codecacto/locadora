@@ -2,6 +2,7 @@ package br.com.codecacto.locadora.features.settings.presentation
 
 import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
+import br.com.codecacto.locadora.core.data.BrazilianCities
 import br.com.codecacto.locadora.core.error.ErrorHandler
 import br.com.codecacto.locadora.core.model.DadosEmpresa
 import br.com.codecacto.locadora.core.ui.strings.Strings
@@ -35,14 +36,22 @@ class DadosEmpresaViewModel(
                 } catch (e: Exception) {
                     TipoPessoa.JURIDICA
                 }
+                val cidades = if (dados.estado.isNotBlank()) {
+                    BrazilianCities.getCityNames(dados.estado)
+                } else {
+                    emptyList()
+                }
                 _state.value = _state.value.copy(
                     isLoading = false,
                     nomeEmpresa = dados.nomeEmpresa,
                     telefone = dados.telefone,
                     email = dados.email,
                     endereco = dados.endereco,
+                    cidade = dados.cidade,
+                    estado = dados.estado,
                     documento = dados.documento,
-                    tipoPessoa = tipoPessoa
+                    tipoPessoa = tipoPessoa,
+                    cidades = cidades
                 )
             }
         }
@@ -61,6 +70,17 @@ class DadosEmpresaViewModel(
             }
             is DadosEmpresaContract.Action.SetEndereco -> {
                 _state.value = _state.value.copy(endereco = action.value)
+            }
+            is DadosEmpresaContract.Action.SetCidade -> {
+                _state.value = _state.value.copy(cidade = action.value)
+            }
+            is DadosEmpresaContract.Action.SetEstado -> {
+                val cidades = BrazilianCities.getCityNames(action.value)
+                _state.value = _state.value.copy(
+                    estado = action.value,
+                    cidade = "", // Limpa a cidade ao trocar o estado
+                    cidades = cidades
+                )
             }
             is DadosEmpresaContract.Action.SetDocumento -> {
                 _state.value = _state.value.copy(
@@ -111,6 +131,8 @@ class DadosEmpresaViewModel(
                     telefone = _state.value.telefone,
                     email = _state.value.email,
                     endereco = _state.value.endereco,
+                    cidade = _state.value.cidade,
+                    estado = _state.value.estado,
                     documento = _state.value.documento,
                     tipoPessoa = _state.value.tipoPessoa.name
                 )

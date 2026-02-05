@@ -4,6 +4,8 @@ import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepository
 import br.com.codecacto.locadora.data.repository.CategoriaEquipamentoRepositoryImpl
 import br.com.codecacto.locadora.data.repository.ClienteRepository
 import br.com.codecacto.locadora.data.repository.ClienteRepositoryImpl
+import br.com.codecacto.locadora.data.repository.DadosEmpresaRepository
+import br.com.codecacto.locadora.data.repository.DadosEmpresaRepositoryImpl
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepositoryImpl
 import br.com.codecacto.locadora.data.repository.FeedbackRepository
@@ -25,6 +27,7 @@ val dataModule = module {
     // Repositories
     single<CategoriaEquipamentoRepository> { CategoriaEquipamentoRepositoryImpl(get()) }
     single<ClienteRepository> { ClienteRepositoryImpl(get(), get()) }
+    single<DadosEmpresaRepository> { DadosEmpresaRepositoryImpl(get(), get()) }
     single<EquipamentoRepository> { EquipamentoRepositoryImpl(get(), get()) }
     single<LocacaoRepository> { LocacaoRepositoryImpl(get(), get()) }
     single<FeedbackRepository> { FeedbackRepositoryImpl(get(), get()) }

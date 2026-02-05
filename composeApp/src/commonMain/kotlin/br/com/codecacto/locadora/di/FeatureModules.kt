@@ -31,7 +31,7 @@ val entregasModule = module {
 }
 
 val recebimentosModule = module {
-    viewModel { RecebimentosViewModel(get(), get(), get(), get()) }
+    viewModel { RecebimentosViewModel(get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val clientesModule = module {

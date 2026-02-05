@@ -242,6 +242,16 @@ fun MainScreen(
                         navController.navigate(DetalhesLocacaoRoute(locacaoId))
                     },
                     onNavigateToNotifications = { navController.navigate("notifications") },
+                    onNavigateToDadosEmpresa = {
+                        currentMenuScreen = "dados_empresa"
+                        navController.navigate(BottomNavItem.Menu.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     unreadNotifications = unreadNotifications
                 )
             }

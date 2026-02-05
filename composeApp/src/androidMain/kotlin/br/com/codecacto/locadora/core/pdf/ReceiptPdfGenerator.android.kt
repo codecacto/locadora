@@ -242,6 +242,245 @@ actual class ReceiptPdfGenerator {
         canvas.drawText("Documento gerado em ${formatDate(System.currentTimeMillis())}", pageWidth / 2, yPosition, footerPaint)
     }
 
+    actual suspend fun generateRecebimentoReceipt(data: RecebimentoReceiptData): String = withContext(Dispatchers.IO) {
+        val pdfDocument = PdfDocument()
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4
+        val page = pdfDocument.startPage(pageInfo)
+        val canvas = page.canvas
+
+        drawRecebimentoReceipt(canvas, data)
+
+        pdfDocument.finishPage(page)
+
+        // Save to cache
+        val receiptsDir = File(context.cacheDir, "receipts")
+        if (!receiptsDir.exists()) {
+            receiptsDir.mkdirs()
+        }
+
+        val fileName = "recibo_recebimento_${data.recebimento.id.take(8)}_${System.currentTimeMillis()}.pdf"
+        val file = File(receiptsDir, fileName)
+
+        FileOutputStream(file).use { outputStream ->
+            pdfDocument.writeTo(outputStream)
+        }
+
+        pdfDocument.close()
+
+        file.absolutePath
+    }
+
+    private fun drawRecebimentoReceipt(canvas: Canvas, data: RecebimentoReceiptData) {
+        val pageWidth = 595f
+        val margin = 50f
+        val contentWidth = pageWidth - (margin * 2)
+        var yPosition = 80f
+        val lineHeight = 20f
+
+        // Title
+        val titlePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 18f
+            isFakeBoldText = true
+            textAlign = Paint.Align.CENTER
+            isUnderlineText = true
+        }
+        canvas.drawText("RECIBO DE LOCAÇÃO DE EQUIPAMENTO", pageWidth / 2, yPosition, titlePaint)
+        yPosition += lineHeight * 4f
+
+        // Body text paint
+        val bodyPaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 14f
+        }
+
+        // Build the receipt text
+        val clienteNome = data.cliente.nomeRazao
+        val clienteDoc = data.cliente.cpfCnpj?.let { doc ->
+            if (doc.length == 11) "CPF" else "CNPJ"
+        } ?: "CNPJ"
+        val clienteDocFormatted = data.cliente.cpfCnpj?.let { doc ->
+            if (doc.length == 11) formatCpf(doc) else formatCnpj(doc)
+        } ?: ""
+        val clienteEndereco = data.cliente.endereco ?: ""
+        val valor = formatCurrency(data.recebimento.valor)
+        val valorExtenso = valorPorExtenso(data.recebimento.valor)
+        val equipamentosNomes = data.equipamentos.joinToString(", ") { it.nome }
+
+        // Build text parts
+        val text1 = "Recebi da Empresa $clienteNome, portador do $clienteDoc nº"
+        val text2 = "$clienteDocFormatted"
+        val text3 = if (clienteEndereco.isNotBlank()) " localizada na $clienteEndereco" else ""
+        val text4 = " o valor de $valor"
+        val text5 = "($valorExtenso), como forma de pagamento referente a locação de"
+        val text6 = "$equipamentosNomes."
+
+        // Draw text with word wrap
+        val fullText = "$text1 $text2$text3$text4 $text5 $text6"
+        yPosition = drawWrappedText(canvas, fullText, margin, yPosition, contentWidth, bodyPaint)
+
+        // Date
+        yPosition += lineHeight * 3f
+        val datePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 14f
+            textAlign = Paint.Align.RIGHT
+            isFakeBoldText = true
+        }
+        val dataPagamento = data.recebimento.dataPagamento ?: System.currentTimeMillis()
+        val dataFormatted = formatDateExtended(dataPagamento, data.dadosEmpresa.cidade, data.dadosEmpresa.estado)
+        canvas.drawText("$dataFormatted.", pageWidth - margin, yPosition, datePaint)
+
+        // Signature line
+        yPosition += lineHeight * 8f
+        val signaturePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 12f
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("_____________________________________", pageWidth / 2, yPosition, signaturePaint)
+        yPosition += lineHeight * 1.5f
+
+        // Company name
+        val companyPaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 14f
+            textAlign = Paint.Align.CENTER
+            isFakeBoldText = true
+        }
+        canvas.drawText(data.dadosEmpresa.nomeEmpresa, pageWidth / 2, yPosition, companyPaint)
+        yPosition += lineHeight
+
+        // Company document
+        val docLabel = if (data.dadosEmpresa.tipoPessoa == "FISICA") "CPF" else "CNPJ"
+        val docFormatted = if (data.dadosEmpresa.tipoPessoa == "FISICA") {
+            formatCpf(data.dadosEmpresa.documento)
+        } else {
+            formatCnpj(data.dadosEmpresa.documento)
+        }
+        canvas.drawText("$docLabel: $docFormatted", pageWidth / 2, yPosition, companyPaint)
+    }
+
+    private fun drawWrappedText(canvas: Canvas, text: String, x: Float, startY: Float, maxWidth: Float, paint: Paint): Float {
+        var y = startY
+        val words = text.split(" ")
+        var currentLine = StringBuilder()
+
+        for (word in words) {
+            val testLine = if (currentLine.isEmpty()) word else "${currentLine} $word"
+            val testWidth = paint.measureText(testLine)
+
+            if (testWidth > maxWidth && currentLine.isNotEmpty()) {
+                canvas.drawText(currentLine.toString(), x, y, paint)
+                y += 22f
+                currentLine = StringBuilder(word)
+            } else {
+                currentLine = StringBuilder(testLine)
+            }
+        }
+
+        if (currentLine.isNotEmpty()) {
+            canvas.drawText(currentLine.toString(), x, y, paint)
+            y += 22f
+        }
+
+        return y
+    }
+
+    private fun formatDateExtended(timestamp: Long, cidade: String, estado: String): String {
+        val instant = Instant.fromEpochMilliseconds(timestamp)
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+
+        val meses = listOf(
+            "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+            "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+        )
+
+        val localidade = if (cidade.isNotBlank() && estado.isNotBlank()) {
+            "$cidade-$estado"
+        } else if (cidade.isNotBlank()) {
+            cidade
+        } else {
+            ""
+        }
+        val dia = localDateTime.dayOfMonth.toString().padStart(2, '0')
+        val mes = meses[localDateTime.monthNumber - 1]
+        val ano = localDateTime.year
+
+        return if (localidade.isNotBlank()) {
+            "$localidade, $dia de $mes de $ano"
+        } else {
+            "$dia de $mes de $ano"
+        }
+    }
+
+    private fun valorPorExtenso(valor: Double): String {
+        val intPart = valor.toLong()
+        val decPart = ((valor - intPart) * 100).toInt()
+
+        val unidades = listOf("", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove")
+        val especiais = listOf("dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove")
+        val dezenas = listOf("", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa")
+        val centenas = listOf("", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos")
+
+        fun extenso0a99(n: Int): String {
+            return when {
+                n == 0 -> ""
+                n < 10 -> unidades[n]
+                n < 20 -> especiais[n - 10]
+                else -> {
+                    val dezena = dezenas[n / 10]
+                    val unidade = unidades[n % 10]
+                    if (unidade.isEmpty()) dezena else "$dezena e $unidade"
+                }
+            }
+        }
+
+        fun extenso0a999(n: Int): String {
+            return when {
+                n == 0 -> ""
+                n == 100 -> "cem"
+                n < 100 -> extenso0a99(n)
+                else -> {
+                    val centena = centenas[n / 100]
+                    val resto = extenso0a99(n % 100)
+                    if (resto.isEmpty()) centena else "$centena e $resto"
+                }
+            }
+        }
+
+        fun extensoMilhares(n: Long): String {
+            return when {
+                n == 0L -> "zero"
+                n < 1000 -> extenso0a999(n.toInt())
+                n < 1000000 -> {
+                    val milhares = (n / 1000).toInt()
+                    val resto = (n % 1000).toInt()
+                    val milharesTxt = if (milhares == 1) "mil" else "${extenso0a999(milhares)} mil"
+                    val restoTxt = extenso0a999(resto)
+                    when {
+                        resto == 0 -> milharesTxt
+                        resto < 100 -> "$milharesTxt e $restoTxt"
+                        resto % 100 == 0 -> "$milharesTxt e $restoTxt"
+                        else -> "$milharesTxt e $restoTxt"
+                    }
+                }
+                else -> n.toString() // For very large numbers, just return the number
+            }
+        }
+
+        val reaisTxt = extensoMilhares(intPart)
+        val reaisLabel = if (intPart == 1L) "real" else "reais"
+
+        return if (decPart > 0) {
+            val centavosTxt = extenso0a99(decPart)
+            val centavosLabel = if (decPart == 1) "centavo" else "centavos"
+            "${reaisTxt.replaceFirstChar { it.uppercase() }} $reaisLabel e $centavosTxt $centavosLabel"
+        } else {
+            "${reaisTxt.replaceFirstChar { it.uppercase() }} $reaisLabel"
+        }
+    }
+
     actual fun shareReceipt(filePath: String) {
         val file = File(filePath)
         val uri = FileProvider.getUriForFile(

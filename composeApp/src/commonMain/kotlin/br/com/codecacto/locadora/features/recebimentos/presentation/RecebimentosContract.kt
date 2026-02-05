@@ -42,6 +42,7 @@ object RecebimentosContract {
         data class DeleteRecebimento(val recebimentoId: String) : Action()
         data class SelectRecebimento(val recebimento: Recebimento) : Action()
         data class SelectMes(val mesAno: MesAno?) : Action()
+        data class GerarRecibo(val recebimento: RecebimentoComDetalhes) : Action()
         data object Refresh : Action()
     }
 
@@ -49,5 +50,7 @@ object RecebimentosContract {
         data class NavigateToDetalhes(val locacaoId: String) : Effect
         data class ShowSuccess(val message: String) : Effect
         data class ShowError(val message: String) : Effect
+        data class CompartilharRecibo(val filePath: String) : Effect
+        data object DadosEmpresaNaoPreenchidos : Effect
     }
 }

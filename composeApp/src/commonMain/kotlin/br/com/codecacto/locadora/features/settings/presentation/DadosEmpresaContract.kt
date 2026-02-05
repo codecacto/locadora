@@ -11,11 +11,14 @@ object DadosEmpresaContract {
         val telefone: String = "",
         val email: String = "",
         val endereco: String = "",
+        val cidade: String = "",
+        val estado: String = "",
         val documento: String = "",
         val tipoPessoa: TipoPessoa = TipoPessoa.JURIDICA,
         val documentoError: String? = null,
         val isLoading: Boolean = false,
-        val isSaving: Boolean = false
+        val isSaving: Boolean = false,
+        val cidades: List<String> = emptyList()
     ) : UiState
 
     sealed interface Effect : UiEffect {
@@ -29,6 +32,8 @@ object DadosEmpresaContract {
         data class SetTelefone(val value: String) : Action()
         data class SetEmail(val value: String) : Action()
         data class SetEndereco(val value: String) : Action()
+        data class SetCidade(val value: String) : Action()
+        data class SetEstado(val value: String) : Action()
         data class SetDocumento(val value: String) : Action()
         data class SetTipoPessoa(val value: TipoPessoa) : Action()
         data object Save : Action()

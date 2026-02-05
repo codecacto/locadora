@@ -3,14 +3,19 @@ package br.com.codecacto.locadora.features.recebimentos.presentation
 import androidx.lifecycle.viewModelScope
 import br.com.codecacto.locadora.core.base.BaseViewModel
 import br.com.codecacto.locadora.core.error.ErrorHandler
+import br.com.codecacto.locadora.core.pdf.RecebimentoReceiptData
+import br.com.codecacto.locadora.core.pdf.ReceiptPdfGenerator
 import br.com.codecacto.locadora.data.repository.ClienteRepository
+import br.com.codecacto.locadora.data.repository.DadosEmpresaRepository
 import br.com.codecacto.locadora.data.repository.EquipamentoRepository
+import br.com.codecacto.locadora.data.repository.LocacaoRepository
 import br.com.codecacto.locadora.data.repository.RecebimentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -20,6 +25,9 @@ class RecebimentosViewModel(
     private val recebimentoRepository: RecebimentoRepository,
     private val clienteRepository: ClienteRepository,
     private val equipamentoRepository: EquipamentoRepository,
+    private val locacaoRepository: LocacaoRepository,
+    private val dadosEmpresaRepository: DadosEmpresaRepository,
+    private val receiptPdfGenerator: ReceiptPdfGenerator,
     errorHandler: ErrorHandler
 ) : BaseViewModel<RecebimentosContract.State, RecebimentosContract.Effect, RecebimentosContract.Action>(errorHandler) {
 
@@ -41,6 +49,7 @@ class RecebimentosViewModel(
                 emitEffect(RecebimentosContract.Effect.NavigateToDetalhes(action.recebimento.locacaoId))
             }
             is RecebimentosContract.Action.SelectMes -> selectMes(action.mesAno)
+            is RecebimentosContract.Action.GerarRecibo -> gerarRecibo(action.recebimento)
             is RecebimentosContract.Action.Refresh -> refreshRecebimentos()
         }
     }
@@ -206,6 +215,43 @@ class RecebimentosViewModel(
             } catch (e: Exception) {
                 handleError(e)
                 emitEffect(RecebimentosContract.Effect.ShowError(e.message ?: "Erro ao excluir recebimento"))
+            }
+        }
+    }
+
+    private fun gerarRecibo(recebimentoComDetalhes: RecebimentoComDetalhes) {
+        viewModelScope.launch {
+            try {
+                val dadosEmpresa = dadosEmpresaRepository.getDadosEmpresa().first()
+
+                // Verifica se os dados da empresa estão preenchidos
+                if (dadosEmpresa.nomeEmpresa.isBlank() || dadosEmpresa.documento.isBlank()) {
+                    emitEffect(RecebimentosContract.Effect.DadosEmpresaNaoPreenchidos)
+                    return@launch
+                }
+
+                val cliente = recebimentoComDetalhes.cliente
+                if (cliente == null) {
+                    emitEffect(RecebimentosContract.Effect.ShowError("Dados do cliente não encontrados"))
+                    return@launch
+                }
+
+                // Busca a locação para obter mais detalhes se necessário
+                val locacao = locacaoRepository.getLocacaoById(recebimentoComDetalhes.recebimento.locacaoId)
+
+                val receiptData = RecebimentoReceiptData(
+                    recebimento = recebimentoComDetalhes.recebimento,
+                    cliente = cliente,
+                    equipamentos = recebimentoComDetalhes.equipamentos,
+                    dadosEmpresa = dadosEmpresa,
+                    locacao = locacao
+                )
+
+                val filePath = receiptPdfGenerator.generateRecebimentoReceipt(receiptData)
+                emitEffect(RecebimentosContract.Effect.CompartilharRecibo(filePath))
+            } catch (e: Exception) {
+                handleError(e)
+                emitEffect(RecebimentosContract.Effect.ShowError(e.message ?: "Erro ao gerar recibo"))
             }
         }
     }

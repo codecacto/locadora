@@ -31,7 +31,11 @@ import br.com.codecacto.locadora.core.ui.util.currencyToDouble
 import br.com.codecacto.locadora.core.util.adjustDatePickerTimestamp
 import br.com.codecacto.locadora.core.util.toDatePickerMillis
 import br.com.codecacto.locadora.currentTimeMillis
+import br.com.codecacto.locadora.openUrl
+import locadora.composeapp.generated.resources.Res
+import locadora.composeapp.generated.resources.ic_whatsapp
 import kotlinx.datetime.Instant
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -85,10 +89,44 @@ fun DetalhesLocacaoScreen(
                         )
                     }
                 },
+                actions = {
+                    val telefone = state.cliente?.telefoneWhatsapp
+                    if (!telefone.isNullOrBlank()) {
+                        // Botão Ligar
+                        IconButton(
+                            onClick = {
+                                val numeroLimpo = telefone.filter { it.isDigit() }
+                                openUrl("tel:$numeroLimpo")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = "Ligar",
+                                tint = Color.White
+                            )
+                        }
+                        // Botão WhatsApp
+                        IconButton(
+                            onClick = {
+                                val numeroLimpo = telefone.filter { it.isDigit() }
+                                val numeroComCodigo = if (numeroLimpo.startsWith("55")) numeroLimpo else "55$numeroLimpo"
+                                openUrl("https://wa.me/$numeroComCodigo")
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_whatsapp),
+                                contentDescription = "WhatsApp",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = AppColors.Violet600,
                     titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 )
             )
         }

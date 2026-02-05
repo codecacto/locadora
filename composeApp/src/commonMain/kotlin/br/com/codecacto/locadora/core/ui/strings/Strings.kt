@@ -58,7 +58,12 @@ object Strings {
     const val DADOS_COMPROVANTE_EMAIL = "E-mail"
     const val DADOS_COMPROVANTE_EMAIL_PLACEHOLDER = "contato@empresa.com"
     const val DADOS_COMPROVANTE_ENDERECO = "Endereço"
-    const val DADOS_COMPROVANTE_ENDERECO_PLACEHOLDER = "Rua, número, bairro, cidade"
+    const val DADOS_COMPROVANTE_ENDERECO_PLACEHOLDER = "Rua, número e bairro"
+    const val DADOS_COMPROVANTE_ESTADO = "Estado"
+    const val DADOS_COMPROVANTE_ESTADO_PLACEHOLDER = "Selecione o estado"
+    const val DADOS_COMPROVANTE_CIDADE = "Cidade"
+    const val DADOS_COMPROVANTE_CIDADE_PLACEHOLDER = "Selecione a cidade"
+    const val DADOS_COMPROVANTE_CIDADE_SELECIONE_ESTADO = "Selecione o estado primeiro"
     const val DADOS_COMPROVANTE_SALVAR = "Salvar Dados"
     const val DADOS_COMPROVANTE_SUCESSO = "Dados salvos com sucesso!"
     const val DADOS_COMPROVANTE_ERRO = "Erro ao salvar dados"
@@ -359,6 +364,12 @@ object Strings {
     const val RECEBIMENTO_CONFIRMADO = "Recebimento confirmado!"
     const val RECEBIMENTOS_FILTRO_MES = "Filtrar por mês"
     const val RECEBIMENTOS_TODOS_MESES = "Todos os meses"
+
+    // Recibo
+    const val RECIBO_GERAR = "Gerar Recibo"
+    const val RECIBO_DADOS_EMPRESA_TITLE = "Dados não preenchidos"
+    const val RECIBO_DADOS_EMPRESA_MESSAGE = "Para gerar o recibo, primeiro preencha os Dados do Comprovante no Menu. Esses dados aparecerão na assinatura do recibo."
+    const val RECIBO_DADOS_EMPRESA_BUTTON = "Preencher Dados"
 
     // Meses do ano
     val MESES = listOf(

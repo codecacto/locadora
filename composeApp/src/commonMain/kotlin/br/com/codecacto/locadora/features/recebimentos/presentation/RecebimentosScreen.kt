@@ -21,12 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.codecacto.locadora.core.pdf.ReceiptPdfGenerator
 import br.com.codecacto.locadora.core.ui.components.NotificationBadge
 import br.com.codecacto.locadora.core.ui.strings.Strings
 import br.com.codecacto.locadora.core.ui.theme.AppColors
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,16 +36,19 @@ import org.koin.compose.viewmodel.koinViewModel
 fun RecebimentosScreen(
     onNavigateToDetalhes: (String) -> Unit,
     onNavigateToNotifications: () -> Unit = {},
+    onNavigateToDadosEmpresa: () -> Unit = {},
     unreadNotifications: Int = 0,
     viewModel: RecebimentosViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val receiptPdfGenerator: ReceiptPdfGenerator = koinInject()
 
     var showConfirmDialog by remember { mutableStateOf(false) }
     var recebimentoParaConfirmar by remember { mutableStateOf<RecebimentoComDetalhes?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var recebimentoParaExcluir by remember { mutableStateOf<RecebimentoComDetalhes?>(null) }
+    var showDadosEmpresaDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -54,6 +59,12 @@ fun RecebimentosScreen(
                 }
                 is RecebimentosContract.Effect.ShowError -> {
                     snackbarHostState.showSnackbar(effect.message)
+                }
+                is RecebimentosContract.Effect.CompartilharRecibo -> {
+                    receiptPdfGenerator.shareReceipt(effect.filePath)
+                }
+                is RecebimentosContract.Effect.DadosEmpresaNaoPreenchidos -> {
+                    showDadosEmpresaDialog = true
                 }
             }
         }
@@ -168,6 +179,46 @@ fun RecebimentosScreen(
                     }
                 ) {
                     Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Modal de Dados da Empresa não preenchidos
+    if (showDadosEmpresaDialog) {
+        AlertDialog(
+            onDismissRequest = { showDadosEmpresaDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = AppColors.Yellow,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = Strings.RECIBO_DADOS_EMPRESA_TITLE,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(text = Strings.RECIBO_DADOS_EMPRESA_MESSAGE)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDadosEmpresaDialog = false
+                        onNavigateToDadosEmpresa()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Violet600)
+                ) {
+                    Text(Strings.RECIBO_DADOS_EMPRESA_BUTTON)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDadosEmpresaDialog = false }) {
+                    Text(Strings.COMMON_CANCELAR)
                 }
             }
         )
@@ -328,6 +379,9 @@ fun RecebimentosScreen(
                                     onDelete = {
                                         recebimentoParaExcluir = recebimento
                                         showDeleteDialog = true
+                                    },
+                                    onGerarRecibo = {
+                                        viewModel.dispatch(RecebimentosContract.Action.GerarRecibo(recebimento))
                                     }
                                 )
                             }
@@ -706,7 +760,8 @@ private fun InfoBox(
 private fun RecebimentoPagoCard(
     recebimento: RecebimentoComDetalhes,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onGerarRecibo: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -775,6 +830,20 @@ private fun RecebimentoPagoCard(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false }
                         ) {
+                            DropdownMenuItem(
+                                text = { Text(Strings.RECIBO_GERAR) },
+                                onClick = {
+                                    showMenu = false
+                                    onGerarRecibo()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.PictureAsPdf,
+                                        contentDescription = null,
+                                        tint = AppColors.Emerald600
+                                    )
+                                }
+                            )
                             DropdownMenuItem(
                                 text = { Text("Excluir", color = AppColors.Red) },
                                 onClick = {
